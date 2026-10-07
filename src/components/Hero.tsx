@@ -21,33 +21,36 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
         <div className="absolute inset-0 bg-radial from-transparent to-[#0f0e0b]/80" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-20 sm:pt-28 sm:pb-28">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-14 sm:pt-28 sm:pb-28">
         <div className="max-w-3xl">
           {/* Eyebrow Label */}
-          <div className="inline-flex items-center gap-2 mb-6">
-            <span className="w-8 h-px bg-[#c4b48a]" />
-            <p className="text-[11px] uppercase tracking-[0.28em] text-[#c4b48a] font-medium">
+          <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
+            <span className="w-6 sm:w-8 h-px bg-[#c4b48a]" />
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-medium">
               BurJuman Residence Block D · Dubai
             </p>
           </div>
 
           {/* Heading */}
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.08] text-[#faf8f3] mb-6">
+          <h1 className="font-serif text-3xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.12] text-[#faf8f3] mb-4 sm:mb-6">
             Connect with your body, <br className="hidden sm:inline" />
             <span className="italic font-normal text-[#c4b48a]">mind & breath.</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[#faf8f3]/80 font-normal leading-relaxed mb-8 max-w-2xl">
-            A sanctuary for intentional movement and deep breathwork at BurJuman Residence Block D. 
-            Step away from the city&apos;s velocity into mindful stillness. Start with a complimentary first class — no card required.
+          {/* Streamlined Subtitle — Clean, Breathing, Non-Repetitive */}
+          <p className="text-sm sm:text-lg text-[#faf8f3]/80 font-normal leading-relaxed mb-6 sm:mb-8 max-w-xl">
+            Step away from the city&apos;s rush into mindful stillness. Private and boutique group sessions with Priyanshi. Your first class is complimentary.
           </p>
 
-          {/* Style Pills - Clean & Subtle */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-10 text-[11px] uppercase tracking-[0.16em] text-[#faf8f3]/70">
-            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xs">Hatha Yoga</span>
-            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xs">Wheel Yoga</span>
-            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xs">Sound Bath</span>
-            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-xs">Private 1-on-1</span>
+          {/* Clean Typographic Discipline (No Cluttered Pills) */}
+          <div className="flex items-center gap-2 sm:gap-3 mb-8 text-[11px] uppercase tracking-[0.2em] text-[#c4b48a] font-medium">
+            <span>Hatha</span>
+            <span className="text-white/30" aria-hidden="true">·</span>
+            <span>Wheel</span>
+            <span className="text-white/30" aria-hidden="true">·</span>
+            <span>Barre</span>
+            <span className="text-white/30" aria-hidden="true">·</span>
+            <span>Private 1:1</span>
           </div>
 
           {/* CTAs */}

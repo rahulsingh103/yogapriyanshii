@@ -18,14 +18,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json({ limit: '15mb' }));
 
-// Normalize path if Vercel serverless function receives /schedule instead of /api/schedule
-app.use((req, _res, next) => {
-  if (req.url && !req.url.startsWith('/api') && !req.url.startsWith('/assets') && !req.url.endsWith('.html') && req.url !== '/') {
-    req.url = '/api' + req.url;
-  }
-  next();
-});
-
 // --- GEMINI AI CLIENT ---
 const aiClient = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || 'AIzaSy_fallback_key',
