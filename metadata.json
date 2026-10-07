@@ -1,0 +1,6 @@
+{
+  "name": "YogaPriyanshi & Socratic Math Tutor",
+  "description": "Boutique Dubai yoga studio booking system with live schedule, free-first-class flow, and admin dashboard, paired with a compassionate Socratic AI math tutor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

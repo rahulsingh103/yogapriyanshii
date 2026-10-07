@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-ink: #0f0e0b;
+  --color-cream: #faf8f3;
+  --color-parchment: #f2ede4;
+  --color-sand: #c4b48a;
+  --color-sand-hover: #b3a277;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background-color: rgba(196, 180, 138, 0.35);
+}
+
+/* ==========================================================================
+   DESIGN THEMES SYSTEM
+   Option 1: Desert Sanctuary (Default Warm Linen & Charcoal)
+   Option 2: Botanical Zen & Olive Sage (Earth & Restorative)
+   Option 3: Atelier Noir & Gold (High-Fashion VIP Night Studio)
+   Option 4: Alabaster Daylight (Pure Minimalist & Light-Drenched)
+   ========================================================================== */
+
+/* 2. Botanical Zen & Olive Sage */
+[data-theme="botanical"] {
+  --color-ink: #1c2621;
+  --color-cream: #f4f6f2;
+  --color-parchment: #e8ebe4;
+  --color-sand: #4e6b5d;
+  --color-sand-hover: #3b5348;
+}
+[data-theme="botanical"] body {
+  background-color: #f4f6f2 !important;
+  color: #1c2621 !important;
+}
+[data-theme="botanical"] .bg-\[\#faf8f3\] {
+  background-color: #f4f6f2 !important;
+}
+[data-theme="botanical"] .bg-\[\#f2ede4\] {
+  background-color: #e8ebe4 !important;
+}
+[data-theme="botanical"] .bg-\[\#c4b48a\] {
+  background-color: #4e6b5d !important;
+  color: #f4f6f2 !important;
+}
+[data-theme="botanical"] .text-\[\#c4b48a\] {
+  color: #4e6b5d !important;
+}
+[data-theme="botanical"] .border-\[\#c4b48a\] {
+  border-color: #4e6b5d !important;
+}
+
+/* 3. Atelier Noir & Liquid Gold */
+[data-theme="noir"] {
+  --color-ink: #0a0a0a;
+  --color-cream: #121212;
+  --color-parchment: #1a1a1a;
+  --color-sand: #dfb76c;
+  --color-sand-hover: #cfa354;
+}
+[data-theme="noir"] body {
+  background-color: #0e0e0e !important;
+  color: #f3f3f3 !important;
+}
+[data-theme="noir"] .bg-\[\#faf8f3\] {
+  background-color: #121212 !important;
+  color: #f3f3f3 !important;
+}
+[data-theme="noir"] .bg-\[\#f2ede4\] {
+  background-color: #1b1b1b !important;
+  color: #f3f3f3 !important;
+}
+[data-theme="noir"] .text-\[\#0f0e0b\] {
+  color: #f5f5f5 !important;
+}
+[data-theme="noir"] .border-\[\#0f0e0b\]\/15,
+[data-theme="noir"] .border-\[\#0f0e0b\]\/20,
+[data-theme="noir"] .border-\[\#0f0e0b\]\/10 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+[data-theme="noir"] .text-\[\#0f0e0b\]\/70,
+[data-theme="noir"] .text-\[\#0f0e0b\]\/60 {
+  color: rgba(240, 240, 240, 0.65) !important;
+}
+[data-theme="noir"] .bg-\[\#c4b48a\] {
+  background-color: #dfb76c !important;
+  color: #0a0a0a !important;
+}
+[data-theme="noir"] .text-\[\#c4b48a\] {
+  color: #dfb76c !important;
+}
+[data-theme="noir"] .border-\[\#c4b48a\] {
+  border-color: #dfb76c !important;
+}
+
+/* 4. Alabaster Daylight Minimal */
+[data-theme="alabaster"] {
+  --color-ink: #18181b;
+  --color-cream: #ffffff;
+  --color-parchment: #f8f8f6;
+  --color-sand: #968169;
+  --color-sand-hover: #806c55;
+}
+[data-theme="alabaster"] body {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+}
+[data-theme="alabaster"] .bg-\[\#faf8f3\] {
+  background-color: #ffffff !important;
+}
+[data-theme="alabaster"] .bg-\[\#f2ede4\] {
+  background-color: #f8f8f6 !important;
+}
+[data-theme="alabaster"] .bg-\[\#c4b48a\] {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+}
+[data-theme="alabaster"] .text-\[\#c4b48a\] {
+  color: #968169 !important;
+}
+[data-theme="alabaster"] .border-\[\#c4b48a\] {
+  border-color: #968169 !important;
+}
