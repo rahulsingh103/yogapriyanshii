@@ -1,6 +1,5 @@
 import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -19,9 +18,17 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json({ limit: '15mb' }));
 
+// Normalize path if Vercel serverless function receives /schedule instead of /api/schedule
+app.use((req, _res, next) => {
+  if (req.url && !req.url.startsWith('/api') && !req.url.startsWith('/assets') && !req.url.endsWith('.html') && req.url !== '/') {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // --- GEMINI AI CLIENT ---
 const aiClient = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY || 'AIzaSy_fallback_key',
   httpOptions: {
     headers: {
       'User-Agent': 'aistudio-build',
@@ -928,6 +935,7 @@ CRITICAL TEACHING PRINCIPLES:
 // --- SERVER SETUP (VITE IN DEV, STATIC IN PROD) ---
 async function startServer() {
   if (!isProduction) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -960,6 +968,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only start the HTTP listener if running outside Vercel (e.g. Docker, Cloud Run, local Node)
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default app;
