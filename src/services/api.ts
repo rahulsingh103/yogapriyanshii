@@ -118,6 +118,27 @@ function generateFallbackSchedule(): ClassSession[] {
   return sessions;
 }
 
+// Errors the server deliberately returned (validation, auth, lockout) must reach the UI.
+// The local fallbacks below only apply when the API is unreachable or answers without one.
+class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
+
+async function serverError(res: Response): Promise<ApiError | null> {
+  if (res.ok) return null;
+  try {
+    const data = await res.json();
+    if (data?.error) return new ApiError(data.error, res.status);
+  } catch {}
+  return null;
+}
+
+function rethrowApiError(err: unknown) {
+  if (err instanceof ApiError) throw err;
+}
+
 export const api = {
   async getClasses(): Promise<YogaClass[]> {
     try {
@@ -163,7 +184,10 @@ export const api = {
       if (res.ok) {
         return await res.json();
       }
-    } catch {
+      const err = await serverError(res);
+      if (err) throw err;
+    } catch (err) {
+      rethrowApiError(err);
       // Fall through to resilient local handler
     }
 
@@ -230,12 +254,18 @@ export const api = {
   },
 
   async getBooking(token: string): Promise<{ booking: Booking; session: ClassSession }> {
+    let notFound: ApiError | null = null;
     try {
       const res = await fetch(`/api/bookings/${encodeURIComponent(token)}`);
       if (res.ok) {
         return await res.json();
       }
-    } catch {}
+      const err = await serverError(res);
+      if (err && err.status !== 404) throw err;
+      notFound = err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
 
     // Check localStorage fallback
     try {
@@ -248,7 +278,7 @@ export const api = {
       }
     } catch {}
 
-    throw new Error('No reservation found for this booking token.');
+    throw notFound || new Error('No reservation found for this booking token.');
   },
 
   async cancelBooking(token: string): Promise<{ booking: Booking; message: string; noticeHours: number }> {
@@ -261,7 +291,11 @@ export const api = {
       if (res.ok) {
         return await res.json();
       }
-    } catch {}
+      const err = await serverError(res);
+      if (err && err.status !== 404) throw err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
 
     // Cancel in localStorage fallback
     try {
@@ -292,7 +326,11 @@ export const api = {
         body: JSON.stringify(payload),
       });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await serverError(res);
+      if (err) throw err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
     return { success: true, message: 'Thank you! Your message has been sent to Priyanshi.' };
   },
 
@@ -304,7 +342,11 @@ export const api = {
         body: JSON.stringify({ password }),
       });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await serverError(res);
+      if (err) throw err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
     if (password === 'Priyanshi2026!') {
       return { token: 'admin_session_token_' + Date.now(), message: 'Logged in successfully.' };
     }
@@ -317,7 +359,11 @@ export const api = {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await serverError(res);
+      if (err) throw err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
     const schedule = generateFallbackSchedule();
     const stored: Booking[] = JSON.parse(localStorage.getItem('yp_local_bookings') || '[]');
     return {
@@ -352,7 +398,11 @@ export const api = {
         body: JSON.stringify(settings),
       });
       if (res.ok) return await res.json();
-    } catch {}
+      const err = await serverError(res);
+      if (err) throw err;
+    } catch (err) {
+      rethrowApiError(err);
+    }
     return { settings, message: 'Settings saved.' };
   },
 
