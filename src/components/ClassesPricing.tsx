@@ -89,23 +89,23 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
   };
 
   return (
-    <section id="classes" className="py-24 bg-[#0f0e0b] text-[#faf8f3]">
+    <section id="classes" className="py-16 sm:py-20 lg:py-24 bg-[#0f0e0b] text-[#faf8f3]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="max-w-2xl mb-16">
-          <p className="text-xs uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-3">
+        <div className="max-w-2xl mb-10 sm:mb-12 lg:mb-16">
+          <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-2.5 sm:mb-3">
             03. Pricing & Membership
           </p>
-          <h2 className="font-serif text-3xl sm:text-5xl text-[#faf8f3] tracking-tight mb-4">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#faf8f3] tracking-tight leading-[1.15] mb-3 sm:mb-4 [text-wrap:balance]">
             Choose your practice
           </h2>
-          <p className="text-base text-[#faf8f3]/70 leading-relaxed">
+          <p className="text-sm sm:text-base text-[#faf8f3]/70 leading-[1.7] [text-wrap:pretty]">
             Begin with your complimentary introductory class. When you are ready to deepen your commitment, packs offer shareable credits and guaranteed studio reservation.
           </p>
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 sm:mb-16">
           {plans.map((plan) => (
             <div
               key={plan.key}
@@ -132,7 +132,7 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
                   {plan.title}
                 </h3>
                 <div className="flex items-baseline gap-2 mb-3">
-                  <span className="font-serif text-3xl sm:text-4xl text-[#faf8f3] font-semibold">
+                  <span className="font-serif tabular-nums text-3xl sm:text-4xl text-[#faf8f3] font-semibold">
                     {plan.priceText}
                   </span>
                   {plan.validity !== '—' && (
@@ -160,7 +160,7 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSelectPlan(plan)}
-                  className={`w-full py-3.5 text-xs font-semibold uppercase tracking-[0.2em] transition-colors text-center ${
+                  className={`w-full py-3.5 min-h-[44px] text-xs font-semibold uppercase tracking-[0.2em] transition-colors text-center rounded-xs flex items-center justify-center ${
                     plan.key === 'free'
                       ? 'bg-[#c4b48a] text-[#0f0e0b] hover:bg-[#b3a277]'
                       : plan.popular
@@ -168,7 +168,7 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
                       : 'border border-[#faf8f3]/30 text-[#faf8f3] hover:border-[#faf8f3]'
                   }`}
                 >
-                  {plan.key === 'free' ? 'Claim Free Class' : 'Get Started'}
+                  <span>{plan.key === 'free' ? 'Claim Free Class' : 'Get Started'}</span>
                 </button>
               </div>
             </div>

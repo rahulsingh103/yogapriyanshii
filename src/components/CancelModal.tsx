@@ -99,7 +99,8 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             handleReset();
             onClose();
           }}
-          className="absolute top-6 right-6 text-[#0f0e0b]/50 hover:text-[#0f0e0b]"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] rounded-xs"
+          aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
@@ -272,7 +273,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                   value={tokenInput}
                   onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
                   placeholder="e.g. YP-8K2N9F"
-                  className="w-full px-4 py-3.5 bg-[#faf8f3] border border-[#0f0e0b]/25 font-mono text-sm uppercase focus:outline-hidden focus:border-[#0f0e0b] rounded-xs"
+                  className="w-full px-4 py-3 bg-[#faf8f3] border border-[#0f0e0b]/25 font-mono text-base sm:text-sm uppercase focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
                 />
               </div>
               <p className="text-[11px] text-[#0f0e0b]/50 mt-1.5">
@@ -289,10 +290,10 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
+              className="w-full py-3.5 min-h-[44px] bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
             >
               <Search className="w-3.5 h-3.5 text-[#c4b48a]" />
-              {loading ? 'Searching...' : 'Find My Reservation'}
+              <span>{loading ? 'Searching...' : 'Find My Reservation'}</span>
             </button>
           </form>
         )}

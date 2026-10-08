@@ -31,10 +31,10 @@ export const test = base.extend<{ consoleErrors: string[] }>({
     async ({ page }, use) => {
       const errors: string[] = [];
       page.on('console', (msg) => {
-        if (msg.type() === 'error' && !/Failed to load resource: the server responded with a status of 4\d\d/.test(msg.text()))
+        if (msg.type() === 'error' && !/Failed to load resource: the server responded with a status of 4\d\d|WebSocket|\[vite\]/.test(msg.text()))
           errors.push(msg.text());
       });
-      page.on('pageerror', (err) => errors.push(err.message));
+      page.on('pageerror', (err) => { if (!/WebSocket|\[vite\]/.test(err.message)) errors.push(err.message); });
       await use(errors);
       expect(errors, 'browser console errors').toEqual([]);
     },

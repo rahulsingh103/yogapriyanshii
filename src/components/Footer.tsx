@@ -13,18 +13,18 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAdmin,
 }) => {
   return (
-    <footer className="bg-[#0f0e0b] text-[#faf8f3] border-t border-[#faf8f3]/10 pt-16 pb-20">
+    <footer className="bg-[#0f0e0b] text-[#faf8f3] border-t border-[#faf8f3]/10 pt-12 pb-16 sm:pt-16 sm:pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-10 mb-10 sm:mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <h3 className="font-serif text-2xl sm:text-3xl text-[#faf8f3] mb-3">
+            <h3 className="font-serif text-2xl sm:text-3xl text-[#faf8f3] mb-2 sm:mb-3">
               YogaPriyanshi
             </h3>
-            <p className="font-serif italic text-sm text-[#c4b48a] mb-4">
+            <p className="font-serif italic text-sm text-[#c4b48a] mb-3 sm:mb-4">
               Connect with your body.
             </p>
-            <p className="text-xs text-[#faf8f3]/60 leading-relaxed max-w-sm mb-6">
+            <p className="text-xs text-[#faf8f3]/65 leading-[1.7] max-w-sm mb-6 [text-wrap:pretty]">
               Mindful movement, classical alignment, and liberating spine mobility at BurJuman Residence Block D, Dubai. In-person sanctuary and live interactive stream.
             </p>
             <div className="flex items-center gap-4 text-xs text-[#faf8f3]/60">
@@ -49,29 +49,29 @@ export const Footer: React.FC<FooterProps> = ({
             <h4 className="text-xs uppercase tracking-widest text-[#c4b48a] font-semibold mb-4">
               Practices
             </h4>
-            <ul className="space-y-2.5 text-xs text-[#faf8f3]/70">
+            <ul className="space-y-1 text-xs text-[#faf8f3]/70">
               <li>
-                <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
+                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
                   Hatha Yoga (Foundations)
                 </a>
               </li>
               <li>
-                <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
+                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
                   Barre Yoga (Strength & Tone)
                 </a>
               </li>
               <li>
-                <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
+                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
                   Wheel Yoga (Signature Spine)
                 </a>
               </li>
               <li>
-                <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
+                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
                   Chakra Yoga Flow (Restorative)
                 </a>
               </li>
               <li>
-                <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
+                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
                   Private 1-to-1 Sessions
                 </a>
               </li>
@@ -91,18 +91,18 @@ export const Footer: React.FC<FooterProps> = ({
             <p className="text-[11px] text-[#faf8f3]/50 mb-4 font-mono">
               Mon–Sun 6:30 AM – 8:00 PM (GMT+4)
             </p>
-            <div className="space-y-2 text-xs">
+            <div className="space-y-1 text-xs">
               <button
                 type="button"
                 onClick={onOpenCancel}
-                className="block text-[#c4b48a] hover:underline"
+                className="py-1.5 min-h-[36px] flex items-center text-[#c4b48a] hover:underline text-left"
               >
                 Manage / Cancel Reservation →
               </button>
               <button
                 type="button"
                 onClick={onOpenAdmin}
-                className="block text-[#faf8f3]/50 hover:text-[#faf8f3]"
+                className="py-1.5 min-h-[36px] flex items-center text-[#faf8f3]/50 hover:text-[#faf8f3] text-left"
               >
                 Admin Dashboard Portal
               </button>

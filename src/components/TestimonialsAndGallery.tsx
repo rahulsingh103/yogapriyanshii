@@ -36,16 +36,16 @@ export const TestimonialsAndGallery: React.FC<TestimonialsAndGalleryProps> = ({
   ];
 
   return (
-    <section className="py-24 bg-[#f2ede4] border-b border-[#0f0e0b]/8">
+    <section className="py-16 sm:py-20 lg:py-24 bg-[#f2ede4] border-b border-[#0f0e0b]/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Toggleable Testimonials Section */}
-        <div className="mb-20">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+        <div className="mb-12 sm:mb-16 lg:mb-20">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 lg:mb-12 gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-2">
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-2">
                 Student Words
               </p>
-              <h2 className="font-serif text-3xl sm:text-4xl text-[#0f0e0b]">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#0f0e0b] tracking-tight leading-[1.15] [text-wrap:balance]">
                 Voices from the mat
               </h2>
             </div>
@@ -53,19 +53,19 @@ export const TestimonialsAndGallery: React.FC<TestimonialsAndGalleryProps> = ({
             <button
               type="button"
               onClick={() => setShowTestimonials(!showTestimonials)}
-              className="text-xs uppercase tracking-wider text-[#0f0e0b]/60 hover:text-[#0f0e0b] flex items-center gap-1.5 self-start sm:self-auto"
+              className="text-xs uppercase tracking-wider text-[#0f0e0b]/60 hover:text-[#0f0e0b] flex items-center gap-1.5 self-start sm:self-auto min-h-[38px]"
             >
               {showTestimonials ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              {showTestimonials ? 'Hide Reviews' : 'Show Reviews'}
+              <span>{showTestimonials ? 'Hide Reviews' : 'Show Reviews'}</span>
             </button>
           </div>
 
           {showTestimonials && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
               {testimonials.map((t, idx) => (
                 <div
                   key={idx}
-                  className="bg-[#faf8f3] p-8 border border-[#0f0e0b]/10 flex flex-col justify-between"
+                  className="bg-[#faf8f3] p-6 sm:p-8 border border-[#0f0e0b]/10 flex flex-col justify-between rounded-xs"
                 >
                   <div>
                     <div className="flex items-center gap-1 text-[#c4b48a] mb-4">
@@ -73,7 +73,7 @@ export const TestimonialsAndGallery: React.FC<TestimonialsAndGalleryProps> = ({
                         <Star key={i} className="w-3.5 h-3.5 fill-[#c4b48a]" />
                       ))}
                     </div>
-                    <p className="font-serif italic text-base text-[#0f0e0b]/85 leading-relaxed mb-6">
+                    <p className="font-serif italic text-base text-[#0f0e0b]/85 leading-[1.7] mb-6 [text-wrap:pretty]">
                       &ldquo;{t.quote}&rdquo;
                     </p>
                   </div>
@@ -90,16 +90,16 @@ export const TestimonialsAndGallery: React.FC<TestimonialsAndGalleryProps> = ({
         </div>
 
         {/* Short "A minute with Priyanshi" intro */}
-        <div className="bg-[#0f0e0b] text-[#faf8f3] p-8 sm:p-12 mb-20 border border-[#faf8f3]/10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="bg-[#0f0e0b] text-[#faf8f3] p-6 sm:p-10 lg:p-12 mb-12 sm:mb-16 lg:mb-20 border border-[#faf8f3]/10 rounded-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
             <div className="lg:col-span-8">
-              <span className="text-xs uppercase tracking-[0.25em] text-[#c4b48a] font-semibold block mb-2">
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold block mb-2">
                 A Minute with Priyanshi
               </span>
-              <h3 className="font-serif text-2xl sm:text-3xl text-[#faf8f3] mb-4">
+              <h3 className="font-serif text-2xl sm:text-3xl text-[#faf8f3] mb-3 leading-snug [text-wrap:balance]">
                 &ldquo;Your practice does not require perfection. Only presence.&rdquo;
               </h3>
-              <p className="text-xs sm:text-sm text-[#faf8f3]/75 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#faf8f3]/75 leading-[1.7] [text-wrap:pretty]">
                 In a city of high ambition, we often forget that the nervous system requires conscious deceleration. 
                 Whether you arrive tired, energized, or carrying tension in your shoulders, we reset together in the studio. 
                 All mats, blocks, and bolsters are prepared for your arrival.
@@ -109,7 +109,7 @@ export const TestimonialsAndGallery: React.FC<TestimonialsAndGalleryProps> = ({
               <button
                 type="button"
                 onClick={onOpenBooking}
-                className="px-6 py-3.5 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center gap-2"
+                className="px-6 py-3.5 min-h-[44px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs whitespace-nowrap shadow-xs"
               >
                 <span>Book Free Class</span>
                 <ArrowRight className="w-4 h-4" />

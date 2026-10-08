@@ -47,28 +47,28 @@ export const FourPaths: React.FC<FourPathsProps> = ({ onSelectClass }) => {
   ];
 
   return (
-    <section className="py-24 bg-[#faf8f3] border-b border-[#0f0e0b]/8">
+    <section className="py-16 sm:py-20 lg:py-24 bg-[#faf8f3] border-b border-[#0f0e0b]/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-2xl mb-16">
-          <p className="text-xs uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-3">
+        <div className="max-w-2xl mb-10 sm:mb-12 lg:mb-16">
+          <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-2.5 sm:mb-3">
             01. Signature Practices
           </p>
-          <h2 className="font-serif text-3xl sm:text-5xl text-[#0f0e0b] tracking-tight mb-4">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#0f0e0b] tracking-tight leading-[1.15] mb-3 sm:mb-4 [text-wrap:balance]">
             Four paths to stillness
           </h2>
-          <p className="text-base text-[#0f0e0b]/70 leading-relaxed">
+          <p className="text-sm sm:text-base text-[#0f0e0b]/75 leading-[1.7] [text-wrap:pretty]">
             Each discipline has been designed to meet you where your body is today. 
             From the deep anatomical alignment of classical Hatha to the liberating spine opening of Wheel Yoga.
           </p>
         </div>
 
         {/* Classes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {classes.map((item) => (
             <div
               key={item.id}
-              className="group relative bg-[#f2ede4] border border-[#0f0e0b]/8 p-8 sm:p-10 flex flex-col justify-between hover:border-[#c4b48a] transition-colors"
+              className="group relative bg-[#f2ede4] border border-[#0f0e0b]/8 p-6 sm:p-8 lg:p-10 flex flex-col justify-between hover:border-[#c4b48a] transition-colors rounded-xs"
             >
               <div>
                 <div className="flex items-center justify-between gap-4 text-xs text-[#0f0e0b]/60 mb-4">
@@ -84,15 +84,15 @@ export const FourPaths: React.FC<FourPathsProps> = ({ onSelectClass }) => {
                   )}
                 </div>
 
-                <h3 className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] group-hover:text-[#0f0e0b] mb-4">
+                <h3 className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] group-hover:text-[#0f0e0b] mb-3">
                   {item.name}
                 </h3>
 
-                <p className="text-sm sm:text-base text-[#0f0e0b]/75 leading-relaxed mb-6">
+                <p className="text-sm sm:text-base text-[#0f0e0b]/75 leading-relaxed mb-6 [text-wrap:pretty]">
                   {item.description}
                 </p>
 
-                <p className="text-xs text-[#0f0e0b]/55 font-mono mb-8">
+                <p className="text-xs text-[#0f0e0b]/55 font-mono mb-6">
                   Typical slot: {item.slot}
                 </p>
               </div>
@@ -101,9 +101,9 @@ export const FourPaths: React.FC<FourPathsProps> = ({ onSelectClass }) => {
                 <button
                   type="button"
                   onClick={() => onSelectClass(item.id)}
-                  className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#0f0e0b] hover:text-[#c4b48a] transition-colors group-hover:translate-x-1 duration-200"
+                  className="inline-flex items-center gap-2 min-h-[44px] text-xs font-semibold uppercase tracking-[0.15em] text-[#0f0e0b] hover:text-[#c4b48a] transition-colors group-hover:translate-x-1 duration-200"
                 >
-                  Book This Style
+                  <span>Book This Style</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>

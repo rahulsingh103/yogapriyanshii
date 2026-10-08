@@ -21,29 +21,29 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
         <div className="absolute inset-0 bg-radial from-transparent to-[#0f0e0b]/80" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-14 sm:pt-28 sm:pb-28">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-14 sm:pt-24 sm:pb-24 lg:pt-28 lg:pb-28">
         <div className="max-w-3xl">
-          {/* Eyebrow Label */}
-          <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
-            <span className="w-6 sm:w-8 h-px bg-[#c4b48a]" />
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-medium">
+          {/* Eyebrow Label with boutique spacing */}
+          <div className="inline-flex items-center gap-2.5 mb-3.5 sm:mb-5">
+            <span className="w-5 sm:w-7 h-px bg-[#c4b48a]" />
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold">
               BurJuman Residence Block D · Dubai
             </p>
           </div>
 
-          {/* Heading */}
-          <h1 className="font-serif text-3xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.12] text-[#faf8f3] mb-4 sm:mb-6">
+          {/* Heading with text-wrap balance and intentional line height */}
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight leading-[1.12] text-[#faf8f3] mb-4 sm:mb-5 [text-wrap:balance]">
             Connect with your body, <br className="hidden sm:inline" />
             <span className="italic font-normal text-[#c4b48a]">mind & breath.</span>
           </h1>
 
-          {/* Streamlined Subtitle — Clean, Breathing, Non-Repetitive */}
-          <p className="text-sm sm:text-lg text-[#faf8f3]/80 font-normal leading-relaxed mb-6 sm:mb-8 max-w-xl">
+          {/* Subtitle — Harmonious measure & line height */}
+          <p className="text-sm sm:text-base lg:text-lg text-[#faf8f3]/80 font-normal leading-[1.7] mb-6 sm:mb-7 max-w-xl [text-wrap:pretty]">
             Step away from the city&apos;s rush into mindful stillness. Private and boutique group sessions with Priyanshi. Your first class is complimentary.
           </p>
 
-          {/* Clean Typographic Discipline (No Cluttered Pills) */}
-          <div className="flex items-center gap-2 sm:gap-3 mb-8 text-[11px] uppercase tracking-[0.2em] text-[#c4b48a] font-medium">
+          {/* Clean Typographic Discipline */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-7 sm:mb-8 text-[11px] sm:text-xs uppercase tracking-[0.2em] text-[#c4b48a] font-medium">
             <span>Hatha</span>
             <span className="text-white/30" aria-hidden="true">·</span>
             <span>Wheel</span>
@@ -53,19 +53,19 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
             <span>Private 1:1</span>
           </div>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* CTAs with minimum 48px touch targets */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={onOpenBooking}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-[0.2em] transition-all rounded-xs shadow-md hover:shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-7 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-[0.2em] transition-all rounded-xs shadow-md hover:shadow-lg whitespace-nowrap"
             >
-              Book Free First Class
+              <span>Book Free First Class</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <a
               href="#schedule"
-              className="inline-flex items-center justify-center px-8 py-4 border border-white/20 hover:border-white text-[#faf8f3] text-xs font-semibold uppercase tracking-[0.2em] transition-colors rounded-xs"
+              className="inline-flex items-center justify-center px-7 sm:px-8 py-3.5 sm:py-4 min-h-[48px] border border-white/20 hover:border-white text-[#faf8f3] text-xs font-semibold uppercase tracking-[0.2em] transition-colors rounded-xs whitespace-nowrap"
             >
               View Schedule
             </a>
@@ -73,33 +73,33 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
         </div>
       </div>
 
-      {/* Credibility Stats Strip */}
+      {/* Credibility Stats Strip with Tabular Figures */}
       <div className="relative border-t border-[#faf8f3]/10 bg-[#0f0e0b]/90 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 items-center text-center divide-y md:divide-y-0 md:divide-x divide-[#faf8f3]/10">
-            <div className="pt-3 md:pt-0">
-              <span className="block font-serif text-2xl lg:text-3xl text-[#c4b48a]">7+</span>
-              <span className="text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Years Experience</span>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6 items-center text-center">
+            <div className="p-3 sm:p-2">
+              <span className="block font-serif tabular-nums text-2xl lg:text-3xl text-[#c4b48a]">7+</span>
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Years Experience</span>
             </div>
-            <div className="pt-3 md:pt-0">
+            <div className="p-3 sm:p-2 border-l border-[#faf8f3]/10">
               <span className="block font-serif text-xl lg:text-2xl text-[#faf8f3]">MA</span>
-              <span className="text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Yoga Science</span>
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Yoga Science</span>
             </div>
-            <div className="pt-3 md:pt-0">
-              <span className="block font-serif text-2xl lg:text-3xl text-[#faf8f3]">200hr</span>
-              <span className="text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Certified YTT</span>
+            <div className="p-3 sm:p-2 border-t sm:border-t-0 md:border-l border-[#faf8f3]/10">
+              <span className="block font-serif tabular-nums text-2xl lg:text-3xl text-[#faf8f3]">200hr</span>
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Certified YTT</span>
             </div>
-            <div className="pt-3 md:pt-0">
-              <span className="block font-serif text-2xl lg:text-3xl text-[#faf8f3]">4</span>
-              <span className="text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Signature Styles</span>
+            <div className="p-3 sm:p-2 border-t sm:border-t-0 border-l border-[#faf8f3]/10">
+              <span className="block font-serif tabular-nums text-2xl lg:text-3xl text-[#faf8f3]">4</span>
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Signature Styles</span>
             </div>
-            <div className="pt-3 md:pt-0 col-span-2 md:col-span-1 flex flex-col items-center justify-center">
+            <div className="p-3 sm:p-2 col-span-2 md:col-span-1 border-t md:border-t-0 md:border-l border-[#faf8f3]/10 flex flex-col items-center justify-center">
               <div className="flex items-center gap-1 text-[#c4b48a] mb-1">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3.5 h-3.5 fill-[#c4b48a]" />
                 ))}
               </div>
-              <span className="text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Rated on ClassPass</span>
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#faf8f3]/60">Rated 5.0 on ClassPass</span>
             </div>
           </div>
         </div>

@@ -173,13 +173,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#0f0e0b]/75 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-xl w-full p-6 sm:p-9 shadow-2xl relative max-h-[92vh] overflow-y-auto">
-        {/* Close Button */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/75 backdrop-blur-xs">
+      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-xl w-full p-5 sm:p-8 md:p-9 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-sm">
+        {/* Close Button with 44px touch hitbox */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 text-[#0f0e0b]/40 hover:text-[#0f0e0b] transition-colors"
+          className="absolute top-3 right-3 sm:top-5 sm:right-5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] transition-colors rounded-xs"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -303,7 +303,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <select
                   value={selectedSessionId}
                   onChange={(e) => setSelectedSessionId(e.target.value)}
-                  className="w-full appearance-none px-4 py-3 bg-white border border-[#0f0e0b]/20 text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs cursor-pointer font-medium pr-10"
+                  className="w-full appearance-none px-4 py-3 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs cursor-pointer font-medium pr-10 min-h-[44px]"
                 >
                   {sessions.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -320,9 +320,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="w-full py-3.5 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
+                className="w-full py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
               >
-                Continue to Checkout
+                <span>Continue to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -354,7 +354,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             </div>
 
-            {/* Inputs */}
+            {/* Inputs with text-base to prevent mobile iOS zoom */}
             <div className="space-y-3">
               <div>
                 <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-1">
@@ -366,7 +366,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Layla Al-Mansoor"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#0f0e0b]/20 text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs"
+                  className="w-full px-3.5 py-3 sm:py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
                 />
               </div>
 
@@ -380,7 +380,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="layla@example.com"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#0f0e0b]/20 text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs"
+                  className="w-full px-3.5 py-3 sm:py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
                 />
               </div>
             </div>
@@ -401,7 +401,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <button
                       type="button"
                       onClick={fillTestCard}
-                      className="text-[11px] text-[#c4b48a] hover:underline font-medium"
+                      className="text-[11px] text-[#c4b48a] hover:underline font-medium min-h-[36px] flex items-center"
                     >
                       Use Test Card
                     </button>
@@ -412,7 +412,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
-                    className={`py-2 px-2 border text-center rounded-xs transition-colors font-medium ${
+                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
                       paymentMethod === 'card'
                         ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
                         : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
@@ -423,7 +423,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('studio')}
-                    className={`py-2 px-2 border text-center rounded-xs transition-colors font-medium ${
+                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
                       paymentMethod === 'studio'
                         ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
                         : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
@@ -434,7 +434,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('bank_transfer')}
-                    className={`py-2 px-2 border text-center rounded-xs transition-colors font-medium ${
+                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
                       paymentMethod === 'bank_transfer'
                         ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
                         : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
@@ -451,7 +451,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
                       placeholder="Card number"
-                      className="w-full px-3 py-2 bg-white border border-[#0f0e0b]/20 text-xs font-mono rounded-xs focus:outline-hidden"
+                      className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <input
@@ -459,14 +459,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(e.target.value)}
                         placeholder="MM / YY"
-                        className="w-full px-3 py-2 bg-white border border-[#0f0e0b]/20 text-xs font-mono rounded-xs focus:outline-hidden"
+                        className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
                       />
                       <input
                         type="text"
                         value={cardCvc}
                         onChange={(e) => setCardCvc(e.target.value)}
                         placeholder="CVC"
-                        className="w-full px-3 py-2 bg-white border border-[#0f0e0b]/20 text-xs font-mono rounded-xs focus:outline-hidden"
+                        className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
                       />
                     </div>
                   </div>
@@ -489,12 +489,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             )}
 
-            {/* Stepper Buttons */}
+            {/* Stepper Buttons with 48px touch targets */}
             <div className="pt-2 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-3 border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] flex items-center gap-1.5 rounded-xs hover:border-[#0f0e0b]"
+                className="px-4 py-3 min-h-[48px] border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] flex items-center gap-1.5 rounded-xs hover:border-[#0f0e0b]"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back
@@ -504,7 +504,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 type="button"
                 disabled={loading}
                 onClick={handleNextStep}
-                className="flex-1 py-3.5 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
+                className="flex-1 py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
               >
                 {loading
                   ? 'Confirming...'

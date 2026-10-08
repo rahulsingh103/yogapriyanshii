@@ -25,7 +25,7 @@ export const StickyBookBar: React.FC<StickyBookBarProps> = ({ onOpenBooking }) =
   return (
     <aside
       aria-label="Quick booking bar"
-      className="fixed bottom-0 inset-x-0 z-40 bg-[#0f0e0b]/95 backdrop-blur-md border-t border-[#c4b48a]/30 text-[#faf8f3] px-4 py-2.5 transition-transform duration-300 shadow-xl"
+      className="fixed bottom-0 inset-x-0 z-40 bg-[#0f0e0b]/95 backdrop-blur-md border-t border-[#c4b48a]/30 text-[#faf8f3] px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-transform duration-300 shadow-xl"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs">
@@ -44,10 +44,10 @@ export const StickyBookBar: React.FC<StickyBookBarProps> = ({ onOpenBooking }) =
         <button
           type="button"
           onClick={onOpenBooking}
-          className="px-5 py-2 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-[11px] font-semibold uppercase tracking-widest transition-colors flex items-center gap-1.5 shrink-0"
+          className="px-5 py-2.5 min-h-[44px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-[11px] font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shrink-0 rounded-xs shadow-xs"
         >
           <span>Book Now</span>
-          <ArrowRight className="w-3 h-3" />
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </aside>

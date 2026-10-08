@@ -55,19 +55,21 @@ export const EmailInboxModal: React.FC<EmailInboxModalProps> = ({ isOpen, onClos
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={loadEmails}
-              className="p-2 border border-[#0f0e0b]/15 text-[#0f0e0b]/70 hover:text-[#0f0e0b] rounded"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center border border-[#0f0e0b]/15 text-[#0f0e0b]/70 hover:text-[#0f0e0b] rounded-xs transition-colors"
               title="Refresh inbox"
+              aria-label="Refresh inbox"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-[#0f0e0b]/50 hover:text-[#0f0e0b]"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] rounded-xs transition-colors"
+              aria-label="Close email dispatch monitor"
             >
               <X className="w-5 h-5" />
             </button>

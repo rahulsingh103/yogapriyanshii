@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { AdminStats, ClassSession, ContactMessage, Booking } from '../types';
-import { Lock, LogOut, ExternalLink, Save, CheckCircle2, AlertCircle, RefreshCw, Users, Calendar, DollarSign, Download } from 'lucide-react';
+import { Lock, LogOut, ExternalLink, Save, CheckCircle2, AlertCircle, RefreshCw, Users, Calendar, DollarSign, Download, X } from 'lucide-react';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -92,10 +92,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/85 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-5xl w-full p-6 sm:p-10 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-5xl w-full p-5 sm:p-8 md:p-10 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs">
+        {/* Top-right dismiss button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] transition-colors rounded-xs z-10"
+          aria-label="Close admin dashboard"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* LOGIN SCREEN */}
         {!token ? (
-          <div className="max-w-md mx-auto py-10">
+          <div className="max-w-md mx-auto py-8">
             <div className="text-center mb-8">
               <div className="w-12 h-12 bg-[#0f0e0b] text-[#faf8f3] flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-5 h-5 text-[#c4b48a]" />
@@ -107,7 +117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             </div>
 
             {loginError && (
-              <div className="p-4 mb-6 bg-red-50 border border-red-200 text-xs text-red-900 leading-relaxed">
+              <div className="p-4 mb-6 bg-red-50 border border-red-200 text-xs text-red-900 leading-relaxed rounded-xs">
                 {loginError}
               </div>
             )}
@@ -123,7 +133,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter studio password..."
-                  className="w-full px-4 py-3 bg-[#f2ede4] border border-[#0f0e0b]/20 text-sm focus:outline-hidden focus:border-[#0f0e0b]"
+                  className="w-full px-4 py-3 bg-[#f2ede4] border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
                 />
                 <p className="text-[11px] text-[#0f0e0b]/50 mt-1">
                   Default credentials: <code>Priyanshi2026!</code>
@@ -134,14 +144,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b]"
+                  className="flex-1 py-3 min-h-[44px] border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] rounded-xs hover:border-[#0f0e0b] transition-colors"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="flex-1 py-3 bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors"
+                  className="flex-1 py-3 min-h-[44px] bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors rounded-xs shadow-xs"
                 >
                   {loginLoading ? 'Verifying...' : 'Sign In'}
                 </button>

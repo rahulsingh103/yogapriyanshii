@@ -247,6 +247,7 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
         </div>
 
         {/* Quick Socratic Prompt Chips */}
+        {/* Socratic Prompts with proper touch targets */}
         <div className="py-3 flex flex-wrap gap-2 items-center">
           <span className="text-[11px] text-[#0f0e0b]/60 uppercase tracking-wider font-semibold">
             Socratic Prompts:
@@ -254,7 +255,7 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
           <button
             type="button"
             onClick={() => handleSendMessage('Why did we do that? Could you explain the intuition behind this step?')}
-            className="text-xs px-3 py-1 bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium flex items-center gap-1"
+            className="text-xs px-3 py-1.5 min-h-[38px] bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium flex items-center gap-1.5 rounded-xs"
           >
             <HelpCircle className="w-3.5 h-3.5 text-[#c4b48a]" />
             &ldquo;Why did we do that?&rdquo;
@@ -262,7 +263,7 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
           <button
             type="button"
             onClick={() => handleSendMessage("I'm not sure where to start. What is the very first step?")}
-            className="text-xs px-3 py-1 bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium flex items-center gap-1"
+            className="text-xs px-3 py-1.5 min-h-[38px] bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium flex items-center gap-1.5 rounded-xs"
           >
             <Lightbulb className="w-3.5 h-3.5 text-[#c4b48a]" />
             Walk me through Step 1
@@ -270,14 +271,14 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
           <button
             type="button"
             onClick={() => handleSendMessage("I think I understand that step. What should we do next?")}
-            className="text-xs px-3 py-1 bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium"
+            className="text-xs px-3 py-1.5 min-h-[38px] bg-[#faf8f3] hover:bg-[#c4b48a] hover:text-[#0f0e0b] border border-[#0f0e0b]/15 transition-colors font-medium rounded-xs"
           >
             What is the next step?
           </button>
         </div>
 
         {/* Input Bar & Image Upload Area */}
-        <div className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-4 shadow-xs">
+        <div className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-4 shadow-xs rounded-xs">
           {selectedImage && (
             <div className="relative inline-block mb-3 border border-[#0f0e0b]/20 bg-white p-1">
               <img
@@ -288,8 +289,9 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
               <button
                 type="button"
                 onClick={() => setSelectedImage(null)}
-                className="absolute -top-2 -right-2 bg-[#0f0e0b] text-white p-1 rounded-full hover:bg-red-700"
+                className="absolute -top-2 -right-2 bg-[#0f0e0b] text-white p-1 rounded-full hover:bg-red-700 min-h-[26px] min-w-[26px] flex items-center justify-center"
                 title="Remove image"
+                aria-label="Remove uploaded image"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -311,8 +313,9 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 bg-[#faf8f3] hover:bg-[#0f0e0b] hover:text-[#faf8f3] border border-[#0f0e0b]/15 text-[#0f0e0b] transition-colors flex items-center gap-1.5 shrink-0"
+              className="p-3 min-h-[44px] min-w-[44px] bg-[#faf8f3] hover:bg-[#0f0e0b] hover:text-[#faf8f3] border border-[#0f0e0b]/15 text-[#0f0e0b] transition-colors flex items-center justify-center gap-1.5 shrink-0 rounded-xs"
               title="Upload photo of calculus or algebra problem"
+              aria-label="Upload photo of math problem"
             >
               <Upload className="w-4 h-4 text-[#c4b48a]" />
               <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">
@@ -331,14 +334,14 @@ export const SocraticMathTutor: React.FC<SocraticMathTutorProps> = ({ onBackToSt
                 }
               }}
               placeholder="Ask a question or enter equation (e.g. ∫ x · sin(x) dx)..."
-              className="flex-1 px-4 py-3 bg-[#faf8f3] border border-[#0f0e0b]/20 text-sm focus:outline-hidden focus:border-[#0f0e0b]"
+              className="flex-1 px-4 py-3 min-h-[44px] bg-[#faf8f3] border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs"
             />
 
             <button
               type="button"
               disabled={loading || (!inputPrompt.trim() && !selectedImage)}
               onClick={() => handleSendMessage()}
-              className="px-6 py-3 bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="px-6 py-3 min-h-[44px] bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 rounded-xs"
             >
               <span>Ask</span>
               <Send className="w-3.5 h-3.5" />

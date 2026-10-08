@@ -50,30 +50,30 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
   const activeSelected = sessions.find((s) => s.id === selectedSessionId) || nonRestSessions[0];
 
   return (
-    <section id="schedule" className="py-24 bg-[#faf8f3] border-b border-[#0f0e0b]/8">
+    <section id="schedule" className="py-16 sm:py-20 lg:py-24 bg-[#faf8f3] border-b border-[#0f0e0b]/8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 gap-6">
           <div className="max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-3">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#c4b48a] font-semibold mb-2.5 sm:mb-3">
               04. Live Timetable
             </p>
-            <h2 className="font-serif text-3xl sm:text-5xl text-[#0f0e0b] tracking-tight mb-4">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#0f0e0b] tracking-tight leading-[1.15] mb-3 sm:mb-4 [text-wrap:balance]">
               Weekly schedule
             </h2>
-            <p className="text-base text-[#0f0e0b]/70 leading-relaxed">
+            <p className="text-sm sm:text-base text-[#0f0e0b]/75 leading-[1.7] [text-wrap:pretty]">
               Real-time availability for the next 8 weeks in Dubai Time (GMT+4). 
               Capacities are strictly limited to ensure individual attention and space.
             </p>
           </div>
 
-          {/* Week Selector / Refresh */}
+          {/* Week Selector / Refresh with proper touch hitboxes */}
           <div className="flex items-center gap-3">
             <div className="inline-flex p-1 bg-[#f2ede4] border border-[#0f0e0b]/10 rounded-md text-xs">
               <button
                 type="button"
                 onClick={() => setFilterWeek(0)}
-                className={`px-3 py-1.5 font-medium rounded transition-colors ${
+                className={`px-3.5 py-2 min-h-[40px] font-medium rounded transition-colors ${
                   filterWeek === 0 ? 'bg-[#0f0e0b] text-[#faf8f3]' : 'text-[#0f0e0b]/70 hover:text-[#0f0e0b]'
                 }`}
               >
@@ -82,7 +82,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setFilterWeek(1)}
-                className={`px-3 py-1.5 font-medium rounded transition-colors ${
+                className={`px-3.5 py-2 min-h-[40px] font-medium rounded transition-colors ${
                   filterWeek === 1 ? 'bg-[#0f0e0b] text-[#faf8f3]' : 'text-[#0f0e0b]/70 hover:text-[#0f0e0b]'
                 }`}
               >
@@ -91,7 +91,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setFilterWeek(2)}
-                className={`px-3 py-1.5 font-medium rounded transition-colors ${
+                className={`px-3.5 py-2 min-h-[40px] font-medium rounded transition-colors ${
                   filterWeek === 2 ? 'bg-[#0f0e0b] text-[#faf8f3]' : 'text-[#0f0e0b]/70 hover:text-[#0f0e0b]'
                 }`}
               >
@@ -102,8 +102,9 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             <button
               type="button"
               onClick={loadSchedule}
-              className="p-2 border border-[#0f0e0b]/10 text-[#0f0e0b]/70 hover:text-[#0f0e0b] transition-colors rounded-md"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center border border-[#0f0e0b]/10 text-[#0f0e0b]/70 hover:text-[#0f0e0b] transition-colors rounded-md"
               title="Refresh availability"
+              aria-label="Refresh availability"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -271,12 +272,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                   {activeSelected.status === 'full' ? (
                     <button
                       disabled
                       type="button"
-                      className="px-8 py-4 bg-[#0f0e0b]/20 text-[#0f0e0b]/50 text-xs font-semibold uppercase tracking-widest cursor-not-allowed text-center"
+                      className="px-7 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-[#0f0e0b]/20 text-[#0f0e0b]/50 text-xs font-semibold uppercase tracking-widest cursor-not-allowed text-center rounded-xs"
                     >
                       Class is Full
                     </button>
@@ -284,7 +285,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     <button
                       disabled
                       type="button"
-                      className="px-8 py-4 bg-[#0f0e0b]/20 text-[#0f0e0b]/50 text-xs font-semibold uppercase tracking-widest cursor-not-allowed text-center"
+                      className="px-7 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-[#0f0e0b]/20 text-[#0f0e0b]/50 text-xs font-semibold uppercase tracking-widest cursor-not-allowed text-center rounded-xs"
                     >
                       Session Already Passed
                     </button>
@@ -292,7 +293,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectSession(activeSelected)}
-                      className="px-8 py-4 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-[0.2em] transition-colors text-center shadow-xs"
+                      className="px-7 sm:px-8 py-3.5 sm:py-4 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-[0.2em] transition-colors text-center shadow-xs rounded-xs whitespace-nowrap"
                     >
                       Book This Class ({activeSelected.spotsLeft} Left)
                     </button>
@@ -302,17 +303,17 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             )}
 
             {/* "Good to know" Policy Box per PRD §5 */}
-            <div className="bg-[#0f0e0b] text-[#faf8f3] p-8 sm:p-10 border border-[#faf8f3]/10">
+            <div className="bg-[#0f0e0b] text-[#faf8f3] p-6 sm:p-8 lg:p-10 border border-[#faf8f3]/10 rounded-xs">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h4 className="font-serif text-xl sm:text-2xl text-[#faf8f3] mb-2">
                     Good to know
                   </h4>
-                  <p className="text-xs sm:text-sm text-[#faf8f3]/80 leading-relaxed max-w-3xl">
+                  <p className="text-xs sm:text-sm text-[#faf8f3]/80 leading-[1.7] max-w-3xl [text-wrap:pretty]">
                     <strong>Cancellation Policy:</strong> Cancellations are <strong>free up to 6 hours</strong> before class. 
                     Late cancellations use one class credit. First class is always free.
                   </p>
-                  <p className="text-xs text-[#c4b48a] mt-2">
+                  <p className="text-xs text-[#c4b48a] font-medium mt-2.5">
                     Studio Hours: Mon–Sun 6:30 AM – 8:00 PM · BurJuman Residence Block D, Dubai
                   </p>
                 </div>
@@ -321,7 +322,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                   <button
                     type="button"
                     onClick={onOpenCancel}
-                    className="px-6 py-3 border border-[#faf8f3]/30 hover:border-[#c4b48a] text-[#faf8f3] hover:text-[#c4b48a] text-xs uppercase tracking-widest transition-colors"
+                    className="min-h-[44px] px-6 py-3 border border-[#faf8f3]/30 hover:border-[#c4b48a] text-[#faf8f3] hover:text-[#c4b48a] text-xs uppercase tracking-widest transition-colors rounded-xs flex items-center justify-center"
                   >
                     Cancel / Manage Reservation
                   </button>
