@@ -12,16 +12,12 @@ import { StickyBookBar } from './components/StickyBookBar';
 import { BookingModal } from './components/BookingModal';
 import { CancelModal } from './components/CancelModal';
 import { AdminDashboard } from './components/AdminDashboard';
-import { EmailInboxModal } from './components/EmailInboxModal';
-import { SocraticMathTutor } from './components/SocraticMathTutor';
 import { ClassSession } from './types';
 
 export default function App() {
-  const [activeView, setActiveView] = useState<'studio' | 'tutor'>('studio');
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
-  const [emailInboxOpen, setEmailInboxOpen] = useState(false);
   const [preselectedSession, setPreselectedSession] = useState<ClassSession | null>(null);
 
   const [selectedPlanKey, setSelectedPlanKey] = useState<'free' | 'single' | 'pack10' | 'pack20'>('free');
@@ -53,40 +49,29 @@ export default function App() {
         onOpenBooking={() => handleOpenBooking()}
         onOpenCancel={() => setCancelModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
-        onOpenEmails={() => setEmailInboxOpen(true)}
-        activeView={activeView}
-        onSwitchView={(v) => {
-          setActiveView(v);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        activeView="studio"
+        onSwitchView={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       />
 
-      {/* Main View: Yoga Studio or Socratic Math Tutor */}
-      {activeView === 'studio' ? (
-        <main className="flex-1">
-          <Hero onOpenBooking={() => handleOpenBooking()} />
-          <FourPaths onSelectClass={handleSelectClassStyle} />
-          <AboutSection onOpenBooking={() => handleOpenBooking()} />
-          <ClassesPricing
-            onOpenBooking={(plan) => handleOpenBooking(undefined, plan)}
-            onOpenContact={() => {
-              const contactElem = document.getElementById('contact');
-              contactElem?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          />
-          <ScheduleSection
-            onSelectSession={(session) => handleOpenBooking(session)}
-            onOpenCancel={() => setCancelModalOpen(true)}
-          />
-          <TestimonialsAndGallery onOpenBooking={() => handleOpenBooking()} />
-          <ContactSection />
-          <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
-        </main>
-      ) : (
-        <main className="flex-1">
-          <SocraticMathTutor onBackToStudio={() => setActiveView('studio')} />
-        </main>
-      )}
+      <main className="flex-1">
+        <Hero onOpenBooking={() => handleOpenBooking()} />
+        <FourPaths onSelectClass={handleSelectClassStyle} />
+        <AboutSection onOpenBooking={() => handleOpenBooking()} />
+        <ClassesPricing
+          onOpenBooking={(plan) => handleOpenBooking(undefined, plan)}
+          onOpenContact={() => {
+            const contactElem = document.getElementById('contact');
+            contactElem?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+        <ScheduleSection
+          onSelectSession={(session) => handleOpenBooking(session)}
+          onOpenCancel={() => setCancelModalOpen(true)}
+        />
+        <TestimonialsAndGallery onOpenBooking={() => handleOpenBooking()} />
+        <ContactSection />
+        <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
+      </main>
 
       {/* Footer */}
       <Footer
@@ -111,11 +96,6 @@ export default function App() {
       <AdminDashboard
         isOpen={adminModalOpen}
         onClose={() => setAdminModalOpen(false)}
-      />
-
-      <EmailInboxModal
-        isOpen={emailInboxOpen}
-        onClose={() => setEmailInboxOpen(false)}
       />
     </div>
   );

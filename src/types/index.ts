@@ -47,7 +47,8 @@ export interface Booking {
   planKey: string;
   amountAed?: number;
   paymentMethod?: string;
-  paymentStatus?: 'paid' | 'pending_at_studio' | 'free';
+  // Set by the server only. 'pending' = awaiting payment; 'paid' only after a verified payment.
+  paymentStatus?: 'free' | 'pending' | 'pending_at_studio' | 'paid';
   status: 'confirmed' | 'cancelled';
   creditStatus: 'used' | 'refunded' | 'burned';
   bookedAt: string;
@@ -87,14 +88,6 @@ export interface AdminStats {
   }[];
   googleDriveLink: string;
   notificationEmail: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  image?: string; // base64 or preview url
-  timestamp: string;
 }
 
 export interface EmailNotification {

@@ -9,3 +9,5 @@ coverage/
 *.tar.gz
 test-results/
 playwright-report/
+.vercel
+.data/

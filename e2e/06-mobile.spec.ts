@@ -41,3 +41,29 @@ test('mobile free booking end to end', async ({ page }, info) => {
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
   await shot('confirmed');
 });
+
+test.describe('at 375px', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('the booking reference fits on the confirmation card', async ({ page }, info) => {
+    const shot = stepShooter(page, FEATURE, info.title);
+    await openHome(page);
+    await page.getByRole('button', { name: /Book Free First Class/ }).click();
+    const modal = bookingModal(page);
+    await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
+    await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Narrow Student');
+    await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('narrow'));
+    await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+    await expect(modal.getByText("You're on the mat.")).toBeVisible();
+
+    const card = modal.getByTestId('booking-reference-card');
+    await expect(card.getByTestId('booking-token')).toBeVisible();
+    const { scrollWidth, clientWidth } = await card.evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+    expect(scrollWidth, 'confirmation card horizontal overflow').toBeLessThanOrEqual(clientWidth);
+
+    const copy = card.getByRole('button', { name: 'Copy booking reference' });
+    const box = await copy.boundingBox();
+    expect(box && box.width >= 44 && box.height >= 44, 'copy button is a 44px tap target').toBe(true);
+    await shot('confirmed-375');
+  });
+});

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { api, ApiError } from '../services/api';
 import { ClassSession, Booking, EmailNotification } from '../types';
 import {
   X,
@@ -48,10 +48,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [phone, setPhone] = useState('');
 
   // Payment states
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'studio' | 'bank_transfer'>('card');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
+  // Paid classes are settled at the studio until a real payment provider exists.
+  const paymentMethod = 'studio' as const;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +58,26 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [activeEmailTab, setActiveEmailTab] = useState<'student' | 'studio'>('student');
   const [showEmailDetails, setShowEmailDetails] = useState(false);
   const [copied, setCopied] = useState(false);
+  // 'notice' is the calm style for the rebook-refused message; 'error' is for real problems.
+  const [errorTone, setErrorTone] = useState<'error' | 'notice'>('error');
+  const [noOtherSessions, setNoOtherSessions] = useState(false);
+  const [focusError, setFocusError] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // After a refused rebook sends the student back to step 1, move focus to the message
+  // so it isn't lost on <body>.
+  useEffect(() => {
+    if (focusError && error && errorRef.current) {
+      errorRef.current.focus();
+      setFocusError(false);
+    }
+  }, [focusError, error, step]);
 
   useEffect(() => {
     if (isOpen) {
       setError(null);
+      setErrorTone('error');
+      setNoOtherSessions(false);
       setConfirmedBooking(null);
       setDispatchedEmails([]);
       setShowEmailDetails(false);
@@ -72,15 +86,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         setPlanKey(initialPlanKey);
       }
 
-      api.getSchedule().then((data) => {
-        const available = data.filter((s) => !s.isRestDay && s.status === 'available');
-        setSessions(available);
-        if (preselectedSession && preselectedSession.status === 'available') {
-          setSelectedSessionId(preselectedSession.id);
-        } else if (available.length > 0 && !selectedSessionId) {
-          setSelectedSessionId(available[0].id);
-        }
-      });
+      api
+        .getSchedule()
+        .then((data) => {
+          const available = data.filter((s) => !s.isRestDay && s.status === 'available');
+          setSessions(available);
+          if (preselectedSession && preselectedSession.status === 'available') {
+            setSelectedSessionId(preselectedSession.id);
+          } else if (available.length > 0 && !selectedSessionId) {
+            setSelectedSessionId(available[0].id);
+          }
+        })
+        .catch((err: unknown) => {
+          setError(err instanceof Error ? err.message : 'Unable to load the live schedule.');
+        });
     }
   }, [isOpen, preselectedSession, initialPlanKey]);
 
@@ -89,15 +108,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const currentPlan = PLANS.find((p) => p.key === planKey) || PLANS[0];
   const currentSession = sessions.find((s) => s.id === selectedSessionId) || preselectedSession;
 
-  const fillTestCard = () => {
-    setCardNumber('4242 •••• •••• 4242');
-    setCardExpiry('12/28');
-    setCardCvc('888');
-    setError(null);
-  };
-
   const handleNextStep = () => {
     setError(null);
+    setErrorTone('error');
     if (step === 1) {
       if (!selectedSessionId) {
         setError('Please select an upcoming class session.');
@@ -112,10 +125,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email.trim())) {
         setError('Please enter a valid email address.');
-        return;
-      }
-      if (planKey !== 'free' && paymentMethod === 'card' && !cardNumber.trim()) {
-        setError('Please enter your card number or click "Use Test Card".');
         return;
       }
       handleCompleteBooking();
@@ -145,6 +154,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         onBookingSuccess(result.booking);
       }
     } catch (err: any) {
+      if (err instanceof ApiError && err.code === 'session_rebook_blocked') {
+        // A session this person cancelled can't be rebooked: offer the other open sessions instead.
+        const others = sessions.filter((s) => s.id !== selectedSessionId);
+        setSessions(others);
+        setSelectedSessionId(others[0]?.id ?? '');
+        setNoOtherSessions(others.length === 0);
+        setErrorTone('notice');
+        setFocusError(true);
+        setStep(1);
+      } else {
+        setErrorTone('error');
+      }
       setError(err?.message || 'Booking could not be completed.');
     } finally {
       setLoading(false);
@@ -157,6 +178,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  // The studio address inside a message becomes a mailto: link.
+  const renderMessage = (text: string) => {
+    const match = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+    if (!match || match.index === undefined) return text;
+    const address = match[0];
+    return (
+      <>
+        {text.slice(0, match.index)}
+        <a href={`mailto:${address}`} className="underline underline-offset-2 font-medium text-ink hover:text-ink/70">
+          {address}
+        </a>
+        {text.slice(match.index + address.length)}
+      </>
+    );
   };
 
   const studentEmail = dispatchedEmails.find((e) => e.type === 'student_confirmation');
@@ -204,8 +241,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* Error banner */}
         {error && (
-          <div className="p-3.5 mb-5 bg-red-50 border border-red-200 text-xs text-red-900 leading-relaxed rounded-xs">
-            {error}
+          <div
+            ref={errorRef}
+            role="alert"
+            tabIndex={-1}
+            className={`p-3.5 mb-5 border text-xs leading-relaxed rounded-xs outline-hidden focus:ring-2 focus:ring-ink/50 focus:ring-offset-2 focus:ring-offset-cream ${
+              errorTone === 'notice'
+                ? 'bg-parchment border-ink/15 text-ink'
+                : 'bg-red-50 border-red-200 text-red-900'
+            }`}
+          >
+            {errorTone === 'notice' ? renderMessage(error) : error}
           </div>
         )}
 
@@ -299,6 +345,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   Asia/Dubai (GMT+4)
                 </span>
               </div>
+              {noOtherSessions ? (
+                <p className="px-4 py-3 bg-parchment border border-ink/15 text-sm text-ink/70 rounded-xs">
+                  No other open sessions right now — please contact the studio.
+                </p>
+              ) : (
               <div className="relative">
                 <select
                   value={selectedSessionId}
@@ -313,6 +364,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </select>
                 <ChevronDown className="w-4 h-4 text-[#0f0e0b]/50 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+              )}
             </div>
 
             {/* Primary Action Button */}
@@ -320,7 +372,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="w-full py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
+                disabled={noOtherSessions}
+                className="w-full py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#c4b48a]"
               >
                 <span>Continue to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
@@ -393,99 +446,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             ) : (
               <div className="border border-[#0f0e0b]/15 p-4 rounded-xs bg-[#f2ede4]/40 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold">
-                    Payment Option
-                  </span>
-                  {paymentMethod === 'card' && (
-                    <button
-                      type="button"
-                      onClick={fillTestCard}
-                      className="text-[11px] text-[#c4b48a] hover:underline font-medium min-h-[36px] flex items-center"
-                    >
-                      Use Test Card
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('card')}
-                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
-                      paymentMethod === 'card'
-                        ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
-                        : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
-                    }`}
-                  >
-                    Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('studio')}
-                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
-                      paymentMethod === 'studio'
-                        ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
-                        : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
-                    }`}
-                  >
-                    Pay at Studio
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('bank_transfer')}
-                    className={`py-2 px-2 min-h-[44px] flex items-center justify-center border text-center rounded-xs transition-colors font-medium ${
-                      paymentMethod === 'bank_transfer'
-                        ? 'bg-[#0f0e0b] text-[#faf8f3] border-[#0f0e0b]'
-                        : 'bg-white text-[#0f0e0b] border-[#0f0e0b]/15'
-                    }`}
-                  >
-                    Bank Transfer
-                  </button>
-                </div>
-
-                {paymentMethod === 'card' && (
-                  <div className="space-y-2.5 pt-1">
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      placeholder="Card number"
-                      className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        placeholder="MM / YY"
-                        className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
-                      />
-                      <input
-                        type="text"
-                        value={cardCvc}
-                        onChange={(e) => setCardCvc(e.target.value)}
-                        placeholder="CVC"
-                        className="w-full px-3 py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-xs font-mono rounded-xs focus:outline-hidden min-h-[44px]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {paymentMethod === 'studio' && (
-                  <p className="text-xs text-[#0f0e0b]/70 pt-1">
-                    Your seat is held immediately. Settle AED {currentPlan.aed} at BurJuman Residence Block D reception desk upon arrival.
-                  </p>
-                )}
-
-                {paymentMethod === 'bank_transfer' && (
-                  <div className="text-xs text-[#0f0e0b]/70 pt-1 space-y-1">
-                    <p className="font-mono text-[11px] bg-white p-2 border border-[#0f0e0b]/10 rounded-xs">
-                      Emirates NBD · YogaPriyanshi LLC<br />
-                      IBAN: AE07 0260 0012 3456 7890 123
-                    </p>
-                  </div>
-                )}
+                <span className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold">
+                  Payment
+                </span>
+                <p className="text-xs text-[#0f0e0b]/70">
+                  Your seat is held immediately. Settle AED {currentPlan.aed} at BurJuman Residence Block D reception desk upon arrival. Online payment is coming soon.
+                </p>
               </div>
             )}
 
@@ -510,9 +476,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ? 'Confirming...'
                   : planKey === 'free'
                   ? 'Confirm Free Reservation'
-                  : paymentMethod === 'studio'
-                  ? `Reserve Seat (Pay at Studio)`
-                  : `Pay ${currentPlan.price} & Confirm`}
+                  : `Reserve Seat (Pay at Studio)`}
               </button>
             </div>
           </div>
@@ -530,32 +494,40 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               You&apos;re on the mat.
             </h3>
             <p className="text-xs text-[#0f0e0b]/60 mb-6">
-              Confirmation dispatched to <strong>{confirmedBooking.customerEmail}</strong>
+              {studentEmail ? (
+                <>
+                  Confirmation sent to <strong>{confirmedBooking.customerEmail}</strong>
+                </>
+              ) : (
+                <>We couldn&apos;t send your confirmation email just now. Please save your booking reference below.</>
+              )}
             </p>
 
             {/* Prominent Booking Token Badge (BIG TOKEN, Small Label) */}
-            <div className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-5 max-w-sm mx-auto mb-6 rounded-xs">
-              <span className="text-[10px] uppercase tracking-widest text-[#0f0e0b]/50 block mb-1">
+            <div data-testid="booking-reference-card" className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-5 max-w-sm mx-auto mb-6 rounded-xs">
+              <span className="text-xs uppercase tracking-widest text-[#0f0e0b]/60 block mb-1">
                 Your Booking Reference
               </span>
               <div className="flex items-center justify-center gap-2">
-                <span className="font-mono text-2xl font-bold tracking-wider text-[#0f0e0b]">
+                <span
+                  data-testid="booking-token"
+                  className="font-mono text-2xl max-sm:text-base max-sm:tracking-normal whitespace-nowrap font-bold tracking-wider text-[#0f0e0b]"
+                >
                   {confirmedBooking.bookingToken}
                 </span>
                 <button
                   type="button"
                   onClick={copyToken}
-                  className="p-1.5 text-[#0f0e0b]/60 hover:text-[#0f0e0b] transition-colors"
-                  title="Copy Token"
+                  aria-label="Copy booking reference"
+                  title="Copy booking reference"
+                  className="min-w-[44px] min-h-[44px] shrink-0 flex items-center justify-center text-[#0f0e0b]/60 hover:text-[#0f0e0b] transition-colors rounded-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ink/50"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
               </div>
-              {copied && (
-                <span className="text-[11px] text-[#c4b48a] font-medium block mt-1">
-                  Copied to clipboard
-                </span>
-              )}
+              <span aria-live="polite" className="text-xs text-ink/70 font-medium block mt-1 min-h-[1rem]">
+                {copied ? 'Copied to clipboard' : ''}
+              </span>
             </div>
 
             {/* Clean Metadata List */}
@@ -576,8 +548,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-[#0f0e0b]/50">Status</span>
-                <span className="font-medium text-emerald-800">
-                  {confirmedBooking.amountAed ? `AED ${confirmedBooking.amountAed} (${confirmedBooking.paymentStatus === 'paid' ? 'Paid' : 'Pay at Studio'})` : 'Complimentary'}
+                <span
+                  className={`font-medium ${
+                    !confirmedBooking.amountAed || confirmedBooking.paymentStatus === 'paid'
+                      ? 'text-emerald-800'
+                      : 'text-ink/70'
+                  }`}
+                >
+                  {confirmedBooking.amountAed
+                    ? `AED ${confirmedBooking.amountAed} (${
+                        confirmedBooking.paymentStatus === 'paid'
+                          ? 'Paid'
+                          : confirmedBooking.paymentStatus === 'pending_at_studio'
+                            ? 'Pay at Studio'
+                            : 'Payment pending'
+                      })`
+                    : 'Complimentary'}
                 </span>
               </div>
             </div>
@@ -607,11 +593,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {showEmailDetails && (
               <div className="bg-[#171512] text-[#faf8f3] p-4 text-xs leading-relaxed max-w-md mx-auto mb-6 text-left rounded-xs">
                 <div className="text-[11px] text-[#faf8f3]/50 pb-2 mb-2 border-b border-[#faf8f3]/10">
-                  <p><strong>From:</strong> Priyanshi &lt;priyanshi@yogapriyanshi.com&gt;</p>
+                  <p><strong>From:</strong> {studentEmail?.sender || 'Priyanshi · YogaPriyanshi'}</p>
                   <p><strong>To:</strong> {confirmedBooking.customerEmail}</p>
                 </div>
                 <p className="whitespace-pre-wrap text-[#faf8f3]/90 font-sans">
-                  {studentEmail?.body || `Hi ${confirmedBooking.customerName},\n\nYour session is confirmed for ${confirmedBooking.sessionTitle} on ${confirmedBooking.sessionTimeDubai} at BurJuman Residence Block D, Dubai.\n\nYour token: ${confirmedBooking.bookingToken}\n\nSee you on the mat!`}
+                  {studentEmail?.body ||
+                    `Your booking is confirmed, but we couldn't send the confirmation email just now.\n\nPlease keep your booking token: ${confirmedBooking.bookingToken}\n\nYou'll need it to manage or cancel this booking.`}
                 </p>
               </div>
             )}

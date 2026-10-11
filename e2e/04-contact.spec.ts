@@ -1,9 +1,10 @@
 import { test, expect, stepShooter, openHome, uniqueEmail } from './helpers';
+import { TEST_ADMIN_PASSWORD } from './test-admin';
 
 const FEATURE = 'contact';
 
 async function adminToken(request: import('@playwright/test').APIRequestContext) {
-  const res = await request.post('/api/admin/login', { data: { password: 'Priyanshi2026!' } });
+  const res = await request.post('/api/admin/login', { data: { password: TEST_ADMIN_PASSWORD } });
   expect(res.status()).toBe(200);
   return (await res.json()).token as string;
 }
@@ -35,6 +36,13 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   expect(msg).toBeTruthy();
   expect(msg.interest).toBe('Wheel Yoga');
 
+  // the studio was alerted, with replies going straight to the student
+  const { emails } = await (await page.request.get('/api/test/outbox')).json();
+  const alert = emails.find((e: any) => e.kind === 'contact_alert' && e.replyTo === email);
+  expect(alert, 'contact alert email').toBeTruthy();
+  expect(alert.recipient).toBe('nbsingh2050@gmail.com');
+  expect(alert.body).toContain('Is the Wheel class OK for beginners?');
+
   await contact.getByRole('button', { name: 'Send Another Message' }).click();
   await expect(contact.getByPlaceholder('e.g. Sarah Jenkins')).toHaveValue('');
 });
@@ -50,7 +58,17 @@ test('honeypot submissions are silently discarded', async ({ request }) => {
   expect(stats.recentMessages.find((m: any) => m.email === email)).toBeUndefined();
 });
 
-test('contact API rejects missing fields', async ({ request }) => {
+test('contact API rejects missing fields and bad input', async ({ request }) => {
   const res = await request.post('/api/contact', { data: { name: 'Only name' } });
   expect(res.status()).toBe(400);
+  const badEmail = await request.post('/api/contact', { data: { name: 'A', email: 'nope', message: 'hi' } });
+  expect(badEmail.status()).toBe(400);
+  const badInterest = await request.post('/api/contact', {
+    data: { name: 'A', email: uniqueEmail('interest'), message: 'hi', interest: '<script>' },
+  });
+  expect(badInterest.status()).toBe(400);
+  const tooLong = await request.post('/api/contact', {
+    data: { name: 'A', email: uniqueEmail('long'), message: 'x'.repeat(2001) },
+  });
+  expect(tooLong.status()).toBe(400);
 });

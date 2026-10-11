@@ -36,7 +36,7 @@ test('free first class: full happy path with validation', async ({ page }, info)
   await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
   const token = await modal.locator('span.font-mono.text-2xl').innerText();
-  expect(token).toMatch(/^YP-[0-9A-F]{6}$/);
+  expect(token).toMatch(/^YP-[0-9A-HJKMNP-TV-Z]{16}$/);
   await expect(modal.getByText('Online Stream')).toBeVisible();
   await expect(modal.getByText('Complimentary', { exact: true })).toBeVisible();
   await shot('confirmation');
@@ -77,8 +77,7 @@ test('paid single class, pay at studio', async ({ page }, info) => {
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Studio Payer');
   await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('studio'));
-  await modal.getByRole('button', { name: 'Pay at Studio' }).click();
-  await expect(modal.getByText('Settle AED 350 at BurJuman')).toBeVisible();
+  await expect(modal.getByText(/Settle AED 350 at BurJuman/)).toBeVisible();
   await shot('pay-at-studio-selected');
   await modal.getByRole('button', { name: 'Reserve Seat (Pay at Studio)' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
@@ -86,36 +85,23 @@ test('paid single class, pay at studio', async ({ page }, info) => {
   await shot('confirmation');
 });
 
-test('paid 10-pack by card requires card details', async ({ page }, info) => {
+test('paid packs are reserved to pay at the studio, with no card or bank form', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
-  const modal = await openBooking(page);
-  await modal.getByRole('button', { name: /AED 3,000/ }).click();
-  await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
-  await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Card Payer');
-  await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('card'));
-  await modal.getByRole('button', { name: /Pay AED 3,000 & Confirm/ }).click();
-  await expect(modal.getByText('Please enter your card number')).toBeVisible();
-  await shot('card-required');
-  await modal.getByRole('button', { name: 'Use Test Card' }).click();
-  await shot('test-card-filled');
-  await modal.getByRole('button', { name: /Pay AED 3,000 & Confirm/ }).click();
-  await expect(modal.getByText('AED 3000 (Paid)')).toBeVisible();
-  await shot('confirmation');
-});
-
-test('bank transfer shows IBAN and books', async ({ page }, info) => {
-  const shot = stepShooter(page, FEATURE, info.title);
-  const modal = await openBooking(page);
-  await modal.getByRole('button', { name: /AED 5,600/ }).click();
-  await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
-  await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Bank Payer');
-  await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('bank'));
-  await modal.getByRole('button', { name: 'Bank Transfer' }).click();
-  await expect(modal.getByText(/IBAN: AE07/)).toBeVisible();
-  await shot('bank-transfer');
-  await modal.getByRole('button', { name: /Pay AED 5,600 & Confirm/ }).click();
-  await expect(modal.getByText("You're on the mat.")).toBeVisible();
-  await shot('confirmation');
+  for (const [price, total, who] of [['3,000', '3000', 'pack10'], ['5,600', '5600', 'pack20']] as const) {
+    const modal = await openBooking(page);
+    await modal.getByRole('button', { name: new RegExp(`AED ${price}`) }).click();
+    await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
+    await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Studio Payer');
+    await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail(who));
+    // no card fields and no bank details until a real payment provider exists
+    await expect(modal.getByPlaceholder('Card number')).toHaveCount(0);
+    await expect(modal.getByText(/IBAN/)).toHaveCount(0);
+    await shot(`${who}-pay-at-studio`);
+    await modal.getByRole('button', { name: 'Reserve Seat (Pay at Studio)' }).click();
+    await expect(modal.getByText("You're on the mat.")).toBeVisible();
+    await expect(modal.getByText(`AED ${total} (Pay at Studio)`)).toBeVisible();
+    await shot(`${who}-confirmation`);
+  }
 });
 
 test('back button returns to step 1 keeping choices', async ({ page }, info) => {
@@ -139,7 +125,29 @@ test('booking API enforces capacity, double-booking and validation rules', async
     data: { sessionId: session.id, fullName: 'X', email, mode: 'in_person', planKey: 'single' },
   });
   expect(again.status()).toBe(400);
-  expect((await again.json()).error).toContain('already booked');
+  const againError: string = (await again.json()).error;
+  expect(againError).toContain('already booked');
+  expect(againError, 'the error must not reveal the booking token').not.toContain(body.booking.bookingToken);
+  expect(againError).not.toMatch(/YP-/);
+
+  // price and payment status come from the server, whatever the browser sends
+  expect(body.booking.amountAed).toBe(350);
+  expect(body.booking.paymentStatus).toBe('pending_at_studio');
+  const forged = await request.post('/api/bookings', {
+    data: { sessionId: session.id, fullName: 'X', email: uniqueEmail('forged'), mode: 'in_person', planKey: 'pack10', paymentMethod: 'studio', amountAed: 1, paymentStatus: 'paid' },
+  });
+  expect(forged.status()).toBe(201);
+  const forgedBody = await forged.json();
+  expect(forgedBody.booking.amountAed).toBe(3000);
+  expect(forgedBody.booking.paymentStatus).toBe('pending_at_studio');
+
+  // card and bank transfer are refused by the server until real payments exist
+  for (const method of ['card', 'bank_transfer']) {
+    const refused = await request.post('/api/bookings', {
+      data: { sessionId: session.id, fullName: 'X', email: uniqueEmail(method), mode: 'in_person', planKey: 'single', paymentMethod: method },
+    });
+    expect(refused.status()).toBe(400);
+  }
 
   const bad = await request.post('/api/bookings', {
     data: { sessionId: session.id, fullName: 'X', email: 'nope', mode: 'in_person' },

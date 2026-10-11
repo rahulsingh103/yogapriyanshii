@@ -44,16 +44,20 @@ export const test = base.extend<{ consoleErrors: string[] }>({
 
 export { expect };
 
-export async function firstAvailableSession(request: APIRequestContext) {
+/** The soonest bookable session; `minHoursAhead` skips ones too close for a free (6h+) cancellation. */
+export async function firstAvailableSession(request: APIRequestContext, minHoursAhead = 0) {
   const res = await request.get('/api/schedule');
   const { sessions } = await res.json();
-  const s = sessions.find((x: any) => !x.isRestDay && x.status === 'available');
+  const earliest = Date.now() + minHoursAhead * 60 * 60 * 1000;
+  const s = sessions.find(
+    (x: any) => !x.isRestDay && x.status === 'available' && new Date(x.startTimeUtc).getTime() > earliest
+  );
   expect(s, 'an available session exists').toBeTruthy();
   return s;
 }
 
-export async function apiBook(request: APIRequestContext, overrides: Record<string, unknown> = {}) {
-  const session = await firstAvailableSession(request);
+export async function apiBook(request: APIRequestContext, overrides: Record<string, unknown> = {}, minHoursAhead = 0) {
+  const session = await firstAvailableSession(request, minHoursAhead);
   const res = await request.post('/api/bookings', {
     data: {
       sessionId: session.id,

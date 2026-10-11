@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { AdminStats, ClassSession, ContactMessage, Booking } from '../types';
-import { Lock, LogOut, ExternalLink, Save, CheckCircle2, AlertCircle, RefreshCw, Users, Calendar, DollarSign, Download, X } from 'lucide-react';
+import { Lock, LogOut, ExternalLink, Save, CheckCircle2, AlertCircle, RefreshCw, Users, Calendar, DollarSign, X } from 'lucide-react';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -36,8 +36,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       setLoadingStats(true);
       const data = await api.getAdminStats(adminToken);
       setStats(data);
-      setSettingsDriveLink(data.googleDriveLink);
-      setSettingsNotifyEmail(data.notificationEmail);
+      setSettingsDriveLink(data.googleDriveLink || '');
+      setSettingsNotifyEmail(data.notificationEmail || '');
     } catch (err: any) {
       console.error(err);
       if (err?.message?.includes('expired') || err?.message?.includes('Unauthorized')) {
@@ -66,6 +66,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   };
 
   const handleLogout = () => {
+    // End the session on the server too; the local sign-out happens either way.
+    if (token) api.adminLogout(token).catch(() => undefined);
     setToken(null);
     localStorage.removeItem('yp_admin_token');
     setStats(null);
@@ -89,6 +91,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       setSavingSettings(false);
     }
   };
+
+  // Scale the chart to the best month so real (often small) numbers stay readable.
+  const maxEarnings = stats ? Math.max(0, ...stats.earnings6Months.map((m) => m.amountAed)) : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/85 backdrop-blur-xs">
@@ -173,15 +178,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               </div>
 
               <div className="flex items-center gap-3">
-                <a
-                  href="/api/download-source"
-                  download="yogapriyanshi-source.tar.gz"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#0f0e0b]/20 text-xs uppercase tracking-wider text-[#0f0e0b] hover:bg-[#c4b48a] hover:border-[#c4b48a] transition-colors"
-                  title="Download complete project archive (.tar.gz)"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Export Code</span>
-                </a>
                 <button
                   type="button"
                   onClick={() => loadStats(token)}
@@ -224,8 +220,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                     <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block">
                       AED {stats.totalRevenueAed.toLocaleString()}
                     </span>
-                    <span className="text-[10px] text-emerald-700 font-mono mt-1 block">
-                      +12.4% vs last period
+                    <span className="text-xs text-[#0f0e0b]/50 font-mono mt-1 block">
+                      Confirmed payments only
                     </span>
                   </div>
 
@@ -248,8 +244,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                     <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block tabular-nums">
                       {stats.newClientsThisMonth}
                     </span>
-                    <span className="text-[10px] text-emerald-700 font-mono mt-1 block">
-                      78% free-to-pack conversion
+                    <span className="text-xs text-[#0f0e0b]/50 font-mono mt-1 block">
+                      First booked this month
                     </span>
                   </div>
 
@@ -272,13 +268,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                     Earnings — Last 6 Months (AED)
                   </h4>
                   <p className="text-xs text-[#0f0e0b]/60 mb-6">
-                    Monthly revenue trajectory across single drop-ins, 10-packs, and 20-packs.
+                    {stats.earnings6Months.some((m) => m.amountAed > 0)
+                      ? 'Confirmed payments by month across single drop-ins, 10-packs, and 20-packs.'
+                      : 'No confirmed payments yet. Months fill in as payments are recorded.'}
                   </p>
 
-                  <div className="grid grid-cols-6 gap-2 sm:gap-4 items-end h-44 pt-6 pb-2 border-b border-[#0f0e0b]/15">
+                  <div
+                    role="img"
+                    aria-label={`Earnings by month, in AED: ${stats.earnings6Months
+                      .map((m) => `${m.month} ${m.amountAed.toLocaleString()}`)
+                      .join(', ')}`}
+                    className="grid grid-cols-6 gap-2 sm:gap-4 items-end h-44 pt-6 pb-2 border-b border-[#0f0e0b]/15"
+                  >
                     {stats.earnings6Months.map((item, idx) => {
-                      const maxEarnings = 25000;
-                      const heightPercent = Math.min(100, Math.round((item.amountAed / maxEarnings) * 100));
+                      const heightPercent = maxEarnings > 0 ? Math.round((item.amountAed / maxEarnings) * 100) : 0;
                       const isCurrent = idx === stats.earnings6Months.length - 1;
 
                       return (
@@ -395,20 +398,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                       <div className="flex gap-2">
                         <input
                           type="url"
-                          required
                           value={settingsDriveLink}
+                          placeholder="Not set"
                           onChange={(e) => setSettingsDriveLink(e.target.value)}
                           className="flex-1 px-4 py-2.5 bg-[#faf8f3] border border-[#0f0e0b]/20 text-xs focus:outline-hidden focus:border-[#0f0e0b]"
                         />
-                        <a
-                          href={settingsDriveLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-2.5 bg-[#0f0e0b] text-[#faf8f3] text-xs flex items-center gap-1 hover:bg-[#262420]"
-                          title="Open Sheet"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                        {settingsDriveLink && (
+                          <a
+                            href={settingsDriveLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2.5 bg-[#0f0e0b] text-[#faf8f3] text-xs flex items-center gap-1 hover:bg-[#262420]"
+                            title="Open Sheet"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
                       </div>
                     </div>
 
