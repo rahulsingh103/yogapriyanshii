@@ -67,6 +67,15 @@
   descent-override: 24.80%;
   line-gap-override: 0%;
 }
+@font-face {
+  font-family: "Italiana Fallback";
+  font-style: italic;
+  src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT"), local("Times Italic");
+  size-adjust: 102.90%;
+  ascent-override: 90.38%;
+  descent-override: 24.30%;
+  line-gap-override: 0%;
+}
 
 html {
   /* No scroll-behavior here: Lenis owns smooth scrolling. */
