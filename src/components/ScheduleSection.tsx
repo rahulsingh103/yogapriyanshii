@@ -58,7 +58,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
     <section id="schedule" className="py-20 lg:py-32">
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
         {/* Heading, one line, and the week switcher */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="flex flex-col gap-6">
             <h2 className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink">
               Weekly schedule
@@ -68,8 +68,8 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="flex-1 md:flex-none grid grid-cols-3 gap-1 p-1 rounded-full bg-surface-alt">
+          <div className="flex items-center gap-2 w-full sm:max-w-[480px] lg:w-auto lg:max-w-none">
+            <div className="flex-1 lg:flex-none grid grid-cols-3 gap-1 p-1 rounded-full bg-surface-alt">
               {(
                 [
                   [0, 'This Week'],
@@ -180,7 +180,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       {isPast ? (
                         <span className={isSelected ? 'text-on-ink/75' : 'text-ink-soft'}>Session Past</span>
                       ) : isFull ? (
-                        <span className={cn('uppercase tracking-[0.1em]', isSelected ? 'text-on-ink' : 'text-error')}>
+                        <span className={cn('uppercase tracking-[0.08em] whitespace-nowrap', isSelected ? 'text-on-ink' : 'text-error')}>
                           Fully Booked
                         </span>
                       ) : (
@@ -247,7 +247,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
               <p className="text-sm leading-[1.5] text-ink-soft">
                 Mats and props provided. Online? Your Zoom link arrives an hour before.
               </p>
-              <button type="button" onClick={onOpenCancel} className={cn(ui.secondary, 'self-start sm:self-auto')}>
+              <button type="button" onClick={onOpenCancel} className={cn(ui.secondary, 'self-start sm:self-auto shrink-0 whitespace-nowrap')}>
                 Cancel / Manage Reservation
               </button>
             </div>

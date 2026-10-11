@@ -38,8 +38,8 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
                     <span className="text-sm leading-[1.5] text-ink-soft">
                       {plan.line.split(' · ').map((part, i) => (
                         <React.Fragment key={part}>
-                          {i > 0 && ' · '}
-                          <span className="whitespace-nowrap">{part}</span>
+                          {i > 0 && <span className="hidden sm:inline"> · </span>}
+                          <span className="block sm:inline whitespace-nowrap">{part}</span>
                         </React.Fragment>
                       ))}
                     </span>
