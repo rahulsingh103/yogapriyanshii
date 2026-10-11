@@ -166,14 +166,15 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       {session.dateDubai.split(',')[0]}
                     </span>
                     <span className={cn('text-xs tabular-nums', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                      {session.dateDubai.split(', ')[1]} · <span className="whitespace-nowrap">{session.timeDubai}</span>
+                      <span className="block">{session.dateDubai.split(', ')[1]}</span>
+                      <span className="block whitespace-nowrap">{session.timeDubai}</span>
                     </span>
 
                     <span className="mt-auto pt-3 min-h-[3.3em] flex items-end font-display text-[24px] leading-[1.1]">
                       {session.className}
                     </span>
                     <span className={cn('text-xs', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                      {session.level} · {session.duration}m
+                      <span className="whitespace-nowrap">{session.level}</span> · <span className="whitespace-nowrap">{session.duration}m</span>
                     </span>
 
                     <span className="pt-2 text-xs font-semibold tabular-nums">
