@@ -2,6 +2,11 @@ import { createRoot } from 'react-dom/client';
 import { ReactLenis } from 'lenis/react';
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react';
 import 'lenis/dist/lenis.css';
+// Self-hosted fonts, latin subset only (DESIGN_SYSTEM §3). index.html preloads the above-the-fold files.
+import '@fontsource/italiana/latin-400.css';
+import '@fontsource/figtree/latin-400.css';
+import '@fontsource/figtree/latin-500.css';
+import '@fontsource/figtree/latin-600.css';
 import App from './App.tsx';
 import './index.css';
 

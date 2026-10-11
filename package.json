@@ -16,6 +16,8 @@
     "hash-password": "tsx scripts/hash-password.ts"
   },
   "dependencies": {
+    "@fontsource/figtree": "^5.3.0",
+    "@fontsource/italiana": "^5.3.0",
     "@libsql/client": "^0.18.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",

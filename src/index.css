@@ -33,8 +33,8 @@
   --shadow-raised: 0 8px 30px color-mix(in srgb, var(--color-ink) 8%, transparent);
 
   /* Type */
-  --font-display: "Italiana", "Didot", Georgia, serif;
-  --font-sans: "Figtree", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Italiana", "Italiana Fallback", "Didot", Georgia, serif;
+  --font-sans: "Figtree", "Figtree Fallback", -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Legacy aliases so the not-yet-restyled sections keep rendering.
@@ -44,6 +44,37 @@
   --color-parchment: var(--color-surface-alt);
   --color-sand: var(--color-accent);
   --color-sand-hover: var(--color-accent-text);
+}
+
+/* Metric-matched fallbacks: while the self-hosted fonts load (font-display: swap), text renders
+   in a local font scaled to the same width and line box, so the swap causes no layout shift.
+   Values measured in Chromium against the @fontsource latin files: width ratio for size-adjust,
+   ascent/descent divided by size-adjust. */
+@font-face {
+  font-family: "Figtree Fallback";
+  font-weight: 100 500;
+  src: local("Arial"), local("ArialMT");
+  size-adjust: 99.64%;
+  ascent-override: 95.34%;
+  descent-override: 25.09%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Figtree Fallback";
+  font-weight: 600 900;
+  src: local("Arial Bold"), local("Arial-BoldMT");
+  size-adjust: 94.13%;
+  ascent-override: 100.92%;
+  descent-override: 26.56%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Italiana Fallback";
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Times");
+  size-adjust: 100.79%;
+  ascent-override: 92.27%;
+  descent-override: 24.80%;
+  line-gap-override: 0%;
 }
 
 html {

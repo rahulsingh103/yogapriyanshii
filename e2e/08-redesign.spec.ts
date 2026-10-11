@@ -75,8 +75,11 @@ test('the Yin Yoga card brings Contact into view', async ({ page }, info) => {
 test('a header nav link lands the section just below the header', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  // The web fonts swap in shortly after load and shift the layout; wait so the click's target is final.
-  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // No document.fonts.ready wait: the fonts are preloaded and their fallbacks are metric-matched,
+  // so the font swap doesn't move the target. The live schedule does grow the page once it loads,
+  // and Lenis re-measures the page on a short debounce, so let it settle first (as a person would).
+  await expect(page.locator('#schedule').getByText('Retrieving live studio availability...')).toHaveCount(0);
+  await page.waitForTimeout(400);
   await page.locator('header nav[aria-label="Main"]').getByRole('link', { name: 'Contact', exact: true }).click();
   const padding = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop));
   expect(padding).toBeGreaterThan(0);

@@ -9,9 +9,11 @@
     <meta property="og:description" content="Yoga with Priyanshi in Dubai: Hatha, Barre, Wheel and Chakra Flow classes, in person or online. Your first class is free." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Self-hosted fonts (@fontsource, imported in src/main.tsx). The three latin files used above the fold
+         are preloaded; Vite fingerprints them to the same URLs the @font-face rules use. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/italiana/files/italiana-latin-400-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-400-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-600-normal.woff2" />
   </head>
   <body class="bg-bg text-ink antialiased">
     <div id="root"></div>
