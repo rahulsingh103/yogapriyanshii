@@ -72,6 +72,8 @@ export interface ContactMessage {
   id: string;
   name: string;
   email: string;
+  /** Optional; null when the sender left it empty. */
+  phone: string | null;
   interest: string;
   message: string;
   createdAt: string;

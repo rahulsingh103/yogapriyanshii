@@ -27,6 +27,11 @@ export const CONTACT_INTERESTS = [
   'Chakra Yoga Flow',
   'Private session',
   'Class Packs & Corporate',
+  // Classes not on the timetable yet: their carousel cards open the contact form with these preset.
+  'Spine Healing',
+  'Mobility Yoga',
+  'Yin Yoga',
+  'Prenatal & Postnatal',
 ] as const;
 
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
@@ -62,6 +67,23 @@ export function isSessionId(value: string): boolean {
 
 export function oneOf<T extends string>(value: unknown, allowed: readonly T[]): T | null {
   return typeof value === 'string' && (allowed as readonly string[]).includes(value) ? (value as T) : null;
+}
+
+const PHONE_RE = /^\+?[0-9 ()-]{6,24}$/;
+
+/**
+ * Optional phone number. Empty means none (returns '' so the caller stores NULL).
+ * Otherwise: one line, at most 30 characters, digits with an optional leading +, spaces,
+ * brackets and dashes, and 6 to 15 digits in total. Returns null when invalid.
+ */
+export function phoneOrEmpty(value: unknown): string | null {
+  if (value === undefined || value === null) return '';
+  if (typeof value !== 'string') return null;
+  const s = value.trim();
+  if (!s) return '';
+  if (s.length > 30 || /[\r\n]/.test(s) || !PHONE_RE.test(s)) return null;
+  const digits = s.replace(/\D/g, '').length;
+  return digits >= 6 && digits <= 15 ? s : null;
 }
 
 /** Empty, or an https URL up to 500 characters. */

@@ -254,6 +254,8 @@ export interface ContactEmailData {
   messageId: string;
   name: string;
   email: string;
+  /** Optional; the alert only shows a phone line when one was given. */
+  phone: string | null;
   interest: string;
   message: string;
 }
@@ -262,7 +264,7 @@ export async function sendContactAlert(d: ContactEmailData, notifyEmail: string)
   const body = `New message from the website contact form.
 
 • Name: ${d.name}
-• Email: ${d.email}
+• Email: ${d.email}${d.phone ? `\n• Phone: ${d.phone}` : ''}
 • Interest: ${d.interest}
 
 ${d.message}

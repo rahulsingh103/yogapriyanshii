@@ -72,3 +72,38 @@ test('contact API rejects missing fields and bad input', async ({ request }) => 
   });
   expect(tooLong.status()).toBe(400);
 });
+
+test('contact API validates the optional phone and accepts the new class interests', async ({ request }) => {
+  for (const phone of ['abc', '1'.repeat(40), '+971 50\n123 4567', '12345']) {
+    const res = await request.post('/api/contact', {
+      data: { name: 'Phone Check', email: uniqueEmail('badphone'), message: 'hi', phone },
+    });
+    expect(res.status(), `phone ${JSON.stringify(phone)}`).toBe(400);
+    expect((await res.json()).error).toBe('Please enter a valid phone number, or leave it empty.');
+  }
+  for (const interest of ['Spine Healing', 'Mobility Yoga', 'Yin Yoga', 'Prenatal & Postnatal']) {
+    const res = await request.post('/api/contact', {
+      data: { name: 'Interest Check', email: uniqueEmail('interest'), message: 'hi', interest },
+    });
+    expect(res.status(), interest).toBe(200);
+  }
+});
+
+test('a message without a phone is stored with no phone, and the alert has no phone line', async ({ request }) => {
+  const email = uniqueEmail('nophone');
+  const res = await request.post('/api/contact', {
+    data: { name: 'No Phone', email, message: 'Email me, please.', phone: '' },
+  });
+  expect(res.status()).toBe(200);
+
+  const token = await adminToken(request);
+  const stats = await (await request.get('/api/admin/stats', { headers: { Authorization: `Bearer ${token}` } })).json();
+  const msg = stats.recentMessages.find((m: any) => m.email === email);
+  expect(msg).toBeTruthy();
+  expect(msg.phone).toBeNull();
+
+  const { emails } = await (await request.get('/api/test/outbox')).json();
+  const alert = emails.find((e: any) => e.kind === 'contact_alert' && e.replyTo === email);
+  expect(alert, 'contact alert email').toBeTruthy();
+  expect(alert.body).not.toContain('Phone:');
+});

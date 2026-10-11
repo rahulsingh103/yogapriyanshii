@@ -204,7 +204,7 @@ export async function stats(): Promise<AdminStatsResponse> {
       args: [new Date(months[0].startUtc).toISOString()],
     }),
     db.execute(
-      'SELECT id, name, email, interest, message, created_at FROM contact_messages ORDER BY created_at DESC LIMIT 10'
+      'SELECT id, name, email, phone, interest, message, created_at FROM contact_messages ORDER BY created_at DESC LIMIT 10'
     ),
     db.execute(
       'SELECT b.id, b.token, b.session_id, b.plan_key, b.mode, b.status, b.credit_status, b.booked_at, b.cancelled_at, ' +
@@ -229,6 +229,7 @@ export async function stats(): Promise<AdminStatsResponse> {
       id: String(r.id),
       name: String(r.name),
       email: String(r.email),
+      phone: r.phone == null ? null : String(r.phone),
       interest: String(r.interest),
       message: String(r.message),
       createdAt: String(r.created_at),

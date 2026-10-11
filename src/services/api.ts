@@ -82,6 +82,7 @@ export const api = {
   async sendContact(payload: {
     name: string;
     email: string;
+    phone?: string;
     interest: string;
     message: string;
     website?: string;
