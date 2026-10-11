@@ -86,7 +86,7 @@ export function MandalaBackground() {
       ctx.beginPath();
       ctx.arc(0, 0, c * 0.05 * bloom, 0, Math.PI * 2);
       ctx.fillStyle = colours.accent;
-      ctx.globalAlpha = 0.35;
+      ctx.globalAlpha = 0.15;
       ctx.fill();
       ctx.restore();
       ctx.globalAlpha = 1;
@@ -128,7 +128,7 @@ export function MandalaBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
       <canvas
         ref={canvasRef}
         className="absolute left-1/2 top-1/2 size-[min(115vmin,980px)] -translate-x-1/2 -translate-y-1/2"

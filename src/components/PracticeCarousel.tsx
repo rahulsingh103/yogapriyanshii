@@ -82,10 +82,10 @@ export function PracticeCarousel({ onSelectClass }: PracticeCarouselProps) {
               type="button"
               data-testid="practice-card"
               onClick={() => onSelectClass(practice)}
-              className="card-lift snap-start grid grid-rows-[auto_1fr] min-w-0 text-left bg-glass backdrop-blur-[8px] rounded-[18px] overflow-hidden transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="card-lift focus-visible:outline-offset-[-3px] snap-start grid grid-rows-[auto_1fr] min-w-0 text-left bg-glass backdrop-blur-[8px] rounded-[18px] overflow-hidden transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <div className={`${PLACEHOLDERS[i % PLACEHOLDERS.length]} min-h-[260px] flex items-end p-3.5`} aria-hidden="true">
-                <span className="bg-surface/75 text-ink-soft text-xs px-2 py-1 rounded-[2px]">
+              <div className={`${PLACEHOLDERS[i % PLACEHOLDERS.length]} min-h-[260px] flex items-end p-4`} aria-hidden="true">
+                <span className="bg-surface/90 text-ink-soft text-xs px-2 py-1 rounded-[2px]">
                   Photo · {practice.name}
                 </span>
               </div>

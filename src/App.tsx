@@ -46,7 +46,7 @@ export default function App() {
 
   return (
     // Transparent on purpose: the page colour is on <body> so the mandala layer shows through.
-    <div className="min-h-screen flex flex-col text-ink font-sans">
+    <div className="min-h-screen flex flex-col text-ink font-sans pb-[88px] sm:pb-0">
       <MandalaBackground />
 
       <Header
