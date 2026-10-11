@@ -61,32 +61,38 @@ test('the Hatha card opens booking with the soonest Hatha session preselected', 
   await shot('hatha-preselected');
 });
 
-test('the Yin Yoga card brings Contact into view', async ({ page }, info) => {
+test('the Yin Yoga card opens the contact pop-up with Yin Yoga as the interest', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const classes = page.locator('#classes');
   await classes.scrollIntoViewIfNeeded();
   await classes.getByRole('button', { name: /^Yin Yoga/ }).click();
-  await expect(page.locator('#contact')).toBeInViewport();
+  const dialog = page.getByRole('dialog', { name: 'Send a message' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Yin Yoga');
   await expect(bookingModal(page)).toHaveCount(0);
-  await shot('contact-in-view');
+  await shot('contact-yin');
+
+  // reopening from the Contact section goes back to the general interest
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await page.locator('#contact').getByRole('button', { name: 'Contact Priyanshi' }).click();
+  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('General enquiry');
 });
 
 test('a header nav link lands the section just below the header', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   // No document.fonts.ready wait: the fonts are preloaded and their fallbacks are metric-matched,
-  // so the font swap doesn't move the target. The live schedule does grow the page once it loads,
-  // and Lenis re-measures the page on a short debounce, so let it settle first (as a person would).
-  await expect(page.locator('#schedule').getByText('Retrieving live studio availability...')).toHaveCount(0);
-  await page.waitForTimeout(400);
-  await page.locator('header nav[aria-label="Main"]').getByRole('link', { name: 'Contact', exact: true }).click();
+  // so the font swap doesn't move the target. Schedule is the target because everything above it
+  // is static (Contact sits too close to the end of the page to reach the top at this height).
+  await page.locator('header nav[aria-label="Main"]').getByRole('link', { name: 'Schedule', exact: true }).click();
   const padding = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop));
   expect(padding).toBeGreaterThan(0);
-  const contactTop = () => page.locator('#contact').evaluate((el) => el.getBoundingClientRect().top);
+  const sectionTop = () => page.locator('#schedule').evaluate((el) => el.getBoundingClientRect().top);
   // Wait for the smooth scroll to finish, then check the landing position.
-  await expect.poll(async () => Math.abs((await contactTop()) - padding), { timeout: 10_000 }).toBeLessThanOrEqual(6);
-  await shot('contact-landing');
+  await expect.poll(async () => Math.abs((await sectionTop()) - padding), { timeout: 10_000 }).toBeLessThanOrEqual(6);
+  await shot('schedule-landing');
 });
 
 test.describe('with reduced motion', () => {

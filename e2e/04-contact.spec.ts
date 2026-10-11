@@ -9,12 +9,20 @@ async function adminToken(request: import('@playwright/test').APIRequestContext)
   return (await res.json()).token as string;
 }
 
+async function openContact(page: import('@playwright/test').Page) {
+  await openHome(page);
+  const section = page.locator('#contact');
+  await section.scrollIntoViewIfNeeded();
+  await section.getByRole('button', { name: 'Contact Priyanshi' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByPlaceholder('e.g. Sarah Jenkins')).toBeVisible();
+  return dialog;
+}
+
 test('contact form sends a message that reaches the admin inbox', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   const email = uniqueEmail('contact');
-  await openHome(page);
-  const contact = page.locator('#contact');
-  await contact.scrollIntoViewIfNeeded();
+  const contact = await openContact(page);
   await shot('empty-form');
 
   // browser-level required validation blocks empty submit
@@ -23,7 +31,7 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
 
   await contact.getByPlaceholder('e.g. Sarah Jenkins').fill('Contact Tester');
   await contact.getByPlaceholder('sarah@example.com').fill(email);
-  await contact.locator('select').selectOption('Wheel Yoga');
+  await contact.getByLabel('Area of Interest').selectOption('Wheel Yoga');
   await contact.getByPlaceholder(/Tell Priyanshi/).fill('Is the Wheel class OK for beginners?');
   await shot('filled-form');
   await contact.getByRole('button', { name: 'Send Message' }).click();
@@ -35,6 +43,7 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   const msg = stats.recentMessages.find((m: any) => m.email === email);
   expect(msg).toBeTruthy();
   expect(msg.interest).toBe('Wheel Yoga');
+  expect(msg.phone).toBeNull();
 
   // the studio was alerted, with replies going straight to the student
   const { emails } = await (await page.request.get('/api/test/outbox')).json();
@@ -42,9 +51,47 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   expect(alert, 'contact alert email').toBeTruthy();
   expect(alert.recipient).toBe('nbsingh2050@gmail.com');
   expect(alert.body).toContain('Is the Wheel class OK for beginners?');
+  expect(alert.body).not.toContain('Phone:');
 
   await contact.getByRole('button', { name: 'Send Another Message' }).click();
   await expect(contact.getByPlaceholder('e.g. Sarah Jenkins')).toHaveValue('');
+});
+
+test('a phone number is optional, and when given it reaches the alert and the admin dashboard', async ({ page }, info) => {
+  const shot = stepShooter(page, FEATURE, info.title);
+  const email = uniqueEmail('phone');
+  const digits = String(Date.now()).slice(-7); // unique per run, so the dashboard link is unambiguous
+  const phone = `+971 50 ${digits}`;
+  const contact = await openContact(page);
+  await contact.getByPlaceholder('e.g. Sarah Jenkins').fill('Phone Tester');
+  await contact.getByPlaceholder('sarah@example.com').fill(email);
+  await expect(contact.getByLabel('Phone (optional)')).toHaveAttribute('type', 'tel');
+
+  // the server rejects a bad number with a clear message
+  await contact.getByLabel('Phone (optional)').fill('call me maybe');
+  await contact.getByPlaceholder(/Tell Priyanshi/).fill('Do you teach privately?');
+  await contact.getByRole('button', { name: 'Send Message' }).click();
+  await expect(contact.getByRole('alert')).toHaveText('Please enter a valid phone number, or leave it empty.');
+  await shot('bad-phone');
+
+  await contact.getByLabel('Phone (optional)').fill(phone);
+  await shot('filled-with-phone');
+  await contact.getByRole('button', { name: 'Send Message' }).click();
+  await expect(contact.getByText('Message Sent')).toBeVisible();
+
+  const { emails } = await (await page.request.get('/api/test/outbox')).json();
+  const alert = emails.find((e: any) => e.kind === 'contact_alert' && e.replyTo === email);
+  expect(alert, 'contact alert email').toBeTruthy();
+  expect(alert.body).toContain(`• Phone: ${phone}`);
+
+  // Priyanshi sees it in the dashboard as a tap-to-call link
+  const token = await adminToken(page.request);
+  await page.evaluate((t) => localStorage.setItem('yp_admin_token', t), token);
+  await page.reload(); // the dashboard reads its saved session when the page loads
+  await page.locator('footer').getByRole('button', { name: 'Studio admin' }).click();
+  const admin = page.getByRole('dialog', { name: "Priyanshi's Studio Overview" });
+  await expect(admin.getByRole('link', { name: phone })).toHaveAttribute('href', `tel:+97150${digits}`);
+  await shot('admin-phone');
 });
 
 test('honeypot submissions are silently discarded', async ({ request }) => {

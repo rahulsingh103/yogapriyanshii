@@ -37,15 +37,6 @@
   --font-sans: "Figtree", "Figtree Fallback", -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Legacy aliases so the not-yet-restyled sections keep rendering.
-   Remove in Batch 2, once every component uses the tokens above. */
-@theme {
-  --color-cream: var(--color-bg);
-  --color-parchment: var(--color-surface-alt);
-  --color-sand: var(--color-accent);
-  --color-sand-hover: var(--color-accent-text);
-}
-
 /* Metric-matched fallbacks: while the self-hosted fonts load (font-display: swap), text renders
    in a local font scaled to the same width and line box, so the swap causes no layout shift.
    Values measured in Chromium against the @fontsource latin files: width ratio for size-adjust,

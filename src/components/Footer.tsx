@@ -1,123 +1,49 @@
-import React from 'react';
 import { Instagram } from 'lucide-react';
 
 interface FooterProps {
-  onOpenBooking: () => void;
   onOpenCancel: () => void;
   onOpenAdmin: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  onOpenBooking,
-  onOpenCancel,
-  onOpenAdmin,
-}) => {
+const QUIET_BUTTON =
+  'inline-flex items-center min-h-11 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200';
+
+export function Footer({ onOpenCancel, onOpenAdmin }: FooterProps) {
   return (
-    <footer className="bg-[#0f0e0b] text-[#faf8f3] border-t border-[#faf8f3]/10 pt-12 pb-16 sm:pt-16 sm:pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-10 mb-10 sm:mb-12">
-          {/* Brand */}
-          <div className="md:col-span-2">
-            <h3 className="font-serif text-2xl sm:text-3xl text-[#faf8f3] mb-2 sm:mb-3">
+    <footer className="border-t border-line">
+      <div className="max-w-[1040px] mx-auto px-5 py-16 flex flex-col gap-12">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-8">
+          <div className="flex flex-col gap-3">
+            <a href="#home" className="self-start inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
               YogaPriyanshi
-            </h3>
-            <p className="font-serif italic text-sm text-[#c4b48a] mb-3 sm:mb-4">
-              Connect with your body.
-            </p>
-            <p className="text-xs text-[#faf8f3]/65 leading-[1.7] max-w-sm mb-6 [text-wrap:pretty]">
-              Mindful movement, classical alignment, and liberating spine mobility at BurJuman Residence Block D, Dubai. In-person sanctuary and live interactive stream.
-            </p>
-            <div className="flex items-center gap-4 text-xs text-[#faf8f3]/60">
-              <a
-                href="https://instagram.com/yogapriyanshi"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#c4b48a] transition-colors flex items-center gap-1.5"
-              >
-                <Instagram className="w-4 h-4 text-[#c4b48a]" />
-                @yogapriyanshi
-              </a>
-              <span>·</span>
-              <span>ClassPass 5★</span>
-              <span>·</span>
-              <span>FindYoga Dubai</span>
-            </div>
+            </a>
+            <p className="text-sm leading-[1.5] text-ink-soft">BurJuman Residence Block D, Bur Dubai, Dubai</p>
+            <a
+              href="https://instagram.com/yogapriyanshi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start inline-flex items-center gap-2 min-h-11 text-sm text-ink-soft hover:text-ink transition-colors duration-200"
+            >
+              <Instagram className="size-4 text-accent-text" aria-hidden="true" />
+              @yogapriyanshi
+            </a>
           </div>
 
-          {/* Practice Links */}
-          <div>
-            <h4 className="text-xs uppercase tracking-widest text-[#c4b48a] font-semibold mb-4">
-              Practices
-            </h4>
-            <ul className="space-y-1 text-xs text-[#faf8f3]/70">
-              <li>
-                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
-                  Hatha Yoga (Foundations)
-                </a>
-              </li>
-              <li>
-                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
-                  Barre Yoga (Strength & Tone)
-                </a>
-              </li>
-              <li>
-                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
-                  Wheel Yoga (Signature Spine)
-                </a>
-              </li>
-              <li>
-                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
-                  Chakra Yoga Flow (Restorative)
-                </a>
-              </li>
-              <li>
-                <a href="#classes" className="py-1.5 block hover:text-[#faf8f3] transition-colors">
-                  Private 1-to-1 Sessions
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Studio Info & Actions */}
-          <div>
-            <h4 className="text-xs uppercase tracking-widest text-[#c4b48a] font-semibold mb-4">
-              Studio & Policies
-            </h4>
-            <p className="text-xs text-[#faf8f3]/70 leading-relaxed mb-3">
-              BurJuman Residence Block D<br />
-              Bur Dubai, Dubai<br />
-              United Arab Emirates
-            </p>
-            <p className="text-[11px] text-[#faf8f3]/50 mb-4 font-mono">
-              Mon–Sun 6:30 AM – 8:00 PM (GMT+4)
-            </p>
-            <div className="space-y-1 text-xs">
-              <button
-                type="button"
-                onClick={onOpenCancel}
-                className="py-1.5 min-h-[36px] flex items-center text-[#c4b48a] hover:underline text-left"
-              >
-                Manage / Cancel Reservation →
-              </button>
-              <button
-                type="button"
-                onClick={onOpenAdmin}
-                className="py-1.5 min-h-[36px] flex items-center text-[#faf8f3]/50 hover:text-[#faf8f3] text-left"
-              >
-                Admin Dashboard Portal
-              </button>
-            </div>
+          <div className="flex flex-col items-start sm:items-end gap-1">
+            <button type="button" onClick={onOpenCancel} className={QUIET_BUTTON}>
+              Manage booking
+            </button>
+            <button type="button" onClick={onOpenAdmin} className={QUIET_BUTTON}>
+              Studio admin
+            </button>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[#faf8f3]/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#faf8f3]/50">
-          <p>© {new Date().getFullYear()} YogaPriyanshi. All rights reserved. Dubai, UAE.</p>
-          <p>
-            Cancellations free up to 6 hours before class. First class is always free.
-          </p>
+        <div className="pt-6 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs leading-[1.5] text-ink-soft">
+          <p>Free cancellation up to 6 hours before class. Your first class is always free.</p>
+          <p>© {new Date().getFullYear()} YogaPriyanshi · Dubai</p>
         </div>
       </div>
     </footer>
   );
-};
+}

@@ -13,7 +13,7 @@ test('look up and cancel a booking (≥6h notice refunds credit)', async ({ page
   const spotsAfterBooking = body.session.spotsLeft;
 
   await openHome(page);
-  await page.locator('footer').getByRole('button', { name: 'Manage / Cancel Reservation →' }).click();
+  await page.locator('footer').getByRole('button', { name: 'Manage booking' }).click();
   const modal = cancelModal(page);
   await expect(modal).toBeVisible();
   await shot('lookup-form');
@@ -48,7 +48,7 @@ test('look up and cancel a booking (≥6h notice refunds credit)', async ({ page
 test('unknown token shows a clear error', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  await page.locator('footer').getByRole('button', { name: 'Manage / Cancel Reservation →' }).click();
+  await page.locator('footer').getByRole('button', { name: 'Manage booking' }).click();
   const modal = cancelModal(page);
   await modal.getByPlaceholder('e.g. YP-8K2N9F').fill('YP-000000');
   await modal.getByRole('button', { name: 'Find My Reservation' }).click();

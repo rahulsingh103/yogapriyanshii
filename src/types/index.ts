@@ -55,19 +55,6 @@ export interface Booking {
   cancelledAt?: string;
 }
 
-export interface PricingPlan {
-  key: string;
-  title: string;
-  priceText: string;
-  priceAed: number;
-  credits: number;
-  validity: string;
-  tag?: string;
-  popular?: boolean;
-  description: string;
-  features: string[];
-}
-
 export interface ContactMessage {
   id: string;
   name: string;
