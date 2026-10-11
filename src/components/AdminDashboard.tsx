@@ -189,9 +189,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 <LogOut className="size-4" aria-hidden="true" />
                 Logout
               </button>
-              <button type="button" onClick={onClose} className={ui.primary}>
-                Close
-              </button>
             </div>
           </div>
 
@@ -270,7 +267,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               {/* 3. Upcoming classes (next 10) */}
               <div className="flex flex-col gap-4">
                 <h3 className={sectionTitle}>Upcoming Classes (Next 10 Scheduled Slots)</h3>
-                <div className="overflow-x-auto rounded-[16px] bg-surface-alt">
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Upcoming classes table"
+                  className="overflow-x-auto rounded-[16px] bg-surface-alt"
+                >
                   <table className="w-full text-left text-sm">
                     <thead className="text-xs uppercase tracking-[0.14em] text-ink-soft border-b border-line">
                       <tr>
@@ -291,7 +293,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                           </td>
                           <td className="p-3 tabular-nums">{session.capacity}</td>
                           <td className="p-3 tabular-nums font-semibold">{session.bookedCount}</td>
-                          <td className="p-3 tabular-nums font-semibold text-accent-text">{session.spotsLeft}</td>
+                          <td className="p-3 tabular-nums font-semibold text-ink">{session.spotsLeft}</td>
                           <td className="p-3">
                             <span
                               className={cn(
@@ -321,13 +323,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                         <div className="flex justify-between items-start gap-4">
                           <div className="flex flex-col gap-1 min-w-0">
                             <span className="font-semibold text-ink">{msg.name}</span>
-                            <a href={`mailto:${msg.email}`} className="text-accent-text hover:underline break-all">
+                            <a
+                              href={`mailto:${msg.email}`}
+                              className="self-start inline-flex min-h-11 items-center text-ink underline underline-offset-2 hover:no-underline break-all"
+                            >
                               {msg.email}
                             </a>
                             {msg.phone && (
                               <a
                                 href={`tel:${msg.phone.replace(/[^\d+]/g, '')}`}
-                                className="text-accent-text hover:underline tabular-nums"
+                                className="self-start inline-flex min-h-11 items-center text-ink underline underline-offset-2 hover:no-underline tabular-nums"
                               >
                                 {msg.phone}
                               </a>
