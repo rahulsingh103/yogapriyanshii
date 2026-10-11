@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
 import { useLenis } from 'lenis/react';
 
-/** Header height the anchors land below (matches ReactLenis anchors.offset and scroll-padding-top). */
-export const SCROLL_OFFSET = -88;
-
 /**
  * Scrolls to a section id through Lenis, falling back to native scrolling
- * when Lenis isn't running (e.g. before it mounts).
+ * when Lenis isn't running (e.g. before it mounts). The header offset comes from
+ * `scroll-padding-top` on <html> (index.css), which both Lenis and the browser honour,
+ * so no extra offset is passed here.
  */
 export function useScrollToSection() {
   const lenis = useLenis();
@@ -15,7 +14,7 @@ export function useScrollToSection() {
       const el = document.getElementById(id);
       if (!el) return;
       if (lenis) {
-        lenis.scrollTo(el, { offset: SCROLL_OFFSET });
+        lenis.scrollTo(el);
       } else {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
