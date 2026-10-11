@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { ExternalLink, Lock, LogOut, RefreshCw, Save } from 'lucide-react';
+import { Check } from '@/components/animate-ui/icons/check';
+import { cn } from '@/lib/utils';
+import { ui } from '@/lib/ui';
 import { api } from '../services/api';
 import { AdminStats, ClassSession, ContactMessage, Booking } from '../types';
-import { Lock, LogOut, ExternalLink, Save, CheckCircle2, AlertCircle, RefreshCw, Users, Calendar, DollarSign, X } from 'lucide-react';
+import { ModalSheet } from './ModalSheet';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -28,8 +32,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       loadStats(token);
     }
   }, [token, isOpen]);
-
-  if (!isOpen) return null;
 
   const loadStats = async (adminToken: string) => {
     try {
@@ -95,368 +97,330 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   // Scale the chart to the best month so real (often small) numbers stay readable.
   const maxEarnings = stats ? Math.max(0, ...stats.earnings6Months.map((m) => m.amountAed)) : 0;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/85 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-5xl w-full p-5 sm:p-8 md:p-10 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs" data-lenis-prevent>
-        {/* Top-right dismiss button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] transition-colors rounded-xs z-10"
-          aria-label="Close admin dashboard"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const titleId = 'admin-modal-title';
+  const sectionTitle = 'font-display font-normal text-[28px] leading-[1.1] text-ink';
+  const tile = 'bg-surface-alt rounded-[16px] p-5 flex flex-col gap-1';
+  const tileLabel = 'text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft';
+  const tileValue = 'font-display font-normal text-[34px] leading-[1.1] text-ink tabular-nums';
+  const tileNote = 'text-xs text-ink-soft';
 
-        {/* LOGIN SCREEN */}
-        {!token ? (
-          <div className="max-w-md mx-auto py-8">
-            <div className="text-center mb-8">
-              <div className="w-12 h-12 bg-[#0f0e0b] text-[#faf8f3] flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-5 h-5 text-[#c4b48a]" />
-              </div>
-              <h3 className="font-serif text-3xl text-[#0f0e0b] mb-2">Instructor Portal</h3>
-              <p className="text-xs text-[#0f0e0b]/60">
-                Priyanshi&apos;s private studio dashboard. Protected by lockout security.
+  return (
+    <ModalSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      labelledBy={titleId}
+      closeLabel="Close admin dashboard"
+      size={token ? 'wide' : 'default'}
+    >
+      {/* LOGIN SCREEN */}
+      {!token ? (
+        <div className="max-w-md mx-auto py-4 flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="inline-flex items-center justify-center size-12 rounded-full bg-surface-alt text-accent-text">
+              <Lock className="size-5" aria-hidden="true" />
+            </span>
+            <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+              Instructor Portal
+            </h2>
+            <p className="text-sm leading-[1.5] text-ink-soft">
+              Priyanshi&apos;s private studio dashboard. Protected by lockout security.
+            </p>
+          </div>
+
+          {loginError && (
+            <div role="alert" className={ui.error}>
+              {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="admin-password" className={ui.label}>
+                Admin Password
+              </label>
+              <input
+                id="admin-password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter studio password..."
+                className={ui.input}
+              />
+              <p className="text-xs text-ink-soft">
+                Default credentials: <code>Priyanshi2026!</code>
               </p>
             </div>
 
-            {loginError && (
-              <div className="p-4 mb-6 bg-red-50 border border-red-200 text-xs text-red-900 leading-relaxed rounded-xs">
-                {loginError}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-2">
-                  Admin Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter studio password..."
-                  className="w-full px-4 py-3 bg-[#f2ede4] border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
-                />
-                <p className="text-[11px] text-[#0f0e0b]/50 mt-1">
-                  Default credentials: <code>Priyanshi2026!</code>
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-3 min-h-[44px] border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] rounded-xs hover:border-[#0f0e0b] transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  disabled={loginLoading}
-                  className="flex-1 py-3 min-h-[44px] bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors rounded-xs shadow-xs"
-                >
-                  {loginLoading ? 'Verifying...' : 'Sign In'}
-                </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          /* AUTHENTICATED DASHBOARD */
-          <div>
-            {/* Top Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#0f0e0b]/10 mb-8 gap-4">
-              <div>
-                <span className="text-[11px] uppercase tracking-widest text-[#c4b48a] font-semibold block">
-                  Studio Operations
-                </span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-[#0f0e0b]">
-                  Priyanshi&apos;s Studio Overview
-                </h3>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => loadStats(token)}
-                  className="p-2 border border-[#0f0e0b]/15 text-[#0f0e0b]/70 hover:text-[#0f0e0b] transition-colors"
-                  title="Refresh"
-                >
-                  <RefreshCw className={`w-4 h-4 ${loadingStats ? 'animate-spin' : ''}`} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#0f0e0b]/20 text-xs uppercase tracking-wider text-[#0f0e0b] hover:bg-[#0f0e0b] hover:text-[#faf8f3] transition-colors"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Logout
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 bg-[#0f0e0b] text-[#faf8f3] text-xs uppercase tracking-wider"
-                >
-                  Close
-                </button>
-              </div>
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} className={cn(ui.secondary, 'flex-1')}>
+                Close
+              </button>
+              <button type="submit" disabled={loginLoading} className={cn(ui.primary, 'flex-1')}>
+                {loginLoading ? 'Verifying...' : 'Sign In'}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        /* AUTHENTICATED DASHBOARD */
+        <div className="flex flex-col gap-12">
+          {/* Top bar */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-line">
+            <div className="flex flex-col gap-2 pr-12 lg:pr-0">
+              <span className={cn(ui.eyebrow, 'text-accent-text')}>Studio Operations</span>
+              <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+                Priyanshi&apos;s Studio Overview
+              </h2>
             </div>
 
-            {loadingStats && !stats ? (
-              <div className="py-20 text-center">
-                <RefreshCw className="w-8 h-8 mx-auto text-[#c4b48a] animate-spin mb-3" />
-                <p className="text-xs text-[#0f0e0b]/60">Loading metrics...</p>
-              </div>
-            ) : stats ? (
-              <div className="space-y-10">
-                {/* 1. Stat Tiles per PRD §6.7 */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-5">
-                    <span className="text-[11px] uppercase tracking-wider text-[#0f0e0b]/60 block mb-1">
-                      Total Revenue
-                    </span>
-                    <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block">
-                      AED {stats.totalRevenueAed.toLocaleString()}
-                    </span>
-                    <span className="text-xs text-[#0f0e0b]/50 font-mono mt-1 block">
-                      Confirmed payments only
-                    </span>
-                  </div>
+            <div className="flex items-center gap-2 lg:mr-14">
+              <button
+                type="button"
+                onClick={() => loadStats(token)}
+                className="inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                title="Refresh"
+                aria-label="Refresh"
+              >
+                <RefreshCw className={cn('size-4', loadingStats && 'animate-spin motion-reduce:animate-none')} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={handleLogout} className={ui.secondary}>
+                <LogOut className="size-4" aria-hidden="true" />
+                Logout
+              </button>
+              <button type="button" onClick={onClose} className={ui.primary}>
+                Close
+              </button>
+            </div>
+          </div>
 
-                  <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-5">
-                    <span className="text-[11px] uppercase tracking-wider text-[#0f0e0b]/60 block mb-1">
-                      Total Clients
-                    </span>
-                    <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block tabular-nums">
-                      {stats.totalClients}
-                    </span>
-                    <span className="text-[10px] text-[#0f0e0b]/50 font-mono mt-1 block">
-                      Registered in database
-                    </span>
-                  </div>
-
-                  <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-5">
-                    <span className="text-[11px] uppercase tracking-wider text-[#0f0e0b]/60 block mb-1">
-                      New Clients (This Month)
-                    </span>
-                    <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block tabular-nums">
-                      {stats.newClientsThisMonth}
-                    </span>
-                    <span className="text-xs text-[#0f0e0b]/50 font-mono mt-1 block">
-                      First booked this month
-                    </span>
-                  </div>
-
-                  <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-5">
-                    <span className="text-[11px] uppercase tracking-wider text-[#0f0e0b]/60 block mb-1">
-                      Upcoming Bookings
-                    </span>
-                    <span className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] font-semibold block tabular-nums text-[#c4b48a]">
-                      {stats.upcomingBookingsCount}
-                    </span>
-                    <span className="text-[10px] text-[#0f0e0b]/50 font-mono mt-1 block">
-                      Active seat reservations
-                    </span>
-                  </div>
+          {loadingStats && !stats ? (
+            <div className="py-20 flex flex-col items-center gap-3 text-center">
+              <RefreshCw className="size-8 text-accent-text animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              <p className="text-sm text-ink-soft">Loading metrics...</p>
+            </div>
+          ) : stats ? (
+            <div className="flex flex-col gap-12">
+              {/* 1. Stat tiles (PRD §6.7) */}
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className={tile}>
+                  <span className={tileLabel}>Total Revenue</span>
+                  <span className={tileValue}>AED {stats.totalRevenueAed.toLocaleString()}</span>
+                  <span className={tileNote}>Confirmed payments only</span>
                 </div>
+                <div className={tile}>
+                  <span className={tileLabel}>Total Clients</span>
+                  <span className={tileValue}>{stats.totalClients}</span>
+                  <span className={tileNote}>Registered in database</span>
+                </div>
+                <div className={tile}>
+                  <span className={tileLabel}>New Clients (This Month)</span>
+                  <span className={tileValue}>{stats.newClientsThisMonth}</span>
+                  <span className={tileNote}>First booked this month</span>
+                </div>
+                <div className={tile}>
+                  <span className={tileLabel}>Upcoming Bookings</span>
+                  <span className={cn(tileValue, 'text-accent-text')}>{stats.upcomingBookingsCount}</span>
+                  <span className={tileNote}>Active seat reservations</span>
+                </div>
+              </div>
 
-                {/* 2. Earnings Last 6 Months Bar Chart */}
-                <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-6 sm:p-8">
-                  <h4 className="font-serif text-lg text-[#0f0e0b] mb-1">
-                    Earnings — Last 6 Months (AED)
-                  </h4>
-                  <p className="text-xs text-[#0f0e0b]/60 mb-6">
+              {/* 2. Earnings, last 6 months */}
+              <div className="bg-surface-alt rounded-[16px] p-5 sm:p-8 flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className={sectionTitle}>Earnings — Last 6 Months (AED)</h3>
+                  <p className="text-sm text-ink-soft">
                     {stats.earnings6Months.some((m) => m.amountAed > 0)
                       ? 'Confirmed payments by month across single drop-ins, 10-packs, and 20-packs.'
                       : 'No confirmed payments yet. Months fill in as payments are recorded.'}
                   </p>
-
-                  <div
-                    role="img"
-                    aria-label={`Earnings by month, in AED: ${stats.earnings6Months
-                      .map((m) => `${m.month} ${m.amountAed.toLocaleString()}`)
-                      .join(', ')}`}
-                    className="grid grid-cols-6 gap-2 sm:gap-4 items-end h-44 pt-6 pb-2 border-b border-[#0f0e0b]/15"
-                  >
-                    {stats.earnings6Months.map((item, idx) => {
-                      const heightPercent = maxEarnings > 0 ? Math.round((item.amountAed / maxEarnings) * 100) : 0;
-                      const isCurrent = idx === stats.earnings6Months.length - 1;
-
-                      return (
-                        <div key={item.month} className="flex flex-col items-center h-full justify-end group">
-                          <span className="text-[10px] font-mono text-[#0f0e0b]/70 opacity-0 group-hover:opacity-100 transition-opacity mb-1 tabular-nums">
-                            {item.amountAed.toLocaleString()}
-                          </span>
-                          <div
-                            style={{ height: `${heightPercent}%` }}
-                            className={`w-full max-w-[48px] transition-all rounded-xs ${
-                              isCurrent ? 'bg-[#c4b48a]' : 'bg-[#0f0e0b]/75 hover:bg-[#0f0e0b]'
-                            }`}
-                          />
-                          <span className="text-xs font-medium text-[#0f0e0b] mt-2">
-                            {item.month}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
 
-                {/* 3. Upcoming Classes List (Next 10) */}
-                <div>
-                  <h4 className="font-serif text-lg text-[#0f0e0b] mb-4">
-                    Upcoming Classes (Next 10 Scheduled Slots)
-                  </h4>
-                  <div className="overflow-x-auto border border-[#0f0e0b]/10 bg-[#f2ede4]">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#0f0e0b] text-[#faf8f3] uppercase tracking-wider text-[10px]">
-                        <tr>
-                          <th className="p-3">Class</th>
-                          <th className="p-3">Date & Time (Dubai)</th>
-                          <th className="p-3">Capacity</th>
-                          <th className="p-3">Booked</th>
-                          <th className="p-3">Spots Left</th>
-                          <th className="p-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#0f0e0b]/10">
-                        {stats.upcomingSessions.map((session) => (
-                          <tr key={session.id} className="hover:bg-[#faf8f3]/60 transition-colors">
-                            <td className="p-3 font-semibold text-[#0f0e0b]">{session.className}</td>
-                            <td className="p-3 font-mono">{session.dateDubai} · {session.timeDubai}</td>
-                            <td className="p-3 tabular-nums">{session.capacity}</td>
-                            <td className="p-3 tabular-nums font-semibold">{session.bookedCount}</td>
-                            <td className="p-3 tabular-nums font-bold text-[#c4b48a]">
-                              {session.spotsLeft}
-                            </td>
-                            <td className="p-3">
-                              <span
-                                className={`uppercase text-[10px] font-semibold tracking-wider ${
-                                  session.status === 'full' ? 'text-red-700' : 'text-emerald-700'
-                                }`}
-                              >
-                                {session.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <div
+                  role="img"
+                  aria-label={`Earnings by month, in AED: ${stats.earnings6Months
+                    .map((m) => `${m.month} ${m.amountAed.toLocaleString()}`)
+                    .join(', ')}`}
+                  className="grid grid-cols-6 gap-2 sm:gap-4 items-end h-44 pt-6 pb-2 border-b border-line"
+                >
+                  {stats.earnings6Months.map((item, idx) => {
+                    const heightPercent = maxEarnings > 0 ? Math.round((item.amountAed / maxEarnings) * 100) : 0;
+                    const isCurrent = idx === stats.earnings6Months.length - 1;
 
-                {/* 4. Recent Contact Inquiries */}
-                <div>
-                  <h4 className="font-serif text-lg text-[#0f0e0b] mb-4">
-                    Recent Messages (Contact Form)
-                  </h4>
-                  <div className="space-y-3">
-                    {stats.recentMessages.length === 0 ? (
-                      <p className="text-xs text-[#0f0e0b]/50">No incoming messages yet.</p>
-                    ) : (
-                      stats.recentMessages.map((msg) => (
-                        <div key={msg.id} className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-4 text-xs">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <span className="font-semibold text-sm text-[#0f0e0b] block">{msg.name}</span>
-                              <a href={`mailto:${msg.email}`} className="text-[#c4b48a] hover:underline">
-                                {msg.email}
-                              </a>
-                            </div>
-                            <span className="text-[10px] text-[#0f0e0b]/50 font-mono">
-                              {new Date(msg.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <span className="inline-block text-[10px] uppercase tracking-wider font-semibold text-[#0f0e0b]/60 mb-2">
-                            Interest: {msg.interest}
-                          </span>
-                          <p className="text-[#0f0e0b]/80 leading-relaxed bg-[#faf8f3] p-3 border border-[#0f0e0b]/5">
-                            &ldquo;{msg.message}&rdquo;
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* 5. Settings: Drive Link & Notification Email per PRD §6.7 */}
-                <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-6 sm:p-8">
-                  <h4 className="font-serif text-lg text-[#0f0e0b] mb-2">
-                    Studio Integration Settings
-                  </h4>
-                  <p className="text-xs text-[#0f0e0b]/60 mb-6">
-                    Update your shared Google Drive schedule sheet and alert recipient email address.
-                  </p>
-
-                  <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-2">
-                        Google Drive / Sheet Link
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="url"
-                          value={settingsDriveLink}
-                          placeholder="Not set"
-                          onChange={(e) => setSettingsDriveLink(e.target.value)}
-                          className="flex-1 px-4 py-2.5 bg-[#faf8f3] border border-[#0f0e0b]/20 text-xs focus:outline-hidden focus:border-[#0f0e0b]"
-                        />
-                        {settingsDriveLink && (
-                          <a
-                            href={settingsDriveLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-2.5 bg-[#0f0e0b] text-[#faf8f3] text-xs flex items-center gap-1 hover:bg-[#262420]"
-                            title="Open Sheet"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-2">
-                        Studio Notification Alert Email
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={settingsNotifyEmail}
-                        onChange={(e) => setSettingsNotifyEmail(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-[#faf8f3] border border-[#0f0e0b]/20 text-xs focus:outline-hidden focus:border-[#0f0e0b]"
-                      />
-                      <p className="text-[11px] text-[#0f0e0b]/50 mt-1">
-                        Where instant alerts for new bookings and contact form submissions are delivered.
-                      </p>
-                    </div>
-
-                    <div className="pt-2 flex items-center gap-4">
-                      <button
-                        type="submit"
-                        disabled={savingSettings}
-                        className="px-6 py-2.5 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center gap-1.5"
-                      >
-                        <Save className="w-3.5 h-3.5" />
-                        {savingSettings ? 'Saving...' : 'Persist Settings'}
-                      </button>
-
-                      {settingsSaved && (
-                        <span className="text-xs text-emerald-800 font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                          Settings updated successfully.
+                    return (
+                      <div key={item.month} className="flex flex-col items-center h-full justify-end group">
+                        <span className="text-xs text-ink-soft opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-1 tabular-nums">
+                          {item.amountAed.toLocaleString()}
                         </span>
-                      )}
-                    </div>
-                  </form>
+                        <div
+                          style={{ height: `${heightPercent}%` }}
+                          className={cn(
+                            'w-full max-w-[48px] rounded-t-[4px] transition-colors duration-200',
+                            isCurrent ? 'bg-accent' : 'bg-ink/70 hover:bg-ink'
+                          )}
+                        />
+                        <span className="text-xs font-medium text-ink mt-2">{item.month}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ) : null}
-          </div>
-        )}
-      </div>
-    </div>
+
+              {/* 3. Upcoming classes (next 10) */}
+              <div className="flex flex-col gap-4">
+                <h3 className={sectionTitle}>Upcoming Classes (Next 10 Scheduled Slots)</h3>
+                <div className="overflow-x-auto rounded-[16px] bg-surface-alt">
+                  <table className="w-full text-left text-sm">
+                    <thead className="text-xs uppercase tracking-[0.14em] text-ink-soft border-b border-line">
+                      <tr>
+                        <th className="p-3 font-semibold">Class</th>
+                        <th className="p-3 font-semibold">Date & Time (Dubai)</th>
+                        <th className="p-3 font-semibold">Capacity</th>
+                        <th className="p-3 font-semibold">Booked</th>
+                        <th className="p-3 font-semibold">Spots Left</th>
+                        <th className="p-3 font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {stats.upcomingSessions.map((session) => (
+                        <tr key={session.id} className="hover:bg-surface/60 transition-colors duration-200">
+                          <td className="p-3 font-semibold text-ink whitespace-nowrap">{session.className}</td>
+                          <td className="p-3 text-ink-soft whitespace-nowrap tabular-nums">
+                            {session.dateDubai} · {session.timeDubai}
+                          </td>
+                          <td className="p-3 tabular-nums">{session.capacity}</td>
+                          <td className="p-3 tabular-nums font-semibold">{session.bookedCount}</td>
+                          <td className="p-3 tabular-nums font-semibold text-accent-text">{session.spotsLeft}</td>
+                          <td className="p-3">
+                            <span
+                              className={cn(
+                                'uppercase text-xs font-semibold tracking-[0.1em]',
+                                session.status === 'full' ? 'text-error' : 'text-success'
+                              )}
+                            >
+                              {session.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 4. Recent contact messages */}
+              <div className="flex flex-col gap-4">
+                <h3 className={sectionTitle}>Recent Messages (Contact Form)</h3>
+                <div className="flex flex-col gap-3">
+                  {stats.recentMessages.length === 0 ? (
+                    <p className="text-sm text-ink-soft">No incoming messages yet.</p>
+                  ) : (
+                    stats.recentMessages.map((msg) => (
+                      <div key={msg.id} className="bg-surface-alt rounded-[16px] p-4 sm:p-5 flex flex-col gap-3 text-sm">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="font-semibold text-ink">{msg.name}</span>
+                            <a href={`mailto:${msg.email}`} className="text-accent-text hover:underline break-all">
+                              {msg.email}
+                            </a>
+                            {msg.phone && (
+                              <a
+                                href={`tel:${msg.phone.replace(/[^\d+]/g, '')}`}
+                                className="text-accent-text hover:underline tabular-nums"
+                              >
+                                {msg.phone}
+                              </a>
+                            )}
+                          </div>
+                          <span className="text-xs text-ink-soft tabular-nums shrink-0">
+                            {new Date(msg.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <span className={ui.eyebrow}>Interest: {msg.interest}</span>
+                        <p className="text-ink-soft leading-[1.6] bg-surface rounded-[12px] p-3 whitespace-pre-wrap">
+                          &ldquo;{msg.message}&rdquo;
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* 5. Settings: Drive link and notification email (PRD §6.7) */}
+              <div className="bg-surface-alt rounded-[16px] p-5 sm:p-8 flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <h3 className={sectionTitle}>Studio Integration Settings</h3>
+                  <p className="text-sm text-ink-soft">
+                    Update your shared Google Drive schedule sheet and alert recipient email address.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSaveSettings} className="flex flex-col gap-6 max-w-xl">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="admin-drive-link" className={ui.label}>
+                      Google Drive / Sheet Link
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="admin-drive-link"
+                        type="url"
+                        value={settingsDriveLink}
+                        placeholder="Not set"
+                        onChange={(e) => setSettingsDriveLink(e.target.value)}
+                        className={cn(ui.input, 'flex-1 bg-surface')}
+                      />
+                      {settingsDriveLink && (
+                        <a
+                          href={settingsDriveLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center size-12 shrink-0 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                          title="Open Sheet"
+                          aria-label="Open Sheet"
+                        >
+                          <ExternalLink className="size-4" aria-hidden="true" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="admin-notify-email" className={ui.label}>
+                      Studio Notification Alert Email
+                    </label>
+                    <input
+                      id="admin-notify-email"
+                      type="email"
+                      required
+                      value={settingsNotifyEmail}
+                      onChange={(e) => setSettingsNotifyEmail(e.target.value)}
+                      className={cn(ui.input, 'bg-surface')}
+                    />
+                    <p className="text-xs text-ink-soft">
+                      Where instant alerts for new bookings and contact form submissions are delivered.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4">
+                    <button type="submit" disabled={savingSettings} className={ui.primary}>
+                      <Save className="size-4" aria-hidden="true" />
+                      {savingSettings ? 'Saving...' : 'Persist Settings'}
+                    </button>
+
+                    {settingsSaved && (
+                      <span className="text-sm text-success font-medium flex items-center gap-2">
+                        <Check size={16} animateOnView animateOnViewOnce aria-hidden="true" />
+                        Settings updated successfully.
+                      </span>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </ModalSheet>
   );
 };
