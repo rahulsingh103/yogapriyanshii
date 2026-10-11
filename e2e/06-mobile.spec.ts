@@ -51,6 +51,13 @@ test('sticky book bar appears after the hero and opens booking', async ({ page }
   await page.mouse.wheel(0, 1200);
   await expect(bar).toBeVisible();
   await shot('sticky-bar-visible');
+  // the bar steps aside while Contact (which has its own dark button) is on screen
+  // (wheel, not scrollIntoView: Lenis owns the scroll position)
+  await page.mouse.wheel(0, 20000);
+  await expect(page.locator('#contact')).toBeInViewport();
+  await expect(bar).toHaveCount(0);
+  await page.mouse.wheel(0, -2400);
+  await expect(bar).toBeVisible();
   await bar.getByRole('button', { name: 'Book a free class' }).click();
   await expect(bookingModal(page).getByText('Select practice')).toBeVisible();
   await shot('booking-opened');

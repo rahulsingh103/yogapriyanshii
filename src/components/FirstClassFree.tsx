@@ -10,7 +10,7 @@ interface FirstClassFreeProps {
 /** DESIGN_SYSTEM §5 step 7: the free-first-class invitation, pointing back to the live schedule. */
 export function FirstClassFree({ onPickTime }: FirstClassFreeProps) {
   return (
-    <section aria-labelledby="first-class-title" className="py-20 lg:py-32 px-5">
+    <section id="first-class" aria-labelledby="first-class-title" className="py-20 lg:py-32 px-5">
       <Reveal className="max-w-[640px] mx-auto flex flex-col items-center gap-6 text-center">
         <h2
           id="first-class-title"

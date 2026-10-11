@@ -5,15 +5,25 @@ interface StickyBookBarProps {
   onOpenBooking: () => void;
 }
 
-/** Mobile-only bottom bar that appears once the hero (#home) has left the screen. */
+/**
+ * Mobile-only bottom bar. It shows once the hero (#home) has left the screen, and hides again while
+ * the first-class band (#first-class) or Contact (#contact) is on screen, since both carry their own
+ * dark buttons.
+ */
 export function StickyBookBar({ onOpenBooking }: StickyBookBarProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const hero = document.getElementById('home');
-    if (!hero) return;
-    const observer = new IntersectionObserver(([entry]) => setVisible(!entry.isIntersecting));
-    observer.observe(hero);
+    const targets = ['home', 'first-class', 'contact']
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (targets.length === 0) return;
+    const inView = new Map<Element, boolean>();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) inView.set(entry.target, entry.isIntersecting);
+      setVisible(![...inView.values()].some(Boolean));
+    });
+    targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
 

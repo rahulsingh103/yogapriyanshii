@@ -39,8 +39,7 @@ export function Footer({ onOpenCancel, onOpenAdmin }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs leading-[1.5] text-ink-soft">
-          <p>Free cancellation up to 6 hours before class. Your first class is always free.</p>
+        <div className="pt-6 border-t border-line text-sm leading-[1.5] text-ink-soft">
           <p>© {new Date().getFullYear()} YogaPriyanshi · Dubai</p>
         </div>
       </div>
