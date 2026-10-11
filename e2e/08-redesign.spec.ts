@@ -171,4 +171,20 @@ test.describe('mobile menu', () => {
     await expect(page.locator('footer')).not.toHaveAttribute('inert');
     await expect(toggle).not.toHaveAttribute('aria-controls');
   });
+
+  test('the header logo is inert while the menu is open, and widening past 900px closes the menu', async ({ page }) => {
+    await openHome(page);
+    await page.getByLabel('Toggle Navigation Menu').click();
+    const menu = page.getByRole('dialog', { name: 'Menu' });
+    await expect(menu).toBeVisible();
+    await expect(page.locator('header a[href="#home"]')).toHaveAttribute('inert', '');
+
+    await page.setViewportSize({ width: 1100, height: 844 });
+    await expect(menu).toHaveCount(0);
+    await expect(page.locator('main')).not.toHaveAttribute('inert');
+    await expect(page.locator('header a[href="#home"]')).not.toHaveAttribute('inert');
+    // Lenis is running again: the page scrolls.
+    await page.mouse.wheel(0, 800);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  });
 });

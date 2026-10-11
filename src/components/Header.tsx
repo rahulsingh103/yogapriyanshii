@@ -25,6 +25,8 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
   const lenis = useLenis();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -33,14 +35,32 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // While the overlay is open: page scroll stops, the page behind is inert, Escape closes it,
-  // and Tab / Shift+Tab cycle between the toggle and the overlay's links and buttons.
+  // The overlay only exists below 900px: if the viewport grows past that while it's open
+  // (rotation, resized window), close it so the inert page and the Lenis stop never get stuck.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const wide = window.matchMedia('(min-width: 900px)');
+    const onChange = () => {
+      if (wide.matches) setMenuOpen(false);
+    };
+    onChange();
+    wide.addEventListener('change', onChange);
+    return () => wide.removeEventListener('change', onChange);
+  }, [menuOpen]);
+
+  // While the overlay is open: page scroll stops, the page behind is inert (including the
+  // header's own logo and pill, and the sticky bar), Escape closes it, and Tab / Shift+Tab
+  // cycle between the toggle and the overlay's links and buttons.
   useEffect(() => {
     if (!menuOpen) return;
     lenis?.stop();
-    const background = [document.querySelector('main'), document.querySelector('footer')].filter(
-      (el): el is HTMLElement => el !== null
-    );
+    const background = [
+      document.querySelector('main'),
+      document.querySelector('footer'),
+      document.querySelector('[aria-label="Quick booking bar"]'),
+      logoRef.current,
+      pillRef.current,
+    ].filter((el): el is HTMLElement => el instanceof HTMLElement);
     background.forEach((el) => el.setAttribute('inert', ''));
     firstLinkRef.current?.focus();
 
@@ -105,7 +125,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
         )}
       >
         <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
-          <a href="#home" className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
+          <a ref={logoRef} href="#home" className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
             YogaPriyanshi
           </a>
 
@@ -123,6 +143,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
 
           <div className="flex items-center gap-2">
             <button
+              ref={pillRef}
               type="button"
               onClick={onOpenBooking}
               className="hidden sm:inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition-opacity duration-200"

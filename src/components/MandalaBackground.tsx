@@ -83,11 +83,7 @@ export function MandalaBackground() {
         ctx.stroke();
       });
 
-      ctx.beginPath();
-      ctx.arc(0, 0, c * 0.05 * bloom, 0, Math.PI * 2);
-      ctx.fillStyle = colours.accent;
-      ctx.globalAlpha = 0.15;
-      ctx.fill();
+      // No filled centre dot (owner's decision): the rings alone carry the mandala.
       ctx.restore();
       ctx.globalAlpha = 1;
     };
