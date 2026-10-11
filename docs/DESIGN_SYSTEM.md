@@ -100,6 +100,7 @@ import '@fontsource/figtree/latin-600.css';
 | Display (hero) | Italiana | `clamp(44px, 8vw, 92px)` | 0.98 | One per page; `text-wrap: balance` |
 | H2 (section) | Italiana | `clamp(34px, 5.5vw, 58px)` | 1.05 | |
 | H3 (card title) | Italiana | `28px` | 1.1 | Class names, teacher name |
+| Modal / panel title | Italiana | `34px` → `40px` from `sm` | 1.05 | Modal headings and the schedule detail panel (`ui.title`) |
 | Quote | Italiana | `clamp(26px, 4vw, 40px)` | 1.25 | Italic is fine (browser-slanted) |
 | Body | Figtree 400 | `16px` | 1.6 | Max width 46ch |
 | Small | Figtree 400 | `14px` | 1.5 | Card lines, helper text |
@@ -152,6 +153,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 ### Sticky book bar (mobile only)
 - Appears after the hero leaves view: a bottom bar with `bg-bg/90`, blur, safe-area padding, holding one primary button "Book a free class".
+- Hides again while "Your first class is free" (`#first-class`) or Contact (`#contact`) is on screen, since both have their own dark button.
 
 ### Booking modal (and Cancel / Admin / Contact modals)
 - All four use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
@@ -167,20 +169,24 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Forms
 - Inputs: `bg-surface-alt rounded-[12px]`, height 48px, 16px text (prevents iOS zoom), label above (12px uppercase).
 - Focus: a `border-ink` ring. Errors appear inline under the field, 14px, in `error`.
+- Placeholders use `ink-soft`.
+- A field with an error gets `aria-invalid` and `aria-describedby` pointing at its message; the summary `role="alert"` stays above the form.
+- After a successful submit (booking, cancel, contact), focus moves to the result heading (`tabIndex={-1}`) so screen readers announce it.
 
 ### Contact
 - The Contact section is a heading, one address line and a primary button "Contact Priyanshi". The button opens the contact form in a pop-up (the same sheet as the booking modal), not an inline form.
 - The form: name, email, phone (optional, `type="tel"`), interest and message.
 
 ### Schedule
-- A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
-- A glass detail panel for the selected session with the primary "Book This Class (N Left)" button, then one "good to know" line and the secondary "Cancel / Manage Reservation" button.
+- A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`, `rounded-[18px]`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
+- Full and past cards fade the surface only (no glass, `border-dashed border-line`); their text keeps the normal tokens, never `opacity`.
+- A glass detail panel for the selected session: one meta line ("60 min · Beginner · In person or online") and the primary "Book This Class (N Left)" button. Then one "good to know" line ("Mats and props provided. Online? Your Zoom link arrives an hour before.") and the secondary "Cancel / Manage Reservation" button.
 
 ### Pricing
 - A hairline list (`border-line`), transparent so the mandala shows through: 4 rows, each a `<button>` that opens booking with that plan (name in Italiana 28px, one short line, the price, an arrow icon). One line below: "Pay at the studio. Free cancellation up to 6 hours before class."
 
 ### Footer
-- Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and a one-line policy. No dark bands anywhere on the page.
+- Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
 
 ### Teacher block ("Hi, I'm Priyanshi.")
 - Two columns on desktop (photo | text), stacked on mobile. Photo `min-height: 380px`, `rounded-[4px]`.
