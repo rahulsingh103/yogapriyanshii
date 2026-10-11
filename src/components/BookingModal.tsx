@@ -305,7 +305,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     aria-pressed={mode === value}
                     onClick={() => setMode(value)}
                     className={cn(
-                      'min-h-11 px-3 rounded-full text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-200',
+                      'min-h-11 px-3 rounded-full text-sm font-medium transition-colors duration-200',
                       mode === value ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
                     )}
                   >

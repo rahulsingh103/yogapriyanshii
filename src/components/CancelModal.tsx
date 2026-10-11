@@ -243,7 +243,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
                 placeholder="e.g. YP-8K2N9F"
-                className={cn(ui.input, 'uppercase tracking-[0.04em]')}
+                className={cn(ui.input, 'tracking-[0.04em]')}
               />
               <p className="text-xs leading-[1.5] text-ink-soft">
                 Paste the 6-character token from your booking confirmation screen or email.

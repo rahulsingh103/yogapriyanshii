@@ -92,10 +92,13 @@ button, a, input, select, textarea {
   color: var(--color-ink);
 }
 
-/* Global focus ring (DS §4). */
-:focus-visible {
-  outline: 2px solid var(--color-accent-text);
-  outline-offset: 3px;
+/* Global focus ring (DS §4). In the base layer so a component utility (e.g. the form
+   fields' border-ink ring) can replace it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent-text);
+    outline-offset: 3px;
+  }
 }
 
 h1, h2, h3 {

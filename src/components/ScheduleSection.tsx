@@ -159,16 +159,13 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       (isFull || isPast) && !isSelected && 'opacity-60'
                     )}
                   >
-                    <span className="flex items-baseline justify-between gap-2 text-xs">
-                      <span className={cn('font-semibold uppercase tracking-[0.14em]', isSelected ? 'text-on-ink' : 'text-ink-soft')}>
-                        {session.dateDubai.split(',')[0]}
-                      </span>
-                      <span className={cn('tabular-nums', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                        {session.timeDubai}
-                      </span>
+                    <span
+                      className={cn('text-xs font-semibold uppercase tracking-[0.14em]', isSelected ? 'text-on-ink' : 'text-ink-soft')}
+                    >
+                      {session.dateDubai.split(',')[0]}
                     </span>
-                    <span className={cn('text-xs', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                      {session.dateDubai.split(', ')[1]}
+                    <span className={cn('text-xs tabular-nums', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
+                      {session.dateDubai.split(', ')[1]} · {session.timeDubai}
                     </span>
 
                     <span className="mt-auto pt-3 font-display text-[24px] leading-[1.1]">{session.className}</span>
