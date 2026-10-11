@@ -62,6 +62,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [noOtherSessions, setNoOtherSessions] = useState(false);
   const [focusError, setFocusError] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
+  const confirmedHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // Screen readers hear the result: focus moves to the "You're on the mat." heading.
+  useEffect(() => {
+    if (step === 3 && confirmedBooking) confirmedHeadingRef.current?.focus();
+  }, [step, confirmedBooking]);
 
   // After a refused rebook sends the student back to step 1, move focus to the message
   // so it isn't lost on <body>.
@@ -295,7 +301,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="grid grid-cols-2 gap-1 p-1 bg-surface-alt rounded-full">
                 {(
                   [
-                    ['in_person', 'In-Person (BurJuman)'],
+                    [
+                      'in_person',
+                      <>
+                        In-Person<span className="hidden sm:inline"> (BurJuman)</span>
+                      </>,
+                    ],
                     ['online', 'Online Live Stream'],
                   ] as const
                 ).map(([value, label]) => (
@@ -423,7 +434,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             )}
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3">
               <AnimateIcon animateOnHover asChild>
                 <button type="button" onClick={() => setStep(1)} className={ui.secondary}>
                   <ArrowLeft size={14} aria-hidden="true" />
@@ -431,7 +442,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </button>
               </AnimateIcon>
 
-              <button type="button" disabled={loading} onClick={handleNextStep} className={cn(ui.primary, 'flex-1 px-4')}>
+              <button type="button" disabled={loading} onClick={handleNextStep} className={cn(ui.primary, 'w-full sm:w-auto sm:flex-1 px-4')}>
                 {loading
                   ? 'Confirming...'
                   : planKey === 'free'
@@ -449,7 +460,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
                 <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
               </span>
-              <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+              <h2
+                id={titleId}
+                ref={confirmedHeadingRef}
+                tabIndex={-1}
+                className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink focus:outline-none"
+              >
                 You&apos;re on the mat.
               </h2>
               <p className="text-sm leading-[1.5] text-ink-soft max-w-[46ch]">

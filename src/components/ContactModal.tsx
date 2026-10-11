@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
@@ -32,6 +32,11 @@ const INTERESTS: ReadonlyArray<readonly [string, string]> = [
 
 const DEFAULT_INTEREST = 'General enquiry';
 
+type Field = 'name' | 'email' | 'phone' | 'message';
+type FieldErrors = Partial<Record<Field, string>>;
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, initialInterest }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,6 +48,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const sentHeadingRef = useRef<HTMLHeadingElement>(null);
 
   // Each opening starts a fresh message with the preset interest (or the default).
   // Typed text survives a close and reopen; only the sent state and old errors are cleared.
@@ -52,18 +59,40 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
     setInterest(preset);
     setSubmitted(false);
     setError(null);
+    setFieldErrors({});
   }, [isOpen, initialInterest]);
+
+  // Screen readers hear the result: focus moves to the "Message Sent" heading.
+  useEffect(() => {
+    if (submitted) sentHeadingRef.current?.focus();
+  }, [submitted]);
+
+  const clearFieldError = (field: Field) =>
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      setError('Please fill in all required fields.');
+    const found: FieldErrors = {};
+    if (!name.trim()) found.name = 'Please enter your name.';
+    if (!email.trim()) found.email = 'Please enter your email address.';
+    else if (!EMAIL_SHAPE.test(email.trim())) found.email = 'Please enter a valid email address.';
+    if (!message.trim()) found.message = 'Please write a short message.';
+    const firstInvalid = (['name', 'email', 'message'] as const).find((field) => found[field]);
+    if (firstInvalid) {
+      setFieldErrors(found);
+      setError(
+        found.name || found.message || !email.trim()
+          ? 'Please fill in all required fields.'
+          : 'Please check your email address.'
+      );
+      document.getElementById(`contact-${firstInvalid}`)?.focus();
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      setFieldErrors({});
       await api.sendContact({
         name,
         email,
@@ -78,13 +107,33 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
       setPhone('');
       setMessage('');
     } catch (err: any) {
-      setError(err?.message || 'Failed to send message. Please try again.');
+      const text: string = err?.message || 'Failed to send message. Please try again.';
+      setError(text);
+      // The server's phone check points at the phone field; its message stays in the summary alert.
+      if (/phone/i.test(text)) setFieldErrors({ phone: text });
     } finally {
       setLoading(false);
     }
   };
 
   const titleId = 'contact-modal-title';
+  const summaryId = 'contact-error-summary';
+
+  /** aria wiring for a field: invalid state, and a pointer to its message (or the summary). */
+  const fieldA11y = (field: Field) =>
+    fieldErrors[field]
+      ? {
+          'aria-invalid': true as const,
+          'aria-describedby': field === 'phone' ? summaryId : `contact-${field}-error`,
+        }
+      : {};
+
+  const fieldError = (field: Exclude<Field, 'phone'>) =>
+    fieldErrors[field] ? (
+      <p id={`contact-${field}-error`} className="text-sm leading-[1.5] text-error">
+        {fieldErrors[field]}
+      </p>
+    ) : null;
 
   return (
     <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close contact form">
@@ -94,7 +143,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
             <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
           </span>
           <div className="flex flex-col gap-2">
-            <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+            <h2
+              id={titleId}
+              ref={sentHeadingRef}
+              tabIndex={-1}
+              className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink focus:outline-none"
+            >
               Message Sent
             </h2>
             <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
@@ -106,18 +160,19 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h2 id={titleId} className={ui.title}>
               Send a message
             </h2>
             <p className="text-sm leading-[1.5] text-ink-soft">
-              All inquiries are delivered directly to Priyanshi&apos;s inbox.
+              Priyanshi reads every message and replies within a day.
             </p>
+            <p className="text-sm leading-[1.5] text-ink-soft">* required</p>
           </div>
 
           {error && (
-            <div role="alert" className={ui.error}>
+            <div id={summaryId} role="alert" className={ui.error}>
               {error}
             </div>
           )}
@@ -147,10 +202,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
                 required
                 autoComplete="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  clearFieldError('name');
+                }}
                 placeholder="e.g. Sarah Jenkins"
                 className={ui.input}
+                {...fieldA11y('name')}
               />
+              {fieldError('name')}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -163,10 +223,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
                 required
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearFieldError('email');
+                }}
                 placeholder="sarah@example.com"
                 className={ui.input}
+                {...fieldA11y('email')}
               />
+              {fieldError('email')}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -180,9 +245,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
                 inputMode="tel"
                 maxLength={30}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  clearFieldError('phone');
+                }}
                 placeholder="+971 50 123 4567"
                 className={ui.input}
+                {...fieldA11y('phone')}
               />
             </div>
 
@@ -220,10 +289,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
               required
               rows={4}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                clearFieldError('message');
+              }}
               placeholder="Tell Priyanshi about your experience level, goals, or scheduling preferences..."
               className={cn(ui.textarea, 'resize-y min-h-[120px]')}
+              {...fieldA11y('message')}
             />
+            {fieldError('message')}
           </div>
 
           <AnimateIcon animateOnHover asChild>

@@ -25,9 +25,15 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   const contact = await openContact(page);
   await shot('empty-form');
 
-  // browser-level required validation blocks empty submit
+  // an empty submit is blocked: a summary alert, and each required field is marked and explained
   await contact.getByRole('button', { name: 'Send Message' }).click();
   await expect(contact.getByText('Message Sent')).toHaveCount(0);
+  await expect(contact.getByRole('alert')).toHaveText('Please fill in all required fields.');
+  const nameField = contact.getByPlaceholder('e.g. Sarah Jenkins');
+  await expect(nameField).toHaveAttribute('aria-invalid', 'true');
+  await expect(nameField).toHaveAccessibleDescription('Please enter your name.');
+  await expect(nameField).toBeFocused();
+  await shot('empty-submit-errors');
 
   await contact.getByPlaceholder('e.g. Sarah Jenkins').fill('Contact Tester');
   await contact.getByPlaceholder('sarah@example.com').fill(email);
@@ -36,6 +42,7 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   await shot('filled-form');
   await contact.getByRole('button', { name: 'Send Message' }).click();
   await expect(contact.getByText('Message Sent')).toBeVisible();
+  await expect(contact.getByRole('heading', { name: 'Message Sent' })).toBeFocused();
   await shot('sent');
 
   const token = await adminToken(page.request);

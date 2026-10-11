@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Search } from 'lucide-react';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
@@ -29,6 +29,12 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   const [lookedUpBooking, setLookedUpBooking] = useState<Booking | null>(null);
   const [lookedUpSession, setLookedUpSession] = useState<ClassSession | null>(null);
   const [cancelledBooking, setCancelledBooking] = useState<Booking | null>(null);
+  const cancelledHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  // Screen readers hear the result: focus moves to the "Reservation Cancelled" heading.
+  useEffect(() => {
+    if (cancelledBooking) cancelledHeadingRef.current?.focus();
+  }, [cancelledBooking]);
 
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -128,7 +134,13 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
               <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
             </span>
-            <h3 className="font-display font-normal text-[28px] leading-[1.1] text-ink">Reservation Cancelled</h3>
+            <h3
+              ref={cancelledHeadingRef}
+              tabIndex={-1}
+              className="font-display font-normal text-[28px] leading-[1.1] text-ink focus:outline-none"
+            >
+              Reservation Cancelled
+            </h3>
             <dl className="w-full text-sm text-left">
               <div className={row}>
                 <dt className="text-ink-soft">Booking Token:</dt>
@@ -245,8 +257,8 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                 placeholder="e.g. YP-8K2N9F"
                 className={cn(ui.input, 'tracking-[0.04em]')}
               />
-              <p className="text-xs leading-[1.5] text-ink-soft">
-                Paste the 6-character token from your booking confirmation screen or email.
+              <p className="text-sm leading-[1.5] text-ink-soft">
+                Paste your booking reference (starts with YP-) from your confirmation screen or email.
               </p>
             </div>
 
