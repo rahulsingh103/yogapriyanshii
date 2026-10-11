@@ -59,12 +59,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
         {/* Heading, one line, and the week switcher */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             <h2 className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink">
               Weekly schedule
             </h2>
             <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
-              Live availability in Dubai time (GMT+4). Small classes, so every student gets attention.
+              Live spots for the next three weeks. All times are Dubai time.
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
 
         {/* Loading / error states */}
         {loading && (
-          <div className="py-20 flex flex-col items-center gap-4 text-center rounded-[18px] bg-glass backdrop-blur-[8px]">
+          <div role="status" className="py-20 flex flex-col items-center gap-4 text-center rounded-[18px] bg-glass backdrop-blur-[8px]">
             <RefreshCw className="size-6 text-accent-text animate-spin motion-reduce:animate-none" aria-hidden="true" />
             <p className="text-sm text-ink-soft">Retrieving live studio availability...</p>
           </div>
@@ -125,7 +125,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
         {!loading && !error && (
           <>
             {/* The week: one card per day */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
               {currentWeekSessions.map((session) => {
                 const isSelected = selectedSessionId === session.id;
                 const isFull = session.status === 'full';
@@ -135,7 +135,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                   return (
                     <div
                       key={session.id}
-                      className="min-h-[176px] p-4 rounded-[16px] border border-dashed border-line flex flex-col gap-1"
+                      className="min-h-[176px] p-4 rounded-[18px] border border-dashed border-line flex flex-col gap-1"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">Friday</p>
                       <p className="text-xs text-ink-soft">{session.dateDubai.split(', ')[1]}</p>
@@ -152,11 +152,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     aria-pressed={isSelected}
                     onClick={() => setSelectedSessionId(session.id)}
                     className={cn(
-                      'min-h-[176px] p-4 rounded-[16px] border text-left flex flex-col gap-1 transition-colors duration-200',
+                      'min-h-[176px] p-4 rounded-[18px] border text-left flex flex-col gap-1 transition-colors duration-200',
                       isSelected
                         ? 'bg-ink border-ink text-on-ink'
-                        : 'bg-glass backdrop-blur-[8px] border-transparent text-ink hover:border-line-strong',
-                      (isFull || isPast) && !isSelected && 'opacity-60'
+                        : isFull || isPast
+                          ? 'border-dashed border-line text-ink hover:border-line-strong'
+                          : 'bg-glass backdrop-blur-[8px] border-transparent text-ink hover:border-line-strong'
                     )}
                   >
                     <span
@@ -165,10 +166,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       {session.dateDubai.split(',')[0]}
                     </span>
                     <span className={cn('text-xs tabular-nums', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                      {session.dateDubai.split(', ')[1]} · {session.timeDubai}
+                      {session.dateDubai.split(', ')[1]} · <span className="whitespace-nowrap">{session.timeDubai}</span>
                     </span>
 
-                    <span className="mt-auto pt-3 font-display text-[24px] leading-[1.1]">{session.className}</span>
+                    <span className="mt-auto pt-3 min-h-[3.3em] flex items-end font-display text-[24px] leading-[1.1]">
+                      {session.className}
+                    </span>
                     <span className={cn('text-xs', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
                       {session.level} · {session.duration}m
                     </span>
@@ -210,13 +213,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                   </h3>
 
                   <p className="text-sm leading-[1.5] text-ink-soft">
-                    {activeSelected.duration} Minutes · Capacity: {activeSelected.capacity} students (
-                    <span className="font-semibold tabular-nums text-ink">{activeSelected.spotsLeft} available</span>) ·
-                    BurJuman Residence Block D & Online
-                  </p>
-
-                  <p className="text-sm leading-[1.5] text-ink-soft">
-                    Mats, blocks, and straps provided for in-person attendees. Interactive Zoom link dispatched 1 hour prior to start for online bookings.
+                    {activeSelected.duration} min · {activeSelected.level} · In person or online
                   </p>
                 </div>
 
@@ -248,7 +245,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             {/* Good to know: one line and the manage button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <p className="text-sm leading-[1.5] text-ink-soft">
-                Plans changed? Cancel free up to 6 hours before class.
+                Mats and props provided. Online? Your Zoom link arrives an hour before.
               </p>
               <button type="button" onClick={onOpenCancel} className={cn(ui.secondary, 'self-start sm:self-auto')}>
                 Cancel / Manage Reservation
