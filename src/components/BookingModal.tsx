@@ -1,19 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Calendar, ChevronDown, Mail } from 'lucide-react';
+import { AnimateIcon } from '@/components/animate-ui/icons/icon';
+import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
+import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
+import { Check } from '@/components/animate-ui/icons/check';
+import { Copy } from '@/components/animate-ui/icons/copy';
+import { cn } from '@/lib/utils';
+import { ui } from '@/lib/ui';
 import { api, ApiError } from '../services/api';
 import { ClassSession, ClassStyle, Booking, EmailNotification } from '../types';
-import {
-  X,
-  Copy,
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  CheckCircle2,
-  CreditCard,
-  Building,
-  Mail,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { ModalSheet } from './ModalSheet';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -113,8 +109,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [isOpen, preselectedSession, preselectedStyle, initialPlanKey]);
 
-  if (!isOpen) return null;
-
   const currentPlan = PLANS.find((p) => p.key === planKey) || PLANS[0];
   const currentSession = sessions.find((s) => s.id === selectedSessionId) || preselectedSession;
 
@@ -198,7 +192,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return (
       <>
         {text.slice(0, match.index)}
-        <a href={`mailto:${address}`} className="underline underline-offset-2 font-medium text-ink hover:text-ink/70">
+        <a href={`mailto:${address}`} className="underline underline-offset-2 font-medium text-ink hover:text-accent-text">
           {address}
         </a>
         {text.slice(match.index + address.length)}
@@ -219,47 +213,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}`;
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/75 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-xl w-full p-5 sm:p-8 md:p-9 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-sm" data-lenis-prevent>
-        {/* Close Button with 44px touch hitbox */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 sm:top-5 sm:right-5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] transition-colors rounded-xs"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const titleId = 'booking-modal-title';
 
-        {/* Step Indicator & Header (One Big, One Small) */}
+  return (
+    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal">
+      <div className="flex flex-col gap-6">
+        {/* Step indicator and heading */}
         {!confirmedBooking && (
-          <div className="mb-7">
-            <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-[#0f0e0b]/40 mb-2">
-              <span className="font-semibold text-[#c4b48a]">Step {step} of 2</span>
-              <span>·</span>
+          <div className="flex flex-col gap-2">
+            <p className={cn(ui.eyebrow, 'flex flex-wrap items-center gap-2')}>
+              <span className="text-accent-text">Step {step} of 2</span>
+              <span aria-hidden="true">·</span>
               <span>{step === 1 ? 'Package & Slot' : 'Student & Checkout'}</span>
-            </div>
-            <h3 className="font-serif text-3xl sm:text-4xl text-[#0f0e0b] tracking-tight">
-              {step === 1 ? 'Select practice' : 'Your details'}
-            </h3>
-            <p className="text-xs text-[#0f0e0b]/60 mt-1">
-              BurJuman Residence Block D · Dubai
             </p>
+            <h2 id={titleId} className={ui.title}>
+              {step === 1 ? 'Select practice' : 'Your details'}
+            </h2>
+            <p className="text-sm leading-[1.5] text-ink-soft">BurJuman Residence Block D · Dubai</p>
           </div>
         )}
 
-        {/* Error banner */}
+        {/* Error or calm notice */}
         {error && (
           <div
             ref={errorRef}
             role="alert"
             tabIndex={-1}
-            className={`p-3.5 mb-5 border text-xs leading-relaxed rounded-xs outline-hidden focus:ring-2 focus:ring-ink/50 focus:ring-offset-2 focus:ring-offset-cream ${
-              errorTone === 'notice'
-                ? 'bg-parchment border-ink/15 text-ink'
-                : 'bg-red-50 border-red-200 text-red-900'
-            }`}
+            className={cn(errorTone === 'notice' ? ui.notice : ui.error, 'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-text')}
           >
             {errorTone === 'notice' ? renderMessage(error) : error}
           </div>
@@ -267,45 +247,41 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* ================= STEP 1: Package & Session ================= */}
         {step === 1 && (
-          <div className="space-y-6">
-            {/* 1. SELECT PACKAGE: Clean horizontal cards with Big Price & Small Label */}
-            <div>
-              <div className="flex justify-between items-baseline mb-2.5">
-                <span className="text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold">
-                  Package
-                </span>
-                <span className="text-[11px] text-[#0f0e0b]/50">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1">
+                <span className={ui.label}>Package</span>
+                <span className="text-xs text-ink-soft">
                   {currentPlan.aed === 0 ? 'Complimentary introductory class' : 'Flexible studio credits'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {PLANS.map((p) => {
                   const isSelected = planKey === p.key;
                   return (
                     <button
                       key={p.key}
                       type="button"
+                      aria-pressed={isSelected}
                       onClick={() => setPlanKey(p.key as any)}
-                      className={`p-3 text-left border transition-all flex flex-col justify-between rounded-xs ${
+                      className={cn(
+                        'min-h-[88px] p-3 text-left rounded-[12px] border flex flex-col justify-between gap-1 transition-colors duration-200',
                         isSelected
-                          ? 'border-[#0f0e0b] bg-[#0f0e0b] text-[#faf8f3] shadow-xs'
-                          : 'border-[#0f0e0b]/15 bg-white/60 hover:border-[#0f0e0b]/40 text-[#0f0e0b]'
-                      }`}
+                          ? 'bg-ink border-ink text-on-ink'
+                          : 'bg-surface-alt border-transparent text-ink hover:border-line-strong'
+                      )}
                     >
-                      <span className={`text-[10px] uppercase font-semibold tracking-wider ${
-                        isSelected ? 'text-[#c4b48a]' : 'text-[#0f0e0b]/50'
-                      }`}>
+                      <span
+                        className={cn(
+                          'text-xs font-semibold uppercase tracking-[0.14em]',
+                          isSelected ? 'text-on-ink/75' : 'text-ink-soft'
+                        )}
+                      >
                         {p.tag}
                       </span>
-                      {/* ONE THING BIG */}
-                      <span className="font-serif text-lg font-semibold my-0.5 leading-tight">
-                        {p.price}
-                      </span>
-                      {/* ONE THING SMALL */}
-                      <span className={`text-[11px] truncate ${
-                        isSelected ? 'text-[#faf8f3]/70' : 'text-[#0f0e0b]/60'
-                      }`}>
+                      <span className="text-lg font-semibold leading-tight tabular-nums">{p.price}</span>
+                      <span className={cn('text-xs truncate', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
                         {p.name}
                       </span>
                     </button>
@@ -314,174 +290,148 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             </div>
 
-            {/* 2. ATTENDANCE FORMAT: Sleek Segmented Switcher */}
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-2">
-                Format
-              </label>
-              <div className="grid grid-cols-2 gap-2 bg-[#f2ede4] p-1 border border-[#0f0e0b]/10 rounded-xs">
-                <button
-                  type="button"
-                  onClick={() => setMode('in_person')}
-                  className={`py-2 text-xs font-semibold uppercase tracking-wider transition-all rounded-xs ${
-                    mode === 'in_person'
-                      ? 'bg-[#0f0e0b] text-[#faf8f3] shadow-xs'
-                      : 'text-[#0f0e0b]/70 hover:text-[#0f0e0b]'
-                  }`}
-                >
-                  In-Person (BurJuman)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('online')}
-                  className={`py-2 text-xs font-semibold uppercase tracking-wider transition-all rounded-xs ${
-                    mode === 'online'
-                      ? 'bg-[#0f0e0b] text-[#faf8f3] shadow-xs'
-                      : 'text-[#0f0e0b]/70 hover:text-[#0f0e0b]'
-                  }`}
-                >
-                  Online Live Stream
-                </button>
+            <div className="flex flex-col gap-3">
+              <span className={ui.label}>Format</span>
+              <div className="grid grid-cols-2 gap-1 p-1 bg-surface-alt rounded-full">
+                {(
+                  [
+                    ['in_person', 'In-Person (BurJuman)'],
+                    ['online', 'Online Live Stream'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={mode === value}
+                    onClick={() => setMode(value)}
+                    className={cn(
+                      'min-h-11 px-3 rounded-full text-xs font-semibold uppercase tracking-[0.1em] transition-colors duration-200',
+                      mode === value ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* 3. CLASS SLOT PICKER: High contrast, readable, non-redundant */}
-            <div>
-              <div className="flex justify-between items-baseline mb-2">
-                <label className="text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1">
+                <label htmlFor="booking-session" className={ui.label}>
                   Class & Time
                 </label>
-                <span className="text-[11px] text-[#0f0e0b]/50">
-                  Asia/Dubai (GMT+4)
-                </span>
+                <span className="text-xs text-ink-soft">Asia/Dubai (GMT+4)</span>
               </div>
               {noOtherSessions ? (
-                <p className="px-4 py-3 bg-parchment border border-ink/15 text-sm text-ink/70 rounded-xs">
-                  No other open sessions right now — please contact the studio.
-                </p>
+                <p className={ui.notice}>No other open sessions right now — please contact the studio.</p>
               ) : (
-              <div className="relative">
-                <select
-                  value={selectedSessionId}
-                  onChange={(e) => setSelectedSessionId(e.target.value)}
-                  className="w-full appearance-none px-4 py-3 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs cursor-pointer font-medium pr-10 min-h-[44px]"
-                >
-                  {sessions.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.className} — {s.dateDubai} at {s.timeDubai} ({s.spotsLeft} spots)
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-[#0f0e0b]/50 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+                <div className="relative">
+                  <select
+                    id="booking-session"
+                    value={selectedSessionId}
+                    onChange={(e) => setSelectedSessionId(e.target.value)}
+                    className={cn(ui.input, 'appearance-none pr-10 cursor-pointer truncate')}
+                  >
+                    {sessions.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.className} — {s.dateDubai} at {s.timeDubai} ({s.spotsLeft} spots)
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="size-4 text-ink-soft absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                </div>
               )}
             </div>
 
-            {/* Primary Action Button */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={handleNextStep}
-                disabled={noOtherSessions}
-                className="w-full py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#c4b48a]"
-              >
+            <AnimateIcon animateOnHover asChild>
+              <button type="button" onClick={handleNextStep} disabled={noOtherSessions} className={cn(ui.primary, 'w-full')}>
                 <span>Continue to Checkout</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight size={16} aria-hidden="true" />
               </button>
-            </div>
+            </AnimateIcon>
           </div>
         )}
 
         {/* ================= STEP 2: Details & Checkout ================= */}
         {step === 2 && (
-          <div className="space-y-5">
-            {/* Order Summary Strip (Big Price, Small Metadata) */}
-            <div className="p-4 bg-[#f2ede4] border border-[#0f0e0b]/10 rounded-xs flex items-center justify-between">
-              <div>
-                <p className="font-serif text-lg font-semibold text-[#0f0e0b]">
-                  {currentSession?.className}
-                </p>
-                <p className="text-xs text-[#0f0e0b]/60">
-                  {currentSession?.dateDubai} · {currentSession?.timeDubai} · {mode === 'in_person' ? 'BurJuman Studio' : 'Online Stream'}
+          <div className="flex flex-col gap-6">
+            {/* Order summary */}
+            <div className={cn(ui.panel, 'flex items-center justify-between gap-4')}>
+              <div className="flex flex-col gap-1 min-w-0">
+                <p className="font-display text-[24px] leading-[1.1] text-ink">{currentSession?.className}</p>
+                <p className="text-sm text-ink-soft">
+                  {currentSession?.dateDubai} · {currentSession?.timeDubai} ·{' '}
+                  {mode === 'in_person' ? 'BurJuman Studio' : 'Online Stream'}
                 </p>
               </div>
-              <div className="text-right">
-                {/* ONE THING BIG */}
-                <span className="font-serif text-2xl font-bold text-[#0f0e0b] block leading-tight">
-                  {currentPlan.price}
-                </span>
-                {/* ONE THING SMALL */}
-                <span className="text-[10px] uppercase tracking-wider text-[#0f0e0b]/50">
-                  {currentPlan.name}
-                </span>
+              <div className="text-right shrink-0 flex flex-col gap-1">
+                <span className="text-lg font-semibold leading-tight tabular-nums text-ink">{currentPlan.price}</span>
+                <span className="text-xs uppercase tracking-[0.14em] text-ink-soft">{currentPlan.name}</span>
               </div>
             </div>
 
-            {/* Inputs with text-base to prevent mobile iOS zoom */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-1">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="booking-name" className={ui.label}>
                   Full Name *
                 </label>
                 <input
+                  id="booking-name"
                   type="text"
                   required
+                  autoComplete="name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Layla Al-Mansoor"
-                  className="w-full px-3.5 py-3 sm:py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
+                  className={ui.input}
                 />
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-1">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="booking-email" className={ui.label}>
                   Email Address * (For instant confirmation)
                 </label>
                 <input
+                  id="booking-email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="layla@example.com"
-                  className="w-full px-3.5 py-3 sm:py-2.5 bg-white border border-[#0f0e0b]/20 text-base sm:text-sm focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
+                  className={ui.input}
                 />
               </div>
             </div>
 
-            {/* Payment Section (Clean & Minimal) */}
             {planKey === 'free' ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 rounded-xs flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>Complimentary session · Total: <strong>AED 0</strong> (No card required)</span>
+              <div className={cn(ui.notice, 'flex items-center gap-3')}>
+                <Check size={16} className="text-success shrink-0" aria-hidden="true" />
+                <span>
+                  Complimentary session · Total: <strong className="font-semibold">AED 0</strong> (No card required)
+                </span>
               </div>
             ) : (
-              <div className="border border-[#0f0e0b]/15 p-4 rounded-xs bg-[#f2ede4]/40 space-y-3">
-                <span className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold">
-                  Payment
-                </span>
-                <p className="text-xs text-[#0f0e0b]/70">
+              <div className={cn(ui.panel, 'flex flex-col gap-2')}>
+                <span className={ui.label}>Payment</span>
+                <p className="text-sm leading-[1.5] text-ink-soft">
                   Your seat is held immediately. Settle AED {currentPlan.aed} at BurJuman Residence Block D reception desk upon arrival. Online payment is coming soon.
                 </p>
               </div>
             )}
 
-            {/* Stepper Buttons with 48px touch targets */}
-            <div className="pt-2 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-3 min-h-[48px] border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] flex items-center gap-1.5 rounded-xs hover:border-[#0f0e0b]"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Back
-              </button>
+            <div className="flex items-center gap-3">
+              <AnimateIcon animateOnHover asChild>
+                <button type="button" onClick={() => setStep(1)} className={ui.secondary}>
+                  <ArrowLeft size={14} aria-hidden="true" />
+                  Back
+                </button>
+              </AnimateIcon>
 
-              <button
-                type="button"
-                disabled={loading}
-                onClick={handleNextStep}
-                className="flex-1 py-3.5 min-h-[48px] bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
-              >
+              <button type="button" disabled={loading} onClick={handleNextStep} className={cn(ui.primary, 'flex-1 px-4')}>
                 {loading
                   ? 'Confirming...'
                   : planKey === 'free'
@@ -494,137 +444,117 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
         {/* ================= STEP 3: Confirmation ================= */}
         {step === 3 && confirmedBooking && (
-          <div className="py-2 text-center">
-            {/* ONE THING BIG: Success Heading & Token */}
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CheckCircle2 className="w-6 h-6 text-emerald-700" />
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
+                <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
+              </span>
+              <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+                You&apos;re on the mat.
+              </h2>
+              <p className="text-sm leading-[1.5] text-ink-soft max-w-[46ch]">
+                {studentEmail ? (
+                  <>
+                    Confirmation sent to <strong className="font-semibold text-ink">{confirmedBooking.customerEmail}</strong>
+                  </>
+                ) : (
+                  <>We couldn&apos;t send your confirmation email just now. Please save your booking reference below.</>
+                )}
+              </p>
             </div>
 
-            <h3 className="font-serif text-3xl sm:text-4xl text-[#0f0e0b] mb-1">
-              You&apos;re on the mat.
-            </h3>
-            <p className="text-xs text-[#0f0e0b]/60 mb-6">
-              {studentEmail ? (
-                <>
-                  Confirmation sent to <strong>{confirmedBooking.customerEmail}</strong>
-                </>
-              ) : (
-                <>We couldn&apos;t send your confirmation email just now. Please save your booking reference below.</>
-              )}
-            </p>
-
-            {/* Prominent Booking Token Badge (BIG TOKEN, Small Label) */}
-            <div data-testid="booking-reference-card" className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-5 max-w-sm mx-auto mb-6 rounded-xs">
-              <span className="text-xs uppercase tracking-widest text-[#0f0e0b]/60 block mb-1">
-                Your Booking Reference
-              </span>
-              <div className="flex items-center justify-center gap-2">
+            <div data-testid="booking-reference-card" className="w-full max-w-sm p-5 rounded-[16px] bg-surface-alt flex flex-col items-center gap-1">
+              <span className={ui.eyebrow}>Your Booking Reference</span>
+              <div className="flex items-center justify-center gap-2 max-w-full">
                 <span
                   data-testid="booking-token"
-                  className="font-mono text-2xl max-sm:text-base max-sm:tracking-normal whitespace-nowrap font-bold tracking-wider text-[#0f0e0b]"
+                  className="text-base sm:text-xl font-semibold tabular-nums tracking-[0.04em] whitespace-nowrap text-ink"
                 >
                   {confirmedBooking.bookingToken}
                 </span>
-                <button
-                  type="button"
-                  onClick={copyToken}
-                  aria-label="Copy booking reference"
-                  title="Copy booking reference"
-                  className="min-w-[44px] min-h-[44px] shrink-0 flex items-center justify-center text-[#0f0e0b]/60 hover:text-[#0f0e0b] transition-colors rounded-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ink/50"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
+                <AnimateIcon animateOnHover asChild>
+                  <button
+                    type="button"
+                    onClick={copyToken}
+                    aria-label="Copy booking reference"
+                    title="Copy booking reference"
+                    className="inline-flex items-center justify-center size-11 shrink-0 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                  >
+                    <Copy size={16} aria-hidden="true" />
+                  </button>
+                </AnimateIcon>
               </div>
-              <span aria-live="polite" className="text-xs text-ink/70 font-medium block mt-1 min-h-[1rem]">
+              <span aria-live="polite" className="text-xs text-ink-soft min-h-4">
                 {copied ? 'Copied to clipboard' : ''}
               </span>
             </div>
 
-            {/* Clean Metadata List */}
-            <div className="bg-white border border-[#0f0e0b]/10 p-4 max-w-md mx-auto text-xs space-y-2 mb-6 rounded-xs text-left">
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/50">Class</span>
-                <span className="font-medium text-[#0f0e0b]">{confirmedBooking.sessionTitle}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/50">Date & Time</span>
-                <span className="font-medium text-[#0f0e0b]">{confirmedBooking.sessionTimeDubai}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/50">Location</span>
-                <span className="font-medium text-[#0f0e0b]">
-                  {confirmedBooking.mode === 'in_person' ? 'BurJuman Residence Block D' : 'Online Stream'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/50">Status</span>
-                <span
-                  className={`font-medium ${
-                    !confirmedBooking.amountAed || confirmedBooking.paymentStatus === 'paid'
-                      ? 'text-emerald-800'
-                      : 'text-ink/70'
-                  }`}
-                >
-                  {confirmedBooking.amountAed
-                    ? `AED ${confirmedBooking.amountAed} (${
-                        confirmedBooking.paymentStatus === 'paid'
-                          ? 'Paid'
-                          : confirmedBooking.paymentStatus === 'pending_at_studio'
-                            ? 'Pay at Studio'
-                            : 'Payment pending'
-                      })`
-                    : 'Complimentary'}
-                </span>
-              </div>
-            </div>
+            <dl className="w-full max-w-md flex flex-col gap-2 text-sm text-left">
+              {(
+                [
+                  ['Class', confirmedBooking.sessionTitle, ''],
+                  ['Date & Time', confirmedBooking.sessionTimeDubai, ''],
+                  [
+                    'Location',
+                    confirmedBooking.mode === 'in_person' ? 'BurJuman Residence Block D' : 'Online Stream',
+                    '',
+                  ],
+                  [
+                    'Status',
+                    confirmedBooking.amountAed
+                      ? `AED ${confirmedBooking.amountAed} (${
+                          confirmedBooking.paymentStatus === 'paid'
+                            ? 'Paid'
+                            : confirmedBooking.paymentStatus === 'pending_at_studio'
+                              ? 'Pay at Studio'
+                              : 'Payment pending'
+                        })`
+                      : 'Complimentary',
+                    !confirmedBooking.amountAed || confirmedBooking.paymentStatus === 'paid' ? 'text-success' : 'text-ink',
+                  ],
+                ] as const
+              ).map(([term, value, tone]) => (
+                <div key={term} className="flex justify-between gap-4 py-2 border-b border-line last:border-b-0">
+                  <dt className="text-ink-soft">{term}</dt>
+                  <dd className={cn('font-medium text-right', tone || 'text-ink')}>{value}</dd>
+                </div>
+              ))}
+            </dl>
 
-            {/* Quick Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
-              <a
-                href={getGoogleCalendarUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-2.5 border border-[#0f0e0b]/20 hover:border-[#0f0e0b] text-xs font-semibold uppercase tracking-wider text-[#0f0e0b] transition-colors rounded-xs flex items-center justify-center gap-2"
-              >
-                <Calendar className="w-3.5 h-3.5 text-[#c4b48a]" />
+            <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+              <a href={getGoogleCalendarUrl()} target="_blank" rel="noopener noreferrer" className={ui.secondary}>
+                <Calendar className="size-4 text-accent-text" aria-hidden="true" />
                 Add to Calendar
               </a>
-              <button
-                type="button"
-                onClick={() => setShowEmailDetails(!showEmailDetails)}
-                className="w-full sm:w-auto px-5 py-2.5 border border-[#0f0e0b]/20 hover:border-[#0f0e0b] text-xs font-semibold uppercase tracking-wider text-[#0f0e0b] transition-colors rounded-xs flex items-center justify-center gap-2"
-              >
-                <Mail className="w-3.5 h-3.5 text-[#c4b48a]" />
+              <button type="button" onClick={() => setShowEmailDetails(!showEmailDetails)} className={ui.secondary}>
+                <Mail className="size-4 text-accent-text" aria-hidden="true" />
                 {showEmailDetails ? 'Hide Email' : 'View Email Copy'}
               </button>
             </div>
 
-            {/* Collapsible Email Dispatch Preview */}
             {showEmailDetails && (
-              <div className="bg-[#171512] text-[#faf8f3] p-4 text-xs leading-relaxed max-w-md mx-auto mb-6 text-left rounded-xs">
-                <div className="text-[11px] text-[#faf8f3]/50 pb-2 mb-2 border-b border-[#faf8f3]/10">
-                  <p><strong>From:</strong> {studentEmail?.sender || 'Priyanshi · YogaPriyanshi'}</p>
-                  <p><strong>To:</strong> {confirmedBooking.customerEmail}</p>
+              <div className={cn(ui.panel, 'w-full max-w-md text-left flex flex-col gap-3')}>
+                <div className="text-xs text-ink-soft pb-3 border-b border-line flex flex-col gap-1">
+                  <p>
+                    <strong className="font-semibold text-ink">From:</strong> {studentEmail?.sender || 'Priyanshi · YogaPriyanshi'}
+                  </p>
+                  <p>
+                    <strong className="font-semibold text-ink">To:</strong> {confirmedBooking.customerEmail}
+                  </p>
                 </div>
-                <p className="whitespace-pre-wrap text-[#faf8f3]/90 font-sans">
+                <p className="whitespace-pre-wrap text-sm leading-[1.6] text-ink-soft">
                   {studentEmail?.body ||
                     `Your booking is confirmed, but we couldn't send the confirmation email just now.\n\nPlease keep your booking token: ${confirmedBooking.bookingToken}\n\nYou'll need it to manage or cancel this booking.`}
                 </p>
               </div>
             )}
 
-            <div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-8 py-3.5 bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest rounded-xs"
-              >
-                Return to Studio
-              </button>
-            </div>
+            <button type="button" onClick={onClose} className={ui.primary}>
+              Return to Studio
+            </button>
           </div>
         )}
       </div>
-    </div>
+    </ModalSheet>
   );
 };

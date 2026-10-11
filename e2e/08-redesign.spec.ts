@@ -191,3 +191,45 @@ test.describe('mobile menu', () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   });
 });
+
+test('Escape closes the booking sheet and returns focus to the button that opened it', async ({ page }, info) => {
+  const shot = stepShooter(page, FEATURE, info.title);
+  await openHome(page);
+  const opener = page.locator('header').getByRole('button', { name: 'Book free class' });
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name: 'Select practice' });
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('inert', '');
+  await shot('sheet-open');
+
+  // Tab stays inside the sheet
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press('Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement)), `focus after Tab ${i + 1}`).toBe(true);
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(bookingModal(page)).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  await expect(page.locator('main')).not.toHaveAttribute('inert');
+});
+
+test.describe('at 375px', () => {
+  test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+
+  test('the booking sheet sits at the bottom of the screen with no horizontal overflow', async ({ page }, info) => {
+    const shot = stepShooter(page, FEATURE, info.title);
+    await openHome(page);
+    await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Select practice' });
+    await expect(dialog.locator('select option').first()).toBeAttached();
+    // let the slide-up finish
+    await expect.poll(async () => Math.round((await dialog.boundingBox())!.y + (await dialog.boundingBox())!.height)).toBe(812);
+    const box = (await dialog.boundingBox())!;
+    expect(box.x).toBe(0);
+    expect(box.width).toBe(375);
+    const overflow = await dialog.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow, 'sheet horizontal overflow').toBeLessThanOrEqual(0);
+    await shot('bottom-sheet');
+  });
+});

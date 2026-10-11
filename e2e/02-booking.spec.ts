@@ -35,7 +35,7 @@ test('free first class: full happy path with validation', async ({ page }, info)
   await modal.getByPlaceholder('layla@example.com').fill(email);
   await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
-  const token = await modal.locator('span.font-mono.text-2xl').innerText();
+  const token = await modal.getByTestId('booking-token').innerText();
   expect(token).toMatch(/^YP-[0-9A-HJKMNP-TV-Z]{16}$/);
   await expect(modal.getByText('Online Stream')).toBeVisible();
   await expect(modal.getByText('Complimentary', { exact: true })).toBeVisible();
