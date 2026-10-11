@@ -1,102 +1,94 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { FourPaths } from './components/FourPaths';
+import { PracticeCarousel } from './components/PracticeCarousel';
 import { AboutSection } from './components/AboutSection';
+import { QuoteSection } from './components/QuoteSection';
 import { ClassesPricing } from './components/ClassesPricing';
 import { ScheduleSection } from './components/ScheduleSection';
-import { TestimonialsAndGallery } from './components/TestimonialsAndGallery';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { StickyBookBar } from './components/StickyBookBar';
 import { BookingModal } from './components/BookingModal';
 import { CancelModal } from './components/CancelModal';
 import { AdminDashboard } from './components/AdminDashboard';
-import { ClassSession } from './types';
+import { MandalaBackground } from './components/MandalaBackground';
+import { useScrollToSection } from './hooks/use-smooth-scroll';
+import type { PracticeClass } from './constants/classes';
+import type { ClassSession, ClassStyle } from './types';
+
+type PlanKey = 'free' | 'single' | 'pack10' | 'pack20';
+
+interface BookingOpenState {
+  session: ClassSession | null;
+  style: ClassStyle | null;
+  planKey: PlanKey;
+}
 
 export default function App() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
-  const [preselectedSession, setPreselectedSession] = useState<ClassSession | null>(null);
+  const [booking, setBooking] = useState<BookingOpenState>({ session: null, style: null, planKey: 'free' });
+  const scrollToSection = useScrollToSection();
 
-  const [selectedPlanKey, setSelectedPlanKey] = useState<'free' | 'single' | 'pack10' | 'pack20'>('free');
-
-  const handleOpenBooking = (session?: ClassSession, planKey?: 'free' | 'single' | 'pack10' | 'pack20') => {
-    if (session) {
-      setPreselectedSession(session);
-    } else {
-      setPreselectedSession(null);
-    }
-    setSelectedPlanKey(planKey || 'free');
+  const handleOpenBooking = (opts: { session?: ClassSession; style?: ClassStyle; planKey?: PlanKey } = {}) => {
+    setBooking({ session: opts.session ?? null, style: opts.style ?? null, planKey: opts.planKey ?? 'free' });
     setBookingModalOpen(true);
   };
 
-  const handleSelectClassStyle = (_classId: string) => {
-    // Scroll to schedule and open booking
-    const scheduleElem = document.getElementById('schedule');
-    if (scheduleElem) {
-      scheduleElem.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      handleOpenBooking();
-    }
+  // Bookable classes open booking with their soonest session; the new ones aren't
+  // on the timetable yet, so they go to Contact (a contact pop-up arrives in Batch 2).
+  const handleSelectPractice = (practice: PracticeClass) => {
+    if (practice.style) handleOpenBooking({ style: practice.style });
+    else scrollToSection('contact');
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8f3] text-[#0f0e0b] flex flex-col font-sans selection:bg-[#c4b48a]/35">
-      {/* Global Header */}
+    // Transparent on purpose: the page colour is on <body> so the mandala layer shows through.
+    <div className="min-h-screen flex flex-col text-ink font-sans">
+      <MandalaBackground />
+
       <Header
         onOpenBooking={() => handleOpenBooking()}
         onOpenCancel={() => setCancelModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
-        activeView="studio"
-        onSwitchView={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       />
 
       <main className="flex-1">
         <Hero onOpenBooking={() => handleOpenBooking()} />
-        <FourPaths onSelectClass={handleSelectClassStyle} />
-        <AboutSection onOpenBooking={() => handleOpenBooking()} />
+        <PracticeCarousel onSelectClass={handleSelectPractice} />
+        <AboutSection />
+        <QuoteSection />
         <ClassesPricing
-          onOpenBooking={(plan) => handleOpenBooking(undefined, plan)}
-          onOpenContact={() => {
-            const contactElem = document.getElementById('contact');
-            contactElem?.scrollIntoView({ behavior: 'smooth' });
-          }}
+          onOpenBooking={(planKey) => handleOpenBooking({ planKey })}
+          onOpenContact={() => scrollToSection('contact')}
         />
         <ScheduleSection
-          onSelectSession={(session) => handleOpenBooking(session)}
+          onSelectSession={(session) => handleOpenBooking({ session })}
           onOpenCancel={() => setCancelModalOpen(true)}
         />
-        <TestimonialsAndGallery onOpenBooking={() => handleOpenBooking()} />
         <ContactSection />
         <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
       </main>
 
-      {/* Footer */}
       <Footer
         onOpenBooking={() => handleOpenBooking()}
         onOpenCancel={() => setCancelModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
       />
 
-      {/* Modals */}
       <BookingModal
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
-        preselectedSession={preselectedSession}
-        initialPlanKey={selectedPlanKey}
+        preselectedSession={booking.session}
+        preselectedStyle={booking.style}
+        initialPlanKey={booking.planKey}
       />
 
-      <CancelModal
-        isOpen={cancelModalOpen}
-        onClose={() => setCancelModalOpen(false)}
-      />
+      <CancelModal isOpen={cancelModalOpen} onClose={() => setCancelModalOpen(false)} />
 
-      <AdminDashboard
-        isOpen={adminModalOpen}
-        onClose={() => setAdminModalOpen(false)}
-      />
+      <AdminDashboard isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
     </div>
   );
 }

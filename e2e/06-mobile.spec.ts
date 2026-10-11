@@ -13,15 +13,16 @@ test('mobile layout has no horizontal scroll and menu works', async ({ page }, i
   expect(overflow, 'horizontal overflow in px').toBeLessThanOrEqual(0);
 
   await page.getByLabel('Toggle Navigation Menu').click();
-  await expect(page.getByRole('link', { name: 'Classes & Pricing' })).toBeVisible();
+  const menu = page.getByRole('dialog', { name: 'Menu' });
+  await expect(menu.getByRole('link', { name: 'Classes', exact: true })).toBeVisible();
   await shot('menu-open');
-  await page.getByRole('link', { name: 'Contact & Location' }).click();
-  await expect(page.getByRole('link', { name: 'Classes & Pricing' })).toHaveCount(0);
+  await menu.getByRole('link', { name: 'Contact', exact: true }).click();
+  await expect(menu).toHaveCount(0);
   await expect(page.locator('#contact')).toBeInViewport();
   await shot('contact');
 
   await page.getByLabel('Toggle Navigation Menu').click();
-  await page.getByRole('button', { name: 'Studio Admin Portal', exact: true }).click();
+  await menu.getByRole('button', { name: 'Studio admin', exact: true }).click();
   await expect(page.getByText('Instructor Portal')).toBeVisible();
   await shot('admin-from-menu');
 });
@@ -29,7 +30,7 @@ test('mobile layout has no horizontal scroll and menu works', async ({ page }, i
 test('mobile free booking end to end', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  await page.getByRole('button', { name: /Book Free First Class/ }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
   await shot('step1');
@@ -42,13 +43,26 @@ test('mobile free booking end to end', async ({ page }, info) => {
   await shot('confirmed');
 });
 
+test('sticky book bar appears after the hero and opens booking', async ({ page }, info) => {
+  const shot = stepShooter(page, FEATURE, info.title);
+  await openHome(page);
+  const bar = page.getByLabel('Quick booking bar');
+  await expect(bar).toHaveCount(0);
+  await page.mouse.wheel(0, 1200);
+  await expect(bar).toBeVisible();
+  await shot('sticky-bar-visible');
+  await bar.getByRole('button', { name: 'Book a free class' }).click();
+  await expect(bookingModal(page).getByText('Select practice')).toBeVisible();
+  await shot('booking-opened');
+});
+
 test.describe('at 375px', () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
   test('the booking reference fits on the confirmation card', async ({ page }, info) => {
     const shot = stepShooter(page, FEATURE, info.title);
     await openHome(page);
-    await page.getByRole('button', { name: /Book Free First Class/ }).click();
+    await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
     const modal = bookingModal(page);
     await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
     await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Narrow Student');

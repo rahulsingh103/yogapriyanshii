@@ -97,7 +97,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/85 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-5xl w-full p-5 sm:p-8 md:p-10 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs">
+      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-5xl w-full p-5 sm:p-8 md:p-10 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs" data-lenis-prevent>
         {/* Top-right dismiss button */}
         <button
           type="button"

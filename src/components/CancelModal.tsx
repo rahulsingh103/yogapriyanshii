@@ -92,7 +92,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f0e0b]/80 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs">
+      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs" data-lenis-prevent>
         <button
           type="button"
           onClick={() => {

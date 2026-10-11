@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api, ApiError } from '../services/api';
-import { ClassSession, Booking, EmailNotification } from '../types';
+import { ClassSession, ClassStyle, Booking, EmailNotification } from '../types';
 import {
   X,
   Copy,
@@ -19,6 +19,8 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedSession?: ClassSession | null;
+  /** From a carousel card: preselect the soonest available session of this style. */
+  preselectedStyle?: ClassStyle | null;
   initialPlanKey?: 'free' | 'single' | 'pack10' | 'pack20';
   onBookingSuccess?: (booking: Booking) => void;
 }
@@ -34,6 +36,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
   preselectedSession,
+  preselectedStyle,
   initialPlanKey = 'free',
   onBookingSuccess,
 }) => {
@@ -91,8 +94,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         .then((data) => {
           const available = data.filter((s) => !s.isRestDay && s.status === 'available');
           setSessions(available);
+          const soonestOfStyle = preselectedStyle
+            ? available
+                .filter((s) => s.style === preselectedStyle)
+                .sort((a, b) => Date.parse(a.startTimeUtc) - Date.parse(b.startTimeUtc))[0]
+            : undefined;
           if (preselectedSession && preselectedSession.status === 'available') {
             setSelectedSessionId(preselectedSession.id);
+          } else if (soonestOfStyle) {
+            setSelectedSessionId(soonestOfStyle.id);
           } else if (available.length > 0 && !selectedSessionId) {
             setSelectedSessionId(available[0].id);
           }
@@ -101,7 +111,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           setError(err instanceof Error ? err.message : 'Unable to load the live schedule.');
         });
     }
-  }, [isOpen, preselectedSession, initialPlanKey]);
+  }, [isOpen, preselectedSession, preselectedStyle, initialPlanKey]);
 
   if (!isOpen) return null;
 
@@ -211,7 +221,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#0f0e0b]/75 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-xl w-full p-5 sm:p-8 md:p-9 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-sm">
+      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-xl w-full p-5 sm:p-8 md:p-9 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-sm" data-lenis-prevent>
         {/* Close Button with 44px touch hitbox */}
         <button
           type="button"

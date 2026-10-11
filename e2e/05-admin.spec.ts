@@ -16,7 +16,7 @@ test('admin login, dashboard metrics, settings and logout', async ({ page }, inf
   expect(contact.status()).toBe(200);
 
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Admin' }).click();
+  await page.locator('footer').getByRole('button', { name: 'Admin Dashboard Portal' }).click();
   const modal = adminModal(page);
   await expect(modal.getByText('Instructor Portal')).toBeVisible();
   await shot('login');
@@ -47,7 +47,7 @@ test('admin login, dashboard metrics, settings and logout', async ({ page }, inf
 
   // session survives a reload (token in localStorage) and settings persisted server-side
   await page.reload();
-  await page.locator('header').getByRole('button', { name: 'Admin' }).click();
+  await page.locator('footer').getByRole('button', { name: 'Admin Dashboard Portal' }).click();
   await expect(modal.locator('input[type="email"]')).toHaveValue('alerts@yogapriyanshi.com');
   await shot('after-reload');
 
@@ -138,7 +138,7 @@ test('simultaneous wrong passwords never get more than 5 tries', async ({ reques
 test('admin portal locks after 5 failed attempts', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  await page.getByRole('button', { name: 'Admin Dashboard Portal' }).click();
+  await page.locator('footer').getByRole('button', { name: 'Admin Dashboard Portal' }).click();
   const modal = adminModal(page);
   for (let i = 0; i < 5; i++) {
     await modal.getByPlaceholder('Enter studio password...').fill(`bad-${i}`);

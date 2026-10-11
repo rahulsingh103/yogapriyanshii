@@ -16,7 +16,7 @@ test('landing page renders every section with working images', async ({ page }, 
 
   for (const [id, heading] of [
     ['classes', 'Choose your practice'],
-    ['about', "Hello, I'm Priyanshi."],
+    ['about', "Hi, I'm Priyanshi."],
     ['schedule', 'Weekly schedule'],
     ['contact', 'Get in touch'],
   ] as const) {
@@ -25,8 +25,6 @@ test('landing page renders every section with working images', async ({ page }, 
     await expect(section.getByRole('heading', { level: 2 })).toHaveText(heading);
     await shot(`section-${id}`);
   }
-  await expect(page.getByRole('heading', { name: 'Four paths to stillness' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Voices from the mat' })).toBeVisible();
 
   // every <img> actually decoded
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -51,40 +49,31 @@ test('header navigation jumps to each section', async ({ page }, info) => {
   }
 });
 
-test('sticky book bar appears after scrolling and opens booking', async ({ page }, info) => {
+test('a bookable carousel card opens booking with that style preselected', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  const bar = page.getByLabel('Quick booking bar');
-  await expect(bar).toHaveCount(0);
-  await page.mouse.wheel(0, 1200);
-  await expect(bar).toBeVisible();
-  await shot('sticky-bar-visible');
-  await bar.getByRole('button', { name: 'Book Now' }).click();
-  await expect(bookingModal(page).getByText('Select practice')).toBeVisible();
-  await shot('booking-opened');
-});
-
-test('"Book This Style" scrolls to the schedule', async ({ page }, info) => {
-  const shot = stepShooter(page, FEATURE, info.title);
-  await openHome(page);
-  await page.getByRole('button', { name: 'Book This Style' }).first().click();
-  await expect(page.locator('#schedule')).toBeInViewport();
-  await shot('schedule-in-view');
+  const classes = page.locator('#classes');
+  await classes.scrollIntoViewIfNeeded();
+  await classes.getByRole('button', { name: /^Barre/ }).click();
+  const modal = bookingModal(page);
+  await expect(modal.locator('select')).toBeVisible();
+  await expect(modal.locator('select option:checked')).toContainText('Barre');
+  await shot('barre-preselected');
 });
 
 test('pricing cards open booking with the matching package selected', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  await page.locator('#classes').scrollIntoViewIfNeeded();
+  await page.locator('#pricing').scrollIntoViewIfNeeded();
   await shot('pricing');
 
-  await page.locator('#classes').getByRole('button', { name: 'Claim Free Class' }).click();
+  await page.locator('#pricing').getByRole('button', { name: 'Claim Free Class' }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Complimentary introductory class')).toBeVisible();
   await shot('free-plan-modal');
   await modal.getByLabel('Close modal').click();
 
-  await page.locator('#classes').getByRole('button', { name: 'Get Started' }).first().click();
+  await page.locator('#pricing').getByRole('button', { name: 'Get Started' }).first().click();
   await expect(modal.getByText('Flexible studio credits')).toBeVisible();
   await shot('paid-plan-modal');
 });

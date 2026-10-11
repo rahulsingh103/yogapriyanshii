@@ -89,7 +89,7 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
   };
 
   return (
-    <section id="classes" className="py-16 sm:py-20 lg:py-24 bg-[#0f0e0b] text-[#faf8f3]">
+    <section id="pricing" className="py-16 sm:py-20 lg:py-24 bg-[#0f0e0b] text-[#faf8f3]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-2xl mb-10 sm:mb-12 lg:mb-16">
@@ -97,7 +97,7 @@ export const ClassesPricing: React.FC<ClassesPricingProps> = ({
             03. Pricing & Membership
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#faf8f3] tracking-tight leading-[1.15] mb-3 sm:mb-4 [text-wrap:balance]">
-            Choose your practice
+            Pricing
           </h2>
           <p className="text-sm sm:text-base text-[#faf8f3]/70 leading-[1.7] [text-wrap:pretty]">
             Begin with your complimentary introductory class. When you are ready to deepen your commitment, packs offer shareable credits and guaranteed studio reservation.

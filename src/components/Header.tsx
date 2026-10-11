@@ -1,170 +1,168 @@
-import React, { useState } from 'react';
-import { Menu, X, Lock, Palette } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useLenis } from 'lenis/react';
+import { AnimateIcon } from '@/components/animate-ui/icons/icon';
+import { Menu } from '@/components/animate-ui/icons/menu';
+import { X } from '@/components/animate-ui/icons/x';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   onOpenBooking: () => void;
   onOpenCancel: () => void;
   onOpenAdmin: () => void;
-  onOpenEmails?: () => void;
-  onOpenDesignShowcase?: () => void;
-  activeView: 'studio' | 'tutor';
-  onSwitchView: (view: 'studio' | 'tutor') => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onOpenBooking,
-  onOpenCancel,
-  onOpenAdmin,
-  onOpenDesignShowcase,
-  activeView,
-  onSwitchView,
-}) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const LINKS = [
+  { href: '#classes', label: 'Classes' },
+  { href: '#schedule', label: 'Schedule' },
+  { href: '#about', label: 'About' },
+  { href: '#contact', label: 'Contact' },
+] as const;
+
+export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps) {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const lenis = useLenis();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // While the overlay is open: page scroll stops, Escape closes it, focus moves inside.
+  useEffect(() => {
+    if (!menuOpen) return;
+    lenis?.stop();
+    firstLinkRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      lenis?.start();
+    };
+  }, [menuOpen, lenis]);
+
+  // Restart Lenis before the anchor click reaches it, so it can scroll to the section.
+  const closeForLink = () => {
+    lenis?.start();
+    setMenuOpen(false);
+  };
+
+  const closeThen = (action: () => void) => () => {
+    setMenuOpen(false);
+    action();
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0f0e0b]/92 backdrop-blur-md border-b border-white/10 text-[#faf8f3] transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Brand Wordmark */}
-          <div className="flex items-center">
-            <a
-              href="#home"
-              onClick={() => onSwitchView('studio')}
-              className="group flex flex-col"
-            >
-              <span className="font-serif text-2xl sm:text-[26px] tracking-tight text-[#faf8f3] group-hover:text-[#c4b48a] transition-colors leading-none">
-                YogaPriyanshi
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.25em] text-[#c4b48a] font-medium mt-1">
-                BurJuman Residence Block D · Dubai
-              </span>
-            </a>
-          </div>
+    <header className="fixed top-0 inset-x-0 z-[45]">
+      <div
+        className={cn(
+          'relative z-10 border-b transition-colors duration-300',
+          scrolled && !menuOpen
+            ? 'bg-bg/85 backdrop-blur-md border-line shadow-raised'
+            : 'bg-transparent border-transparent'
+        )}
+      >
+        <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
+          <a href="#home" className="font-display text-[22px] leading-none text-ink">
+            YogaPriyanshi
+          </a>
 
-          {/* Clean Center Navigation */}
-          {activeView === 'studio' ? (
-            <nav className="hidden lg:flex items-center gap-10 text-xs uppercase tracking-[0.2em] font-medium text-[#faf8f3]/70">
-              <a href="#classes" className="hover:text-[#faf8f3] transition-colors">
-                Classes
-              </a>
-              <a href="#schedule" className="hover:text-[#faf8f3] transition-colors">
-                Schedule
-              </a>
-              <a href="#about" className="hover:text-[#faf8f3] transition-colors">
-                About
-              </a>
-              <a href="#contact" className="hover:text-[#faf8f3] transition-colors">
-                Contact
-              </a>
-            </nav>
-          ) : (
-            <div className="hidden lg:flex items-center">
-              <button
-                type="button"
-                onClick={() => onSwitchView('studio')}
-                className="text-xs uppercase tracking-wider text-[#c4b48a] hover:text-[#faf8f3] transition-colors"
+          <nav aria-label="Main" className="hidden min-[900px]:flex items-center gap-8">
+            {LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200 py-3"
               >
-                ← Return to Yoga Studio
-              </button>
-            </div>
-          )}
+                {link.label}
+              </a>
+            ))}
+          </nav>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <button
-              type="button"
-              onClick={onOpenCancel}
-              className="hidden sm:inline-block text-xs uppercase tracking-wider text-[#faf8f3]/60 hover:text-[#faf8f3] transition-colors"
-            >
-              Manage Booking
-            </button>
-
-            <button
-              type="button"
-              onClick={onOpenAdmin}
-              className="text-xs uppercase tracking-wider text-[#faf8f3]/45 hover:text-[#faf8f3] transition-colors px-1 py-1"
-              title="Studio Admin Portal & Email Logs"
-            >
-              <span className="hidden sm:inline">Admin</span>
-              <Lock className="w-3.5 h-3.5 sm:hidden" />
-            </button>
-
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onOpenBooking}
-              className="px-5 py-2.5 bg-[#c4b48a] hover:bg-[#b3a277] text-[#0f0e0b] text-xs font-semibold uppercase tracking-widest transition-all rounded-xs shadow-xs hover:shadow-sm"
+              className="hidden sm:inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition-opacity duration-200"
             >
-              Book Free Class
+              Book free class
             </button>
 
-            {/* Mobile menu trigger */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 text-[#faf8f3]/80 hover:text-[#faf8f3]"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            <AnimateIcon animateOnHover asChild>
+              <button
+                ref={toggleRef}
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Toggle Navigation Menu"
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
+                className="min-[900px]:hidden inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+              >
+                {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </AnimateIcon>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0f0e0b] border-b border-white/10 px-6 py-6 space-y-4">
-          <nav className="flex flex-col space-y-3.5 text-xs uppercase tracking-wider text-[#faf8f3]/80">
-            <a
-              href="#classes"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#c4b48a] transition-colors"
-            >
-              Classes & Pricing
-            </a>
-            <a
-              href="#schedule"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#c4b48a] transition-colors"
-            >
-              Schedule
-            </a>
-            <a
-              href="#about"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#c4b48a] transition-colors"
-            >
-              About Priyanshi
-            </a>
-            <a
-              href="#contact"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#c4b48a] transition-colors"
-            >
-              Contact & Location
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenCancel();
-              }}
-              className="py-1 text-left text-xs uppercase tracking-wider text-[#faf8f3]/60 hover:text-[#faf8f3]"
-            >
-              Manage Booking
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAdmin();
-              }}
-              className="py-1 text-left text-xs uppercase tracking-wider text-[#faf8f3]/60 hover:text-[#faf8f3]"
-            >
-              Studio Admin Portal
-            </button>
-          </nav>
-        </div>
-      )}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+            className="fixed inset-0 z-0 bg-bg min-[900px]:hidden overflow-y-auto"
+            data-lenis-prevent
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+          >
+            <div className="min-h-full flex flex-col items-center justify-center gap-12 px-5 pt-24 pb-12 text-center">
+              <nav aria-label="Menu links" className="flex flex-col items-center gap-4">
+                {LINKS.map((link, i) => (
+                  <a
+                    key={link.href}
+                    ref={i === 0 ? firstLinkRef : undefined}
+                    href={link.href}
+                    onClick={closeForLink}
+                    className="font-display text-[34px] leading-tight text-ink hover:text-accent-text transition-colors duration-200 px-4 py-1"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  type="button"
+                  onClick={closeThen(onOpenCancel)}
+                  className="min-h-[44px] px-4 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200"
+                >
+                  Manage booking
+                </button>
+                <button
+                  type="button"
+                  onClick={closeThen(onOpenAdmin)}
+                  className="min-h-[44px] px-4 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200"
+                >
+                  Studio admin
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
-};
+}
