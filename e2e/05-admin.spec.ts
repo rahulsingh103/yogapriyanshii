@@ -140,10 +140,16 @@ test('admin portal locks after 5 failed attempts', async ({ page }, info) => {
   await openHome(page);
   await page.locator('footer').getByRole('button', { name: 'Admin Dashboard Portal' }).click();
   const modal = adminModal(page);
+  // Wait for each attempt's own message, so the next click never races the previous request.
   for (let i = 0; i < 5; i++) {
+    const left = 4 - i;
+    const expected =
+      left > 0
+        ? `(${left} attempt${left === 1 ? '' : 's'} remaining before 15-min lockout)`
+        : 'locked for 15 minutes';
     await modal.getByPlaceholder('Enter studio password...').fill(`bad-${i}`);
     await modal.getByRole('button', { name: 'Sign In' }).click();
-    await expect(modal.getByRole('button', { name: 'Sign In' })).toBeEnabled();
+    await expect(modal.getByText(expected, { exact: false })).toBeVisible();
   }
   await expect(modal.getByText(/locked for 15 minutes/)).toBeVisible();
   await shot('locked');

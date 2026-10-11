@@ -2,5 +2,5 @@
   "name": "YogaPriyanshi · Yoga in Dubai",
   "description": "Yoga with Priyanshi in Dubai: Hatha, Barre, Wheel and Chakra Flow classes, in person or online. Your first class is free.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
