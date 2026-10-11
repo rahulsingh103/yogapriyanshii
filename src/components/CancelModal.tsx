@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AlertCircle, Search } from 'lucide-react';
+import { AnimateIcon } from '@/components/animate-ui/icons/icon';
+import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
+import { Check } from '@/components/animate-ui/icons/check';
+import { cn } from '@/lib/utils';
+import { ui } from '@/lib/ui';
 import { api } from '../services/api';
-import { X, Search, AlertCircle, CheckCircle2, Calendar, Clock, MapPin, User, ArrowLeft } from 'lucide-react';
 import { Booking, ClassSession } from '../types';
+import { ModalSheet } from './ModalSheet';
 
 interface CancelModalProps {
   isOpen: boolean;
@@ -23,8 +29,6 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   const [lookedUpBooking, setLookedUpBooking] = useState<Booking | null>(null);
   const [lookedUpSession, setLookedUpSession] = useState<ClassSession | null>(null);
   const [cancelledBooking, setCancelledBooking] = useState<Booking | null>(null);
-
-  if (!isOpen) return null;
 
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -71,6 +75,11 @@ export const CancelModal: React.FC<CancelModalProps> = ({
     }
   };
 
+  // Every opening starts from a clean lookup form (reset on open, so the closing sheet keeps its content).
+  useEffect(() => {
+    if (isOpen) handleReset();
+  }, [isOpen]);
+
   const handleReset = () => {
     setTokenInput('');
     setError(null);
@@ -90,138 +99,103 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   const noticeHours = getNoticeHours();
   const isFreeCancel = noticeHours !== null && noticeHours >= 6;
 
+  const titleId = 'cancel-modal-title';
+  const row = 'flex justify-between gap-4 py-2 border-b border-line last:border-b-0';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f0e0b]/80 backdrop-blur-xs">
-      <div className="bg-[#faf8f3] text-[#0f0e0b] border border-[#0f0e0b]/15 max-w-lg w-full p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto rounded-xs" data-lenis-prevent>
-        <button
-          type="button"
-          onClick={() => {
-            handleReset();
-            onClose();
-          }}
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#0f0e0b]/50 hover:text-[#0f0e0b] rounded-xs"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <span className="text-[11px] uppercase tracking-widest text-[#c4b48a] font-semibold block mb-2">
-          BurJuman Residence Block D, Dubai
-        </span>
-
-        <h3 className="font-serif text-2xl sm:text-3xl text-[#0f0e0b] mb-2">
-          Manage Reservation
-        </h3>
-        <p className="text-xs text-[#0f0e0b]/60 mb-6">
-          Look up booking details or cancel according to the studio 6-hour policy.
-        </p>
+    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <span className={cn(ui.eyebrow, 'text-accent-text')}>BurJuman Residence Block D, Dubai</span>
+          <h2 id={titleId} className={ui.title}>
+            Manage Reservation
+          </h2>
+          <p className="text-sm leading-[1.5] text-ink-soft">
+            Look up booking details or cancel according to the studio 6-hour policy.
+          </p>
+        </div>
 
         {error && (
-          <div className="p-3.5 mb-5 bg-red-50 border border-red-200 text-xs text-red-900 flex items-start gap-2 rounded-xs">
-            <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+          <div role="alert" className={cn(ui.error, 'flex items-start gap-2')}>
+            <AlertCircle className="size-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
 
         {/* STATE 1: Cancelled successfully */}
         {resultMessage && cancelledBooking ? (
-          <div className="py-2 text-center">
-            <CheckCircle2 className="w-10 h-10 text-[#c4b48a] mx-auto mb-3" />
-            <h4 className="font-serif text-2xl text-[#0f0e0b] mb-2">Reservation Cancelled</h4>
-            <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-4 text-left text-xs space-y-2 mb-4 rounded-xs">
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60">Booking Token:</span>
-                <span className="font-mono font-bold">{cancelledBooking.bookingToken}</span>
+          <div className="flex flex-col items-center gap-6 text-center">
+            <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
+              <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
+            </span>
+            <h3 className="font-display font-normal text-[28px] leading-[1.1] text-ink">Reservation Cancelled</h3>
+            <dl className="w-full text-sm text-left">
+              <div className={row}>
+                <dt className="text-ink-soft">Booking Token:</dt>
+                <dd className="font-semibold tabular-nums text-ink">{cancelledBooking.bookingToken}</dd>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60">Class:</span>
-                <span className="font-semibold">{cancelledBooking.sessionTitle}</span>
+              <div className={row}>
+                <dt className="text-ink-soft">Class:</dt>
+                <dd className="font-medium text-ink">{cancelledBooking.sessionTitle}</dd>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60">Credit Policy:</span>
-                <span
-                  className={`font-semibold uppercase tracking-wider ${
-                    cancelledBooking.creditStatus === 'refunded' ? 'text-emerald-700' : 'text-amber-800'
-                  }`}
+              <div className={row}>
+                <dt className="text-ink-soft">Credit Policy:</dt>
+                <dd
+                  className={cn(
+                    'font-semibold uppercase tracking-[0.1em] text-xs self-center',
+                    cancelledBooking.creditStatus === 'refunded' ? 'text-success' : 'text-error'
+                  )}
                 >
                   {cancelledBooking.creditStatus === 'refunded' ? 'Refunded' : 'Burned (Late Notice)'}
-                </span>
+                </dd>
               </div>
-            </div>
-            <p className="text-xs text-[#0f0e0b]/75 leading-relaxed mb-6">{resultMessage}</p>
-            <button
-              type="button"
-              onClick={() => {
-                handleReset();
-                onClose();
-              }}
-              className="w-full py-3.5 bg-[#0f0e0b] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest rounded-xs"
-            >
+            </dl>
+            <p className="text-sm leading-[1.6] text-ink-soft">{resultMessage}</p>
+            <button type="button" onClick={onClose} className={cn(ui.primary, 'w-full')}>
               Done & Return to Studio
             </button>
           </div>
         ) : lookedUpBooking ? (
-          /* STATE 2: Looked up booking details card */
-          <div className="space-y-4">
-            <div className="bg-[#f2ede4] border border-[#0f0e0b]/15 p-4 rounded-xs text-xs space-y-2.5">
-              <div className="flex justify-between items-center border-b border-[#0f0e0b]/10 pb-2">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Status</span>
-                <span
-                  className={`font-semibold uppercase tracking-wider px-2 py-0.5 rounded-xs text-[10px] ${
-                    lookedUpBooking.status === 'confirmed'
-                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                      : 'bg-red-100 text-red-900 border border-red-300'
-                  }`}
+          /* STATE 2: Looked up booking details */
+          <div className="flex flex-col gap-6">
+            <dl className={cn(ui.panel, 'text-sm')}>
+              <div className={cn(row, 'items-center')}>
+                <dt className={ui.eyebrow}>Status</dt>
+                <dd
+                  className={cn(
+                    'text-xs font-semibold uppercase tracking-[0.1em] px-3 py-1 rounded-full',
+                    lookedUpBooking.status === 'confirmed' ? 'bg-surface text-success' : 'bg-error-bg text-error'
+                  )}
                 >
                   {lookedUpBooking.status}
-                </span>
+                </dd>
               </div>
-
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Student</span>
-                <span className="font-semibold text-[#0f0e0b]">{lookedUpBooking.customerName}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Email</span>
-                <span className="font-mono text-[#0f0e0b]">{lookedUpBooking.customerEmail}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Class</span>
-                <span className="font-semibold text-[#0f0e0b]">{lookedUpBooking.sessionTitle}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Time</span>
-                <span className="font-semibold text-[#0f0e0b]">{lookedUpBooking.sessionTimeDubai}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Format</span>
-                <span className="text-[#0f0e0b]">
-                  {lookedUpBooking.mode === 'in_person'
-                    ? 'In-Person (BurJuman Residence Block D)'
-                    : 'Online Stream'}
-                </span>
-              </div>
-
-              <div className="flex justify-between border-t border-[#0f0e0b]/10 pt-2">
-                <span className="text-[#0f0e0b]/60 uppercase tracking-wider">Token</span>
-                <span className="font-mono font-bold text-sm text-[#0f0e0b]">{lookedUpBooking.bookingToken}</span>
-              </div>
-            </div>
+              {(
+                [
+                  ['Student', lookedUpBooking.customerName],
+                  ['Email', lookedUpBooking.customerEmail],
+                  ['Class', lookedUpBooking.sessionTitle],
+                  ['Time', lookedUpBooking.sessionTimeDubai],
+                  [
+                    'Format',
+                    lookedUpBooking.mode === 'in_person'
+                      ? 'In-Person (BurJuman Residence Block D)'
+                      : 'Online Stream',
+                  ],
+                  ['Token', lookedUpBooking.bookingToken],
+                ] as const
+              ).map(([term, value]) => (
+                <div key={term} className={row}>
+                  <dt className={ui.eyebrow}>{term}</dt>
+                  <dd className="font-medium text-ink text-right break-all">{value}</dd>
+                </div>
+              ))}
+            </dl>
 
             {/* Policy evaluation */}
             {lookedUpBooking.status === 'confirmed' ? (
-              <div
-                className={`p-3.5 border rounded-xs text-xs leading-relaxed ${
-                  isFreeCancel
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
-                    : 'bg-amber-50 border-amber-300 text-amber-950'
-                }`}
-              >
-                <p className="font-semibold mb-1">
+              <div className={cn(isFreeCancel ? ui.notice : ui.error, 'flex flex-col gap-1')}>
+                <p className={cn('font-semibold', isFreeCancel ? 'text-success' : 'text-error')}>
                   {isFreeCancel ? 'Eligible for Free Cancellation' : 'Late Cancellation Notice'}
                 </p>
                 <p>
@@ -231,28 +205,23 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="p-3.5 bg-zinc-100 border border-zinc-300 text-xs text-zinc-800 rounded-xs">
-                This reservation has already been cancelled. No further action needed.
-              </div>
+              <div className={ui.notice}>This reservation has already been cancelled. No further action needed.</div>
             )}
 
-            {/* Action buttons */}
-            <div className="pt-2 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-4 py-3 border border-[#0f0e0b]/20 text-xs font-semibold uppercase tracking-widest text-[#0f0e0b] flex items-center gap-1.5 rounded-xs"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Look Up Another
-              </button>
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3">
+              <AnimateIcon animateOnHover asChild>
+                <button type="button" onClick={handleReset} className={ui.secondary}>
+                  <ArrowLeft size={14} aria-hidden="true" />
+                  Look Up Another
+                </button>
+              </AnimateIcon>
 
               {lookedUpBooking.status === 'confirmed' && (
                 <button
                   type="button"
                   disabled={loading}
                   onClick={handleCancelSubmit}
-                  className="px-6 py-3 bg-red-700 hover:bg-red-800 text-white text-xs font-semibold uppercase tracking-widest transition-colors rounded-xs shadow-xs"
+                  className={cn(ui.primary, 'bg-error')}
                 >
                   {loading ? 'Processing...' : 'Confirm Cancellation'}
                 </button>
@@ -260,44 +229,44 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             </div>
           </div>
         ) : (
-          /* STATE 3: Token Input Form */
-          <form onSubmit={handleLookup} className="space-y-4">
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-[#0f0e0b]/70 font-semibold mb-2">
+          /* STATE 3: Token input form */
+          <form onSubmit={handleLookup} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="cancel-token" className={ui.label}>
                 Booking Reference Token
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  required
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
-                  placeholder="e.g. YP-8K2N9F"
-                  className="w-full px-4 py-3 bg-[#faf8f3] border border-[#0f0e0b]/25 font-mono text-base sm:text-sm uppercase focus:outline-hidden focus:border-[#0f0e0b] rounded-xs min-h-[44px]"
-                />
-              </div>
-              <p className="text-[11px] text-[#0f0e0b]/50 mt-1.5">
+              <input
+                id="cancel-token"
+                type="text"
+                required
+                autoComplete="off"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
+                placeholder="e.g. YP-8K2N9F"
+                className={cn(ui.input, 'uppercase tracking-[0.04em]')}
+              />
+              <p className="text-xs leading-[1.5] text-ink-soft">
                 Paste the 6-character token from your booking confirmation screen or email.
               </p>
             </div>
 
-            <div className="bg-[#f2ede4] border border-[#0f0e0b]/10 p-3.5 rounded-xs text-xs text-[#0f0e0b]/70 space-y-1">
-              <p className="font-semibold text-[#0f0e0b]">Cancellation Policy:</p>
-              <p>• <strong>Free up to 6 hours</strong> before start: Releases seat & refunds credit.</p>
-              <p>• <strong>Late (&lt; 6 hours)</strong>: Releases seat to waitlist, credit is burned.</p>
+            <div className={cn(ui.panel, 'text-sm leading-[1.5] text-ink-soft flex flex-col gap-1')}>
+              <p className="font-semibold text-ink">Cancellation Policy:</p>
+              <p>
+                • <strong className="font-semibold text-ink">Free up to 6 hours</strong> before start: Releases seat & refunds credit.
+              </p>
+              <p>
+                • <strong className="font-semibold text-ink">Late (&lt; 6 hours)</strong>: Releases seat to waitlist, credit is burned.
+              </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 min-h-[44px] bg-[#0f0e0b] hover:bg-[#262420] text-[#faf8f3] text-xs font-semibold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 rounded-xs shadow-xs"
-            >
-              <Search className="w-3.5 h-3.5 text-[#c4b48a]" />
+            <button type="submit" disabled={loading} className={cn(ui.primary, 'w-full')}>
+              <Search className="size-4" aria-hidden="true" />
               <span>{loading ? 'Searching...' : 'Find My Reservation'}</span>
             </button>
           </form>
         )}
       </div>
-    </div>
+    </ModalSheet>
   );
 };
