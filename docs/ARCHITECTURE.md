@@ -60,7 +60,9 @@ The full schema is in [DATABASE.md](DATABASE.md). The core entities are Class, S
 ```
 website/
 ├── src/                 React app
-│   ├── components/      one file per section or modal
+│   ├── components/      one file per section or modal; ModalSheet is the shared modal shell
+│   ├── hooks/           useScrollToSection (Lenis), Animate UI hooks
+│   ├── lib/             cn() and the shared token class strings (ui.ts)
 │   ├── services/api.ts  the only place that calls /api
 │   ├── types/           shared TS types
 │   └── constants/       asset paths
@@ -71,14 +73,14 @@ website/
 │   ├── migrate.ts       applies db/migrations in order
 │   ├── schedule.ts      creates sessions 56 days ahead; the /api/schedule shape
 │   ├── bookings.ts      book, look up, cancel; prices; the 6-hour rule
-│   ├── contact.ts       stores messages, alerts the studio
+│   ├── contact.ts       stores messages (optional phone), alerts the studio
 │   ├── admin.ts         login and lockout, sessions, stats, settings
 │   ├── settings.ts      notify_email, studio_email, drive_link
 │   ├── email.ts         templates and delivery (Resend / outbox / log)
 │   ├── tokens.ts        booking and admin tokens
 │   ├── validate.ts      input allowlists and limits
 │   └── routes.ts        the HTTP routes
-├── db/migrations/       001_init.sql, 002_seed.sql, …
+├── db/migrations/       001_init.sql, 002_seed.sql, 003_contact_phone.sql
 ├── scripts/             migrate.ts, hash-password.ts
 ├── api/index.ts         Vercel entry: mounts createApp()
 ├── server.ts            dev/test entry: createApp() + Vite or static files

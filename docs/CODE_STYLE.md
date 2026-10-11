@@ -13,7 +13,7 @@ These are the conventions in this codebase. Match them.
 - Function components with named exports: `export function Hero() {}` in `components/Hero.tsx`, one component per file, named in PascalCase.
 - State uses `useState`/`useEffect` locally; app-level modal state lives in `App.tsx`. Don't add a state library.
 - Animation: `motion` (`motion/react`). Icons: `lucide-react`, or Animate UI icons for animated ones.
-- Styling: Tailwind utility classes using **design tokens** (`bg-cream`, `text-ink`, `bg-sand`). No new hard-coded hex values and no `!important`. Follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
+- Styling: Tailwind utility classes using **design tokens** (`bg-bg`, `bg-surface`, `text-ink`, `text-ink-soft`, `border-line`, `text-accent-text`); shared button, input and notice strings live in `src/lib/ui.ts`. Modals use `ModalSheet`. No new hard-coded hex values and no `!important`. Follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
 - All network calls go through `api.*` in `src/services/api.ts`. Errors surface as `ApiError` with a human message, shown in the UI and never printed with `console.error`.
 - Accessibility: every input has a label, every image has `alt`, buttons are `<button>`, links are `<a>`.
 

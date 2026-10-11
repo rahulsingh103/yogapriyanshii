@@ -22,7 +22,7 @@
 - Local `file:` databases migrate themselves when the server starts. Turso never auto-migrates.
 - Each migration file runs as one atomic batch, and re-running is safe.
 
-## Schema (`db/migrations/001_init.sql`)
+## Schema (`db/migrations/001_init.sql`, plus `003_contact_phone.sql`)
 
 | Table | Key columns | Notes |
 |---|---|---|
@@ -32,10 +32,12 @@
 | `customers` | `id` PK, email UNIQUE, full_name, used_free_class (0/1), created_at | The first name given for an email stands: a later booking with the same email doesn't rename the customer. |
 | `orders` | `id` PK, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at, paid_at | `payment_status` is **set by the server only**: `pending` or `pending_at_studio` today; `paid` only after a verified payment (Phase 2). |
 | `bookings` | `id` PK, token UNIQUE, customer_id, session_id, order_id, plan_key, mode, status, credit_status, booked_at, cancelled_at | Partial unique index on (customer_id, session_id) `WHERE status = 'confirmed'`. The token is `YP-` + 16 Crockford base32 characters. |
-| `contact_messages` | `id` PK, name, email, interest, message, created_at | |
+| `contact_messages` | `id` PK, name, email, phone, interest, message, created_at | `phone` is optional (NULL when empty), added by `003_contact_phone.sql`. |
 | `settings` | `key` PK, value | `notify_email` (where alerts go), `studio_email` (reply-to for students, shown when a rebook is refused), `drive_link` |
 | `admin_users` | `id` PK, email, failed_attempts, locked_until | One row. The password hash is **not** here: it's the `ADMIN_PASSWORD_HASH` env var. |
 | `admin_sessions` | `token_hash` PK (SHA-256), admin_id, created_at, expires_at | 2-hour sessions. Deleted on logout. |
+
+`003_contact_phone.sql` adds the optional `contact_messages.phone` column. It's additive, so code from before it keeps working against a migrated database. Release order: run `db:migrate:live` first, then deploy.
 
 `002_seed.sql` adds reference data only: the classes, the weekly template, the default settings and the admin row. There are no sample customers, bookings or messages.
 

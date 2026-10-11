@@ -8,15 +8,15 @@
 
 | Area | Status |
 |---|---|
-| Public site: hero, classes, pricing, schedule, about, testimonials, contact | ✅ Built (single page, sections, not separate URLs). The redesign is planned in `design/DESIGN-PHASE.md`. |
+| Public site | ✅ Built as one page in the "Mandala Bloom" design ([DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §5 order): hero, "Choose your practice" carousel (8 classes), about, quote, live schedule, pricing, "Your first class is free", contact. Testimonials and the gallery return once real ones exist. |
 | Free-class booking, rules, cancellation | ✅ Built and tested. The live site and the tests now run the same API (`backend/`). |
 | Persistent database | ✅ Wired to Turso `yogapriyanshi-live` (production only; previews have none). Goes live once the env vars are set and `npm run db:migrate:live` has run. See [DATABASE.md](DATABASE.md). |
 | Email alerts | ✅ Wired to Resend: student confirmations, plus booking, cancellation and contact alerts. Alerts go to the `notify_email` setting (**nbsingh2050@gmail.com during testing**, then Priyanshi's email at launch, changed in the admin settings). Students get mail from `EMAIL_FROM`, with replies going to the `studio_email` setting. |
 | Admin dashboard | ✅ On the shared API with real numbers (revenue counts paid orders only, so it's 0 until payments exist). Sign-in needs `ADMIN_PASSWORD_HASH` to be set. |
 | Payments | ⚠️ No online payment yet. Paid classes and packs are **reserved and paid at the studio** (the server accepts only `studio` as the payment method). Paid packs don't yet redeem credits on later bookings. Stripe Checkout comes later (§7.7). |
-| Leftovers to remove | The DesignShowcase modal and the theme switcher. (The Socratic Math Tutor, the email inbox and "Export Code" are removed.) |
+| New classes | Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. |
 
-**Still to fill in:** the real phone number (a placeholder today).
+**Still to fill in:** real photos of Priyanshi (token placeholders today), and the slots and durations of the 4 new classes.
 
 ---
 
@@ -122,10 +122,10 @@ Four class cards (name, level, duration, description, typical slot, **Book →**
 - Each shows time, class, level, duration, and **spots left**. If full → show "Fully booked"/"Full" and disable booking.
 - Clicking a day reveals a detail panel with a **Book This Class** button; a "Full week" list below also has **Book →**.
 - Loading and error states are friendly (no blank page).
-- "Good to know" box (hours, location, cancellation policy).
+- One "good to know" line (free cancellation up to 6 hours before) next to the "Cancel / Manage Reservation" button.
 
 ### 6.5 Contact
-Left: email, phone, location, stylised map card with pin and "Open in maps". Right: **Send a message** form — name, email, interest dropdown (Hatha / Barre / Wheel / Chakra / Private session / General enquiry), message. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
+The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Private session / Class Packs & Corporate), message. A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
 
 ### 6.6 Join / Book (3-step flow)
 1. **Plan** — pick plan (Free default, "Start here") + practice format (Online / In-person / Both). If Free is chosen but no class time is picked yet, direct the user to the Schedule first. Show the chosen class/time.
@@ -139,7 +139,7 @@ Login screen (email + password). After login, one page showing:
 - **Earnings — last 6 months** bar chart (month vs AED).
 - **Google Drive / Sheet link** (clickable) — editable.
 - **Upcoming classes** (next ~10) with spots left / capacity.
-- **Recent messages** from the contact form (name, email, snippet, date).
+- **Recent messages** from the contact form (name, email, phone as a tap-to-call link when given, interest, message, date).
 - **Settings:** Drive/Sheet link, and **notification email** (where booking/message alerts go).
 - Log out. Must not be indexed by search engines.
 
@@ -169,6 +169,7 @@ Login screen (email + password). After login, one page showing:
 ### 7.4 Contact
 - FR-15: Messages are stored and visible in the admin dashboard; admin is emailed on new messages.
 - FR-16: Honeypot-filled submissions are silently discarded (bot looks like it succeeded).
+- FR-16a: Phone is optional. When given it's validated on the server (one line, at most 30 characters, digits with an optional leading +, spaces, brackets and dashes, 6–15 digits), stored, shown in admin and included in the alert. When empty it's stored as NULL. It never appears in logs.
 
 ### 7.5 Notifications (email)
 - FR-17: On booking → **confirmation email to the student** (class, date/time in Dubai time, format).
@@ -190,7 +191,7 @@ Login screen (email + password). After login, one page showing:
 - **Plan** (key, label, price, credits, validity)
 - **Order** (customer, plan, amount, status, credits total/remaining, expiry, access token)
 - **Booking** (customer, session, order, mode, status, access token; unique per customer+session)
-- **Contact message** (name, email, interest, message)
+- **Contact message** (name, email, optional phone, interest, message)
 - **Admin user** (email, password hash, failed attempts, locked-until)
 - **Settings** (key/value: drive link, notify email)
 

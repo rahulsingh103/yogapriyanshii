@@ -67,16 +67,31 @@ Define these in `src/index.css` under Tailwind v4 `@theme`. Components use **onl
 
 ## 3. Typography
 
+Self-hosted with `@fontsource` (latin subset only, no Google Fonts request):
+
+```ts
+// src/main.tsx
+import '@fontsource/italiana/latin-400.css';
+import '@fontsource/figtree/latin-400.css';
+import '@fontsource/figtree/latin-500.css';
+import '@fontsource/figtree/latin-600.css';
+```
+
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- index.html: preload the three files used above the fold (Vite fingerprints them) -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/italiana/files/italiana-latin-400-normal.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-400-normal.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-600-normal.woff2" />
 ```
 
 ```css
 @theme {
-  --font-display: "Italiana", "Didot", Georgia, serif;           /* headings only */
-  --font-sans: "Figtree", -apple-system, "Segoe UI", Roboto, sans-serif; /* everything else */
+  --font-display: "Italiana", "Italiana Fallback", "Didot", Georgia, serif;           /* headings only */
+  --font-sans: "Figtree", "Figtree Fallback", -apple-system, "Segoe UI", Roboto, sans-serif; /* everything else */
 }
 ```
+
+`index.css` defines the `"Figtree Fallback"` (local Arial) and `"Italiana Fallback"` (local Times New Roman) faces with `size-adjust` / `ascent-override` / `descent-override` measured against the real fonts, so the swap causes no layout shift.
 
 **One font pair, everywhere.** Italiana is for headings, class names and quotes; Figtree is for all other text. No third font.
 
@@ -138,7 +153,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Sticky book bar (mobile only)
 - Appears after the hero leaves view: a bottom bar with `bg-bg/90`, blur, safe-area padding, holding one primary button "Book a free class".
 
-### Booking modal (and Cancel / Admin modals)
+### Booking modal (and Cancel / Admin / Contact modals)
+- All four use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
 - A centred sheet: `bg-surface rounded-[20px]`, max width 560px, inner padding 32px (20px on mobile). The backdrop is `bg-ink/60` with blur.
 - On mobile it becomes a bottom sheet with full width and top corners rounded.
 - Steps show as "Step 1 of 2" (label style).
@@ -154,6 +170,17 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 ### Contact
 - The Contact section is a heading, one address line and a primary button "Contact Priyanshi". The button opens the contact form in a pop-up (the same sheet as the booking modal), not an inline form.
+- The form: name, email, phone (optional, `type="tel"`), interest and message.
+
+### Schedule
+- A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
+- A glass detail panel for the selected session with the primary "Book This Class (N Left)" button, then one "good to know" line and the secondary "Cancel / Manage Reservation" button.
+
+### Pricing
+- A hairline list (`border-line`), transparent so the mandala shows through: 4 rows, each a `<button>` that opens booking with that plan (name in Italiana 28px, one short line, the price, an arrow icon). One line below: "Pay at the studio. Free cancellation up to 6 hours before class."
+
+### Footer
+- Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and a one-line policy. No dark bands anywhere on the page.
 
 ### Teacher block ("Hi, I'm Priyanshi.")
 - Two columns on desktop (photo | text), stacked on mobile. Photo `min-height: 380px`, `rounded-[4px]`.
