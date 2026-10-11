@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {
-  motion,
+  m,
   useAnimation,
   type SVGMotionProps,
   type UseInViewOptions,
@@ -414,7 +414,7 @@ function AnimateIcon({
       {children}
     </Slot>
   ) : (
-    <motion.span
+    <m.span
       ref={inViewRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -423,7 +423,7 @@ function AnimateIcon({
       {...props}
     >
       {children}
-    </motion.span>
+    </m.span>
   );
 
   return (

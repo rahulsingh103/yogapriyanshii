@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, type Variants } from 'motion/react';
+import { m, type Variants } from 'motion/react';
 
 import {
   getVariants,
@@ -70,7 +70,7 @@ function IconComponent({ size, ...props }: MenuProps) {
   const variants = getVariants(animations);
 
   return (
-    <motion.svg
+    <m.svg
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
@@ -82,7 +82,7 @@ function IconComponent({ size, ...props }: MenuProps) {
       strokeLinejoin="round"
       {...props}
     >
-      <motion.line
+      <m.line
         x1={4}
         y1={6}
         x2={20}
@@ -91,7 +91,7 @@ function IconComponent({ size, ...props }: MenuProps) {
         initial="initial"
         animate={controls}
       />
-      <motion.line
+      <m.line
         x1={4}
         y1={12}
         x2={20}
@@ -100,7 +100,7 @@ function IconComponent({ size, ...props }: MenuProps) {
         initial="initial"
         animate={controls}
       />
-      <motion.line
+      <m.line
         x1={4}
         y1={18}
         x2={20}
@@ -109,7 +109,7 @@ function IconComponent({ size, ...props }: MenuProps) {
         initial="initial"
         animate={controls}
       />
-    </motion.svg>
+    </m.svg>
   );
 }
 

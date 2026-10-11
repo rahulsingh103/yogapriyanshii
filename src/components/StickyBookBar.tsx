@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 
 interface StickyBookBarProps {
   onOpenBooking: () => void;
@@ -20,7 +20,7 @@ export function StickyBookBar({ onOpenBooking }: StickyBookBarProps) {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.aside
+        <m.aside
           aria-label="Quick booking bar"
           className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-bg/90 backdrop-blur-md border-t border-line px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
           initial={{ opacity: 0, y: 16 }}
@@ -35,7 +35,7 @@ export function StickyBookBar({ onOpenBooking }: StickyBookBarProps) {
           >
             Book a free class
           </button>
-        </motion.aside>
+        </m.aside>
       )}
     </AnimatePresence>
   );

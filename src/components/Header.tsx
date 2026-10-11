@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 import { useLenis } from 'lenis/react';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { Menu } from '@/components/animate-ui/icons/menu';
@@ -149,7 +149,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
 
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
+          <m.div
             id="mobile-menu"
             role="dialog"
             aria-modal="true"
@@ -192,7 +192,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
                 </button>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

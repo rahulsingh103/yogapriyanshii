@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, type Variants } from 'motion/react';
+import { m, type Variants } from 'motion/react';
 
 import {
   getVariants,
@@ -80,7 +80,7 @@ function IconComponent({ size, ...props }: CopyProps) {
   const variants = getVariants(animations);
 
   return (
-    <motion.svg
+    <m.svg
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
@@ -92,7 +92,7 @@ function IconComponent({ size, ...props }: CopyProps) {
       strokeLinejoin="round"
       {...props}
     >
-      <motion.rect
+      <m.rect
         width={14}
         height={14}
         x={8}
@@ -103,13 +103,13 @@ function IconComponent({ size, ...props }: CopyProps) {
         initial="initial"
         animate={controls}
       />
-      <motion.path
+      <m.path
         d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
         variants={variants.path}
         initial="initial"
         animate={controls}
       />
-    </motion.svg>
+    </m.svg>
   );
 }
 

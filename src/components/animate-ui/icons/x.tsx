@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, type Variants } from 'motion/react';
+import { m, type Variants } from 'motion/react';
 
 import {
   getVariants,
@@ -80,7 +80,7 @@ function IconComponent({ size, ...props }: XProps) {
   const variants = getVariants(animations);
 
   return (
-    <motion.svg
+    <m.svg
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
@@ -92,7 +92,7 @@ function IconComponent({ size, ...props }: XProps) {
       strokeLinejoin="round"
       {...props}
     >
-      <motion.line
+      <m.line
         x1={6}
         y1={18}
         x2={18}
@@ -101,7 +101,7 @@ function IconComponent({ size, ...props }: XProps) {
         initial="initial"
         animate={controls}
       />
-      <motion.line
+      <m.line
         x1={6}
         y1={6}
         x2={18}
@@ -110,7 +110,7 @@ function IconComponent({ size, ...props }: XProps) {
         initial="initial"
         animate={controls}
       />
-    </motion.svg>
+    </m.svg>
   );
 }
 

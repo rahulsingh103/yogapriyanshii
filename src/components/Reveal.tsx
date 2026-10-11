@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 interface RevealProps {
@@ -14,7 +14,7 @@ interface RevealProps {
  */
 export function Reveal({ children, className }: RevealProps) {
   return (
-    <motion.div
+    <m.div
       className={cn('reveal', className)}
       initial={{ opacity: 0.15, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -22,6 +22,6 @@ export function Reveal({ children, className }: RevealProps) {
       transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
