@@ -72,7 +72,7 @@ button, a, input, select, textarea {
 
 /* Global focus ring (DS §4). */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-accent-text);
   outline-offset: 3px;
 }
 

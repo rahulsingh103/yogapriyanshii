@@ -72,6 +72,20 @@ test('the Yin Yoga card brings Contact into view', async ({ page }, info) => {
   await shot('contact-in-view');
 });
 
+test('a header nav link lands the section just below the header', async ({ page }, info) => {
+  const shot = stepShooter(page, FEATURE, info.title);
+  await openHome(page);
+  // The web fonts swap in shortly after load and shift the layout; wait so the click's target is final.
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await page.locator('header nav[aria-label="Main"]').getByRole('link', { name: 'Contact', exact: true }).click();
+  const padding = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop));
+  expect(padding).toBeGreaterThan(0);
+  const contactTop = () => page.locator('#contact').evaluate((el) => el.getBoundingClientRect().top);
+  // Wait for the smooth scroll to finish, then check the landing position.
+  await expect.poll(async () => Math.abs((await contactTop()) - padding), { timeout: 10_000 }).toBeLessThanOrEqual(6);
+  await shot('contact-landing');
+});
+
 test.describe('with reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
@@ -123,5 +137,38 @@ test.describe('mobile menu', () => {
     await expect(menu).toHaveCount(0);
     await expect(page.locator('div.fixed.inset-0').filter({ hasText: 'Manage Reservation' })).toBeVisible();
     await shot('cancel-modal');
+  });
+
+  test('keeps keyboard focus inside the open menu and makes the page behind inert', async ({ page }) => {
+    await openHome(page);
+    const toggle = page.getByLabel('Toggle Navigation Menu');
+    await expect(toggle).not.toHaveAttribute('aria-controls');
+    await toggle.click();
+    const menu = page.getByRole('dialog', { name: 'Menu' });
+    await expect(menu).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-controls', 'mobile-menu');
+    await expect(page.locator('main')).toHaveAttribute('inert', '');
+    await expect(page.locator('footer')).toHaveAttribute('inert', '');
+
+    const focusInMenu = () =>
+      page.evaluate(() => {
+        const el = document.activeElement;
+        const toggleEl = document.querySelector('[aria-label="Toggle Navigation Menu"]');
+        return el === toggleEl || !!document.getElementById('mobile-menu')?.contains(el);
+      });
+    for (let i = 0; i < 7; i++) {
+      await page.keyboard.press('Tab');
+      expect(await focusInMenu(), `focus after Tab ${i + 1}`).toBe(true);
+    }
+    for (let i = 0; i < 7; i++) {
+      await page.keyboard.press('Shift+Tab');
+      expect(await focusInMenu(), `focus after Shift+Tab ${i + 1}`).toBe(true);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(page.locator('main')).not.toHaveAttribute('inert');
+    await expect(page.locator('footer')).not.toHaveAttribute('inert');
+    await expect(toggle).not.toHaveAttribute('aria-controls');
   });
 });

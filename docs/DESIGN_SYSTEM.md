@@ -101,7 +101,7 @@ Define these in `src/index.css` under Tailwind v4 `@theme`. Components use **onl
 
 ## 4. Components
 
-All components have default, hover, focus-visible, active and disabled states. Focus is always a visible ring: `outline: 2px solid var(--color-accent); outline-offset: 3px`.
+All components have default, hover, focus-visible, active and disabled states. Focus is always a visible ring: `outline: 2px solid var(--color-accent-text); outline-offset: 3px` (accent-text keeps the ring at 3:1 or better against the page).
 
 ### Buttons
 | Variant | Style | Use |
@@ -130,7 +130,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - The 8 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal. The durations of the 4 new classes are placeholders until Priyanshi confirms them.
 
 ### Header / navigation
-- Wordmark "YogaPriyanshi" (Italiana 22px) on the left. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
+- Wordmark "YogaPriyanshi" (Italiana 24px) on the left. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
 - Transparent over the hero. After 80px of scroll it becomes `bg-bg/85` with backdrop blur and a hairline bottom border.
 - On mobile: wordmark plus a menu icon, opening a full-screen calm overlay with links in Italiana 34px.
 - "Manage booking" and "Studio admin" live in the mobile overlay and the footer, not in the header.

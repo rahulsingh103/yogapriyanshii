@@ -33,20 +33,52 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // While the overlay is open: page scroll stops, Escape closes it, focus moves inside.
+  // While the overlay is open: page scroll stops, the page behind is inert, Escape closes it,
+  // and Tab / Shift+Tab cycle between the toggle and the overlay's links and buttons.
   useEffect(() => {
     if (!menuOpen) return;
     lenis?.stop();
+    const background = [document.querySelector('main'), document.querySelector('footer')].filter(
+      (el): el is HTMLElement => el !== null
+    );
+    background.forEach((el) => el.setAttribute('inert', ''));
     firstLinkRef.current?.focus();
+
+    const focusables = () => {
+      const menu = document.getElementById('mobile-menu');
+      const inside = menu
+        ? Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'))
+        : [];
+      return [toggleRef.current, ...inside].filter((el): el is HTMLElement => el !== null);
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setMenuOpen(false);
         toggleRef.current?.focus();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const current = items.indexOf(document.activeElement as HTMLElement);
+      if (current === -1) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && current === 0) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && current === items.length - 1) {
+        e.preventDefault();
+        first.focus();
       }
     };
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
+      background.forEach((el) => el.removeAttribute('inert'));
       lenis?.start();
     };
   }, [menuOpen, lenis]);
@@ -66,14 +98,14 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
     <header className="fixed top-0 inset-x-0 z-[45]">
       <div
         className={cn(
-          'relative z-10 border-b transition-colors duration-300',
+          'relative z-10 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(.2,.7,.2,1)]',
           scrolled && !menuOpen
             ? 'bg-bg/85 backdrop-blur-md border-line shadow-raised'
-            : 'bg-transparent border-transparent'
+            : 'bg-transparent backdrop-blur-[0px] border-transparent shadow-none'
         )}
       >
         <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
-          <a href="#home" className="font-display text-[22px] leading-none text-ink">
+          <a href="#home" className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
             YogaPriyanshi
           </a>
 
@@ -82,7 +114,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
               <a
                 key={link.href}
                 href={link.href}
-                className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200 py-3"
+                className="inline-flex items-center min-h-11 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200"
               >
                 {link.label}
               </a>
@@ -93,7 +125,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
             <button
               type="button"
               onClick={onOpenBooking}
-              className="hidden sm:inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition-opacity duration-200"
+              className="hidden sm:inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition-opacity duration-200"
             >
               Book free class
             </button>
@@ -105,7 +137,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label="Toggle Navigation Menu"
                 aria-expanded={menuOpen}
-                aria-controls="mobile-menu"
+                aria-controls={menuOpen ? 'mobile-menu' : undefined}
                 className="min-[900px]:hidden inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
               >
                 {menuOpen ? <X size={20} /> : <Menu size={20} />}
