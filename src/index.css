@@ -29,6 +29,10 @@
   --color-error-bg: #f6e9e6;
   --color-calm-bg: #e8ebe4;
 
+  /* Loader illustration (the little Buddha) */
+  --color-skin: #f3d7c2;
+  --color-cheek: #eab4a3;
+
   /* Depth (DS §6): the one Raised shadow, tinted with ink. */
   --shadow-raised: 0 8px 30px color-mix(in srgb, var(--color-ink) 8%, transparent);
 
@@ -154,4 +158,13 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   .word-fade .wf-word,
   .word-fade .wf-after { animation: none; opacity: 1; filter: none; transform: none; }
+}
+
+/* Buddha loader (approved option B): he breathes, the petal ring turns. */
+.buddha-breathe { transform-origin: 50% 90%; animation: buddha-breathe 4s ease-in-out infinite; }
+.buddha-ring { transform-origin: 50% 50%; animation: buddha-turn 10s linear infinite; }
+@keyframes buddha-breathe { 0%, 100% { transform: scale(0.94); } 50% { transform: scale(1.04); } }
+@keyframes buddha-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .buddha-breathe, .buddha-ring { animation: none; }
 }

@@ -14,8 +14,54 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/italiana/files/italiana-latin-400-normal.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-400-normal.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="./node_modules/@fontsource/figtree/files/figtree-latin-600-normal.woff2" />
+    <!-- Critical styles for the opening preloader, inline so it looks right before the main CSS or JS arrives. -->
+    <style>
+      #preloader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; align-content: center; gap: 16px;
+        background: var(--color-bg, #f4f6f2); transition: opacity .6s cubic-bezier(.2,.7,.2,1), visibility .6s; }
+      #preloader.is-done { opacity: 0; visibility: hidden; }
+      #preloader .preloader-label { font-family: "Italiana", "Didot", Georgia, serif; font-size: 24px; color: var(--color-accent-text, #3f5a4d); }
+      #preloader .buddha-breathe { transform-origin: 50% 90%; animation: buddha-breathe 4s ease-in-out infinite; }
+      #preloader .buddha-ring { transform-origin: 50% 50%; animation: buddha-turn 10s linear infinite; }
+      @keyframes buddha-breathe { 0%, 100% { transform: scale(.94); } 50% { transform: scale(1.04); } }
+      @keyframes buddha-turn { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #preloader .buddha-breathe, #preloader .buddha-ring { animation: none; } }
+    </style>
+    <noscript><style>#preloader { display: none; }</style></noscript>
   </head>
   <body class="bg-bg text-ink antialiased">
+    <!-- Opening preloader: a small breathing Buddha with a turning petal ring. Static markup so it shows before JS;
+         App.tsx fades it out once React has rendered. Mirrors src/components/BuddhaLoader.tsx. -->
+    <div id="preloader" role="status" aria-label="Loading YogaPriyanshi">
+      <span style="position:relative;display:inline-grid;place-items:center;width:116px;height:116px" aria-hidden="true">
+        <svg class="buddha-ring" viewBox="0 0 140 140" width="116" height="116" style="position:absolute;inset:0">
+          <g fill="none" style="stroke:var(--color-accent, #4e6b5d)" stroke-width="1.4" opacity=".55">
+            <path d="M70 6 q8 10 0 20 q-8 -10 0 -20Z"/><path d="M70 114 q8 10 0 20 q-8 -10 0 -20Z"/>
+            <path d="M6 70 q10 -8 20 0 q-10 8 -20 0Z"/><path d="M114 70 q10 -8 20 0 q-10 8 -20 0Z"/>
+            <path d="M22 22 q12 2 14 14 q-12 -2 -14 -14Z"/><path d="M104 104 q12 2 14 14 q-12 -2 -14 -14Z"/>
+            <path d="M118 22 q-2 12 -14 14 q2 -12 14 -14Z"/><path d="M36 104 q-2 12 -14 14 q2 -12 14 -14Z"/>
+          </g>
+        </svg>
+        <svg class="buddha-breathe" viewBox="0 0 120 120" width="80" height="80">
+          <ellipse cx="60" cy="100" rx="42" ry="13" style="fill:var(--color-line-strong, #a9b5a6)"/>
+          <path d="M32 98 C30 78 40 60 60 60 C80 60 90 78 88 98 Z" style="fill:var(--color-accent, #4e6b5d)"/>
+          <path d="M60 62 C52 70 49 84 50 98" style="stroke:var(--color-ink, #1c2621)" stroke-width="2" fill="none" stroke-linecap="round" opacity=".3"/>
+          <ellipse cx="60" cy="90" rx="13" ry="6.5" style="fill:var(--color-skin, #f3d7c2)"/>
+          <ellipse cx="60" cy="88.5" rx="5" ry="2.2" style="fill:var(--color-cheek, #eab4a3)" opacity=".6"/>
+          <ellipse cx="39" cy="44" rx="5" ry="10" style="fill:var(--color-skin, #f3d7c2)"/>
+          <ellipse cx="81" cy="44" rx="5" ry="10" style="fill:var(--color-skin, #f3d7c2)"/>
+          <circle cx="60" cy="40" r="21" style="fill:var(--color-skin, #f3d7c2)"/>
+          <path d="M39 37 C40 22 50 16 60 16 C70 16 80 22 81 37 C76 30 68 27 60 27 C52 27 44 30 39 37 Z" style="fill:var(--color-ink, #1c2621)" opacity=".85"/>
+          <circle cx="60" cy="13" r="6.5" style="fill:var(--color-ink, #1c2621)" opacity=".85"/>
+          <circle cx="60" cy="31" r="1.6" style="fill:var(--color-cheek, #eab4a3)"/>
+          <path d="M49 42 q4 3 8 0" style="stroke:var(--color-ink, #1c2621)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <path d="M63 42 q4 3 8 0" style="stroke:var(--color-ink, #1c2621)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <circle cx="47" cy="49" r="3.2" style="fill:var(--color-cheek, #eab4a3)" opacity=".55"/>
+          <circle cx="73" cy="49" r="3.2" style="fill:var(--color-cheek, #eab4a3)" opacity=".55"/>
+          <path d="M55 51 q5 4 10 0" style="stroke:var(--color-ink, #1c2621)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="preloader-label" aria-hidden="true">Breathe in…</span>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

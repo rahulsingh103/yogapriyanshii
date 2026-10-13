@@ -239,3 +239,20 @@ test.describe('at 375px', () => {
     await shot('bottom-sheet');
   });
 });
+
+test('the Buddha preloader fades away once the site is ready', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#preloader')).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator('#home h1')).toBeVisible();
+});
+
+test('a calm notice appears while offline and clears when back online', async ({ page, context }) => {
+  await openHome(page);
+  await context.setOffline(true);
+  await page.evaluate(() => window.dispatchEvent(new Event('offline')));
+  await expect(page.getByTestId('offline-notice')).toContainText("You're offline");
+  await context.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect(page.getByTestId('offline-notice')).toContainText('Back online');
+  await expect(page.getByTestId('offline-notice')).toHaveCount(0, { timeout: 6000 });
+});

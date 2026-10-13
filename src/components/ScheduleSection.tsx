@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { BuddhaLoader } from './BuddhaLoader';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { cn } from '@/lib/utils';
@@ -107,7 +108,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
         {/* Loading / error states */}
         {loading && (
           <div role="status" className="py-20 flex flex-col items-center gap-4 text-center rounded-[18px] bg-glass backdrop-blur-[8px]">
-            <RefreshCw className="size-6 text-accent-text animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            <BuddhaLoader size={56} />
             <p className="text-sm text-ink-soft">Retrieving live studio availability...</p>
           </div>
         )}

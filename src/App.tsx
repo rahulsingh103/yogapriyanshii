@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { PracticeCarousel } from './components/PracticeCarousel';
@@ -15,6 +15,7 @@ import { BookingModal } from './components/BookingModal';
 import { CancelModal } from './components/CancelModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MandalaBackground } from './components/MandalaBackground';
+import { OfflineNotice } from './components/OfflineNotice';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
 import type { PracticeClass } from './constants/classes';
 import type { ClassSession, ClassStyle } from './types';
@@ -51,6 +52,18 @@ export default function App() {
     else handleOpenContact(practice.contactInterest ?? null);
   };
 
+  // Fade out the opening Buddha preloader (index.html) once the app has rendered.
+  useEffect(() => {
+    const el = document.getElementById('preloader');
+    if (!el) return;
+    const fade = window.setTimeout(() => el.classList.add('is-done'), 250);
+    const remove = window.setTimeout(() => el.remove(), 900);
+    return () => {
+      window.clearTimeout(fade);
+      window.clearTimeout(remove);
+    };
+  }, []);
+
   return (
     // Transparent on purpose: the page colour is on <body> so the mandala layer shows through.
     <div className="min-h-screen flex flex-col text-ink font-sans pb-[88px] sm:pb-0">
@@ -75,6 +88,7 @@ export default function App() {
         <FirstClassFree onPickTime={() => scrollToSection('schedule')} />
         <ContactSection onOpenContact={() => handleOpenContact()} />
         <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
+        <OfflineNotice />
       </main>
 
       <Footer
