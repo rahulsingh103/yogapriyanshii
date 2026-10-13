@@ -9,18 +9,6 @@ interface PracticeCarouselProps {
   onSelectClass: (practice: PracticeClass) => void;
 }
 
-/** Photo placeholders until real photos exist: token-only gradients at different angles (no new colours). */
-const PLACEHOLDERS = [
-  'bg-linear-160 from-surface-alt to-line-strong',
-  'bg-linear-200 from-surface to-line',
-  'bg-linear-135 from-surface-alt via-line to-line-strong',
-  'bg-linear-180 from-surface to-line-strong',
-  'bg-linear-120 from-line to-surface-alt',
-  'bg-linear-215 from-surface-alt to-line',
-  'bg-linear-150 from-surface via-surface-alt to-line-strong',
-  'bg-linear-190 from-line to-line-strong',
-];
-
 const ICON_BUTTON =
   'hidden lg:inline-flex items-center justify-center size-11 rounded-full border border-line bg-bg/85 text-ink hover:border-ink transition-colors duration-200';
 
@@ -84,11 +72,18 @@ export function PracticeCarousel({ onSelectClass }: PracticeCarouselProps) {
               onClick={() => onSelectClass(practice)}
               className="card-lift focus-visible:outline-offset-[-3px] snap-start grid grid-rows-[auto_1fr] min-w-0 text-left bg-glass backdrop-blur-[8px] rounded-[18px] overflow-hidden transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <div className={`${PLACEHOLDERS[i % PLACEHOLDERS.length]} min-h-[260px] flex items-end p-4`} aria-hidden="true">
-                <span className="bg-surface/90 text-ink-soft text-xs px-2 py-1 rounded-[2px]">
-                  Photo · {practice.name}
-                </span>
-              </div>
+              <img
+                src={`/media/images/practice/${practice.image}-480.webp`}
+                srcSet={`/media/images/practice/${practice.image}-480.webp 480w, /media/images/practice/${practice.image}-800.webp 800w`}
+                sizes="300px"
+                width={480}
+                height={596}
+                loading={i < 2 ? 'eager' : 'lazy'}
+                decoding="async"
+                alt=""
+                data-pose={practice.alt}
+                className="w-full aspect-[4/5] object-cover bg-surface-alt"
+              />
               <div className="p-4 pb-5 flex flex-col gap-1">
                 <h3 className="font-display font-normal text-[28px] leading-[1.1] text-ink">{practice.name}</h3>
                 <p className="text-sm leading-[1.5] text-ink-soft">{practice.line}</p>
