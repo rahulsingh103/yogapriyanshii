@@ -288,6 +288,10 @@ import { MotionConfig } from 'motion/react';
 - Each section goes from `opacity .15 → 1` and `translateY(18px → 0)` over 900ms, eased `cubic-bezier(.2,.7,.2,1)`, when 15% of it is visible.
 - **Never start fully hidden.** The page must read correctly before any JavaScript or animation runs.
 
+### Hero word fade (approved 2026-10-12)
+- The hero headline appears word by word: each word rises 8px out of an 8px blur over 1.1s, staggered 180ms. The eyebrow, line and button follow. It takes about 2s in total, plays once on load, and is pure CSS (`.word-fade` in `index.css`).
+- This is the one exception to "never start fully hidden": it runs without JavaScript and ends within about 2s. With reduced motion everything shows at once.
+
 ### Hover & focus
 - Cards lift 4px over 500ms.
 - Buttons take 200ms colour transitions.
