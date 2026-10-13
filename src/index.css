@@ -4,30 +4,30 @@
    Colours are provisional; swapping the palette only changes this block. */
 @theme {
   /* Backgrounds */
-  --color-bg: #f7f4ee;
-  --color-surface: #fbf9f5;
-  --color-surface-alt: #efe9df;
+  --color-bg: #f4f6f2;
+  --color-surface: #fafbf8;
+  --color-surface-alt: #e8ebe4;
   --color-glass: rgb(255 255 255 / 0.6);
 
   /* Lines */
-  --color-line: #d9d0bf;
-  --color-line-strong: #b9ad97;
+  --color-line: #d3d9cf;
+  --color-line-strong: #a9b5a6;
 
   /* Text */
-  --color-ink: #2b2620;
-  --color-ink-soft: #6f675a;
-  --color-ink-faint: #8f877a;
+  --color-ink: #1c2621;
+  --color-ink-soft: #4f5d55;
+  --color-ink-faint: #84907f;
 
   /* Accent (gold) */
-  --color-accent: #a88a52;
-  --color-accent-text: #806737;
-  --color-on-ink: #f7f4ee;
+  --color-accent: #4e6b5d;
+  --color-accent-text: #3f5a4d;
+  --color-on-ink: #f4f6f2;
 
   /* States */
   --color-success: #3f6f55;
   --color-error: #9b3b32;
   --color-error-bg: #f6e9e6;
-  --color-calm-bg: #efe9df;
+  --color-calm-bg: #e8ebe4;
 
   /* Depth (DS §6): the one Raised shadow, tinted with ink. */
   --shadow-raised: 0 8px 30px color-mix(in srgb, var(--color-ink) 8%, transparent);

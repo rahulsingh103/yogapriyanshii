@@ -3,7 +3,8 @@
 **Status:** v1 approved 2026-10-11. This replaces v0, which described the old AI Studio look. This file is the design law for every page and every agent (planner, worker, design reviewer).
 
 - **Approved concept:** "A · Mandala Bloom", reference file `design/concepts/mandala-bloom-approved.html` (private workspace, section `#c1`).
-- **Colours are provisional.** They are grey-gold placeholders, picked last from options A–F. Every colour is a token (§2), so swapping the palette is a one-place change.
+- **Palette chosen 2026-10-12: D · Botanical Zen** (soft off-white, deep forest ink, olive-sage accent), picked for low-glare, restful reading. All text pairs pass 4.5:1 (body 6.4:1, accent text 6.9:1). It can be swapped any time by editing only the §2 token block.
+- **Previously provisional colours.** They are grey-gold placeholders, picked last from options A–F. Every colour is a token (§2), so swapping the palette is a one-place change.
 
 ---
 
@@ -21,37 +22,37 @@
 
 ---
 
-## 2. Colour palette & roles (provisional)
+## 2. Colour palette & roles: "Botanical Zen" (chosen 2026-10-12)
 
 Define these in `src/index.css` under Tailwind v4 `@theme`. Components use **only** these tokens (`bg-bg`, `text-ink`, `border-line`, …): **no hex values in components, no `!important`, no theme switcher.**
 
 ```css
 @theme {
   /* Backgrounds */
-  --color-bg: #f7f4ee;          /* page background */
-  --color-surface: #fbf9f5;     /* cards, modal (solid) */
-  --color-surface-alt: #efe9df; /* alternate section band, inputs */
+  --color-bg: #f4f6f2;          /* page background */
+  --color-surface: #fafbf8;     /* cards, modal (solid) */
+  --color-surface-alt: #e8ebe4; /* alternate section band, inputs */
   --color-glass: rgb(255 255 255 / 0.6); /* carousel cards over the mandala */
 
   /* Lines */
-  --color-line: #d9d0bf;        /* hairlines, card borders */
-  --color-line-strong: #b9ad97; /* hover borders, focus fallback */
+  --color-line: #d3d9cf;        /* hairlines, card borders */
+  --color-line-strong: #a9b5a6; /* hover borders, focus fallback */
 
   /* Text */
-  --color-ink: #2b2620;         /* headings, primary text, primary button */
-  --color-ink-soft: #6f675a;    /* body copy, descriptions (≥4.5:1 on bg) */
-  --color-ink-faint: #8f877a;   /* labels on large text only */
+  --color-ink: #1c2621;         /* headings, primary text, primary button */
+  --color-ink-soft: #4f5d55;    /* body copy, descriptions (≥4.5:1 on bg) */
+  --color-ink-faint: #84907f;   /* labels on large text only */
 
   /* Accent (gold) */
-  --color-accent: #a88a52;      /* mandala strokes, italic highlight, dots */
-  --color-accent-text: #806737; /* accent used as small text (≥4.5:1 on bg) */
-  --color-on-ink: #f7f4ee;      /* text on ink buttons */
+  --color-accent: #4e6b5d;      /* mandala strokes, italic highlight, dots */
+  --color-accent-text: #3f5a4d; /* accent used as small text (≥4.5:1 on bg) */
+  --color-on-ink: #f4f6f2;      /* text on ink buttons */
 
   /* States */
   --color-success: #3f6f55;
   --color-error: #9b3b32;
   --color-error-bg: #f6e9e6;
-  --color-calm-bg: #efe9df;     /* gentle notices, e.g. the "I'm so sorry" rebook message */
+  --color-calm-bg: #e8ebe4;     /* gentle notices, e.g. the "I'm so sorry" rebook message */
 }
 ```
 
