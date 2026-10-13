@@ -67,13 +67,13 @@ test('pricing cards open booking with the matching package selected', async ({ p
   await page.locator('#pricing').scrollIntoViewIfNeeded();
   await shot('pricing');
 
-  await page.locator('#pricing').getByRole('button', { name: /^Book First class, Free$/ }).click();
+  await page.locator('#pricing').getByRole('button', { name: /^Book First class\b.*Free/ }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Complimentary introductory class')).toBeVisible();
   await shot('free-plan-modal');
   await modal.getByLabel('Close modal').click();
 
-  await page.locator('#pricing').getByRole('button', { name: /^Book Single class, AED 350$/ }).click();
+  await page.locator('#pricing').getByRole('button', { name: /^Book Single class\b.*AED 350/ }).click();
   await expect(modal.getByText('Flexible studio credits')).toBeVisible();
   await shot('paid-plan-modal');
 });

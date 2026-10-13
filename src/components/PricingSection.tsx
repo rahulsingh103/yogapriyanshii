@@ -30,11 +30,10 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
                 <button
                   type="button"
                   onClick={() => onOpenBooking(plan.key)}
-                  aria-label={`Book ${plan.name}, ${plan.price}`}
                   className="group w-full min-h-[88px] grid grid-cols-[1fr_auto_auto] items-center gap-4 sm:gap-6 py-5 px-2 sm:px-4 text-left rounded-[4px] hover:bg-glass transition-colors duration-200"
                 >
                   <span className="flex flex-col gap-1 min-w-0">
-                    <span className="font-display text-[28px] leading-[1.1] text-ink">{plan.name}</span>
+                    <span className="font-display text-[28px] leading-[1.1] text-ink"><span className="sr-only">Book </span>{plan.name}</span>
                     <span className="text-sm leading-[1.5] text-ink-soft">
                       {plan.line.split(' · ').map((part, i) => (
                         <React.Fragment key={part}>
