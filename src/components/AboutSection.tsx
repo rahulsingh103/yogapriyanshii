@@ -16,7 +16,7 @@ export function AboutSection() {
           className="w-full aspect-[4/5] object-cover rounded-[18px] bg-surface-alt"
         />
         <div className="flex flex-col gap-6">
-          <h2 className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink">
+          <h2 className="font-display font-normal text-h2 text-ink">
             Hi, I&apos;m Priyanshi.
           </h2>
           <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">

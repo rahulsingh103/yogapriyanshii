@@ -17,7 +17,7 @@ PATH="$HOME/.local/node22/bin:$PATH" npm audit --omit=dev
 - The admin password for tests is `TEST_ADMIN_PASSWORD` in `e2e/test-admin.ts`. `playwright.config.ts` hashes it into `ADMIN_PASSWORD_HASH` for the test server.
 - Tests run one at a time (`workers: 1`) against one server, in file order. `05` locks the admin portal at its end, so later specs don't sign in.
 
-## What's covered: 48 Playwright tests (`e2e/`)
+## What's covered: 63 Playwright tests (`e2e/`)
 
 | File | Covers |
 |---|---|
@@ -28,7 +28,8 @@ PATH="$HOME/.local/node22/bin:$PATH" npm audit --omit=dev
 | `05-admin` (5) | Opened from the footer's "Studio admin": login, metrics, settings, logout; real stats (zero revenue, 6 zero-filled months); settings validation; booking alerts go to the saved notify address; logout ends the session; the API rejects requests without a token; lockout after 5 failures |
 | `06-mobile` (4) | No horizontal scroll and the menu works; mobile free booking end to end; the sticky Book bar (and it steps aside while Contact is on screen); the booking reference fits at 375px |
 | `07-backend-rules` (10) | 56 schedule days with 8 Friday rest days; the last-seat race; captured confirmation and alert emails; an email failure doesn't block booking, cancel or contact; removed routes give 404; 413 for big bodies; guessed and malformed tokens get the same 404; token normalisation; an early free-class cancel gives it back but the same session can't be rebooked (UI offers other sessions); a late free-class cancel keeps it used |
-| `08-redesign` (10) | The carousel's 8 classes, arrows and keyboard track; Hatha preselects the soonest Hatha session; Yin Yoga opens the contact pop-up with Yin preset; a nav link lands the section just below the header (no font wait: fonts are preloaded with metric-matched fallbacks); reduced motion draws the static mandala; the mobile menu (Escape, links, focus trap, inert page, closes at 900px+); Escape closes the booking sheet and returns focus; the 375px bottom sheet has no overflow |
+| `08-redesign` (12) | The carousel's 8 classes, arrows and keyboard track; Hatha preselects the soonest Hatha session; Yin Yoga opens the contact pop-up with Yin preset; a nav link lands the section just below the header (no font wait: fonts are preloaded with metric-matched fallbacks); reduced motion draws the static mandala; the mobile menu (Escape, links, focus trap, inert page, closes at 900px+); Escape closes the booking sheet and returns focus; the 375px bottom sheet has no overflow |
+| `09-apple-design` (13) | Pills and cards scale on press, and a wide pricing row presses only to 0.99 with `scale` in its transition; the phone sheet opens without its bottom edge ever rising above the viewport's; the phone sheet (real CDP touch) follows the grabber 1:1, lightens the backdrop, dismisses on a flick, springs back after a slow short drag and rubber-bands upwards; touching the content scrolls it natively and fields still work; a tap and a plain click on a card still open booking with that class; a desktop mouse drag lands on a snap point without opening a class, the arrows glide to a snap, and pulling past the start rubber-bands back; reduced motion keeps the drag with instant snap-back and dismiss; reduced transparency (CDP) and more contrast turn the bars and glass solid; a mouse press released off the track leaves no drag behind; a cancelled touch on the grabber springs back without dismissing |
 
 ## Gaps to close
 

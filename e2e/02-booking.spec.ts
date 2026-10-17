@@ -77,11 +77,11 @@ test('paid single class, pay at studio', async ({ page }, info) => {
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Studio Payer');
   await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('studio'));
-  await expect(modal.getByText(/Settle AED 350 at BurJuman/)).toBeVisible();
+  await expect(modal.getByText(/Pay AED 350 in person at your session/)).toBeVisible();
   await shot('pay-at-studio-selected');
-  await modal.getByRole('button', { name: 'Reserve Seat (Pay at Studio)' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
-  await expect(modal.getByText('AED 350 (Pay at Studio)')).toBeVisible();
+  await expect(modal.getByText('AED 350 (Pay in Person)')).toBeVisible();
   await shot('confirmation');
 });
 
@@ -97,9 +97,9 @@ test('paid packs are reserved to pay at the studio, with no card or bank form', 
     await expect(modal.getByPlaceholder('Card number')).toHaveCount(0);
     await expect(modal.getByText(/IBAN/)).toHaveCount(0);
     await shot(`${who}-pay-at-studio`);
-    await modal.getByRole('button', { name: 'Reserve Seat (Pay at Studio)' }).click();
+    await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
     await expect(modal.getByText("You're on the mat.")).toBeVisible();
-    await expect(modal.getByText(`AED ${total} (Pay at Studio)`)).toBeVisible();
+    await expect(modal.getByText(`AED ${total} (Pay in Person)`)).toBeVisible();
     await shot(`${who}-confirmation`);
   }
 });

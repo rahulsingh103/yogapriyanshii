@@ -136,7 +136,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
     ) : null;
 
   return (
-    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close contact form">
+    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close contact form" dismissible={!loading}>
       {submitted ? (
         <div className="flex flex-col items-center gap-6 py-4 text-center">
           <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
@@ -147,7 +147,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
               id={titleId}
               ref={sentHeadingRef}
               tabIndex={-1}
-              className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink focus:outline-none"
+              className="font-display font-normal text-title sm:text-title-lg text-ink focus:outline-none"
             >
               Message Sent
             </h2>

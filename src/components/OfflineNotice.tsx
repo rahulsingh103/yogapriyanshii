@@ -37,7 +37,7 @@ export function OfflineNotice() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
             className="pointer-events-auto flex items-center gap-3 rounded-full bg-surface border border-line shadow-raised pl-2 pr-5 py-2 text-sm text-ink"
           >
             <BuddhaLoader size={32} ring={false} />

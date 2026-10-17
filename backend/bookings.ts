@@ -143,7 +143,7 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
   let paymentMethod: PaymentMethod | null = null;
   if (planKey !== 'free') {
     paymentMethod = oneOf(body.paymentMethod ?? 'studio', PAYMENT_METHODS);
-    if (!paymentMethod) throw bad('Paid classes are settled at the studio for now. Please choose "Pay at Studio".');
+    if (!paymentMethod) throw bad('Paid classes are paid in person for now. Please choose "Pay in Person".');
   }
   if (isRestDayId(sessionId)) throw bad('Friday is a studio rest day. No classes are scheduled.');
   if (!isSessionId(sessionId)) throw new HttpError(404, 'Selected class session was not found.');

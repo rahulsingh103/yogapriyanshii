@@ -61,7 +61,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
         {/* Heading, one line, and the week switcher */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="flex flex-col gap-6">
-            <h2 className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink">
+            <h2 className="font-display font-normal text-h2 text-ink">
               Weekly schedule
             </h2>
             <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
@@ -84,7 +84,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                   aria-pressed={filterWeek === week}
                   onClick={() => setFilterWeek(week)}
                   className={cn(
-                    'min-h-11 px-2 sm:px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200',
+                    'press min-h-11 px-2 sm:px-4 rounded-full text-sm font-medium whitespace-nowrap transition duration-200 ease-spring active:duration-100',
                     filterWeek === week ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
                   )}
                 >
@@ -96,7 +96,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             <button
               type="button"
               onClick={loadSchedule}
-              className="inline-flex items-center justify-center size-11 shrink-0 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+              className="press inline-flex items-center justify-center size-11 shrink-0 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
               title="Refresh availability"
               aria-label="Refresh availability"
             >
@@ -140,7 +140,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">Friday</p>
                       <p className="text-xs text-ink-soft">{session.dateDubai.split(', ')[1]}</p>
-                      <p className="mt-auto font-display text-[24px] leading-[1.1] text-ink-soft">Rest Day</p>
+                      <p className="mt-auto font-display text-h4 text-ink-soft">Rest Day</p>
                       <p className="text-xs text-ink-soft">No scheduled classes</p>
                     </div>
                   );
@@ -153,7 +153,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     aria-pressed={isSelected}
                     onClick={() => setSelectedSessionId(session.id)}
                     className={cn(
-                      'min-h-[176px] p-4 rounded-[18px] border text-left flex flex-col gap-1 transition-colors duration-200',
+                      'press-soft min-h-[176px] p-4 rounded-[18px] border text-left flex flex-col gap-1 transition duration-200 ease-spring active:duration-100',
                       isSelected
                         ? 'bg-ink border-ink text-on-ink'
                         : isFull || isPast
@@ -171,7 +171,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       <span className="block whitespace-nowrap">{session.timeDubai}</span>
                     </span>
 
-                    <span className="mt-auto pt-3 min-h-[3.3em] flex items-end font-display text-[24px] leading-[1.1]">
+                    <span className="mt-auto pt-3 min-h-[3.3em] flex items-end font-display text-h4">
                       {session.className}
                     </span>
                     <span className={cn('text-xs', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
@@ -210,7 +210,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                     <span>{activeSelected.timeDubai} (Dubai Time)</span>
                   </p>
 
-                  <h3 className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+                  <h3 className="font-display font-normal text-title sm:text-title-lg text-ink">
                     {activeSelected.className}
                   </h3>
 

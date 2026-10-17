@@ -116,7 +116,7 @@ async function deliver(draft: Draft): Promise<EmailRecord | null> {
 
 // --- templates ---
 
-const STUDIO_ADDRESS = 'BurJuman Residence Block D, Dubai';
+const STUDIO_AREA = 'Dubai';
 
 export interface BookingEmailData {
   bookingId: string;
@@ -141,13 +141,13 @@ const PLAN_TITLES: Record<string, string> = {
 
 function paymentLine(d: BookingEmailData): string {
   if (d.paymentStatus === 'free') return 'Complimentary (AED 0)';
-  if (d.paymentStatus === 'pending_at_studio') return `AED ${d.amountAed}, to pay at the studio reception`;
+  if (d.paymentStatus === 'pending_at_studio') return `AED ${d.amountAed}, to pay in person at your session`;
   if (d.paymentStatus === 'paid') return `AED ${d.amountAed}, paid`;
   return `AED ${d.amountAed}, payment pending. Priyanshi will confirm how to pay.`;
 }
 
 function formatLine(mode: BookingEmailData['mode']): string {
-  return mode === 'in_person' ? `In person at ${STUDIO_ADDRESS}` : 'Live online stream';
+  return mode === 'in_person' ? 'In person, Dubai (Priyanshi will confirm the details with you)' : 'Live online stream';
 }
 
 export async function sendBookingConfirmation(d: BookingEmailData, studioEmail: string): Promise<EmailRecord | null> {
@@ -165,7 +165,7 @@ Your session:
 
 A few gentle tips:
 - Please arrive 10 minutes early so we can talk about any areas or injuries you'd like to work with.
-- Mats, blocks, bolsters and straps are provided at the studio.
+- Priyanshi will message you before class to confirm where and how.
 - Wear comfortable clothing you can breathe and move in.
 - Cancellations are free up to 6 hours before class. Use your booking token on the website under "Manage Booking".
 
@@ -173,7 +173,7 @@ See you on the mat.
 
 With warmth,
 Priyanshi
-YogaPriyanshi · ${STUDIO_ADDRESS}`;
+YogaPriyanshi · ${STUDIO_AREA}`;
 
   return deliver({
     kind: 'booking_confirmation',

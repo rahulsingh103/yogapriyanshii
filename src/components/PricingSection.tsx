@@ -22,7 +22,7 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
   return (
     <section id="pricing" className="py-20 lg:py-32">
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
-        <h2 className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink">Pricing</h2>
+        <h2 className="font-display font-normal text-h2 text-ink">Pricing</h2>
         <ul className="border-t border-line">
           {PLANS.map((plan) => (
             <li key={plan.key} className="border-b border-line">
@@ -30,10 +30,10 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
                 <button
                   type="button"
                   onClick={() => onOpenBooking(plan.key)}
-                  className="group w-full min-h-[88px] grid grid-cols-[1fr_auto_auto] items-center gap-4 sm:gap-6 py-5 px-2 sm:px-4 text-left rounded-[4px] hover:bg-glass transition-colors duration-200"
+                  className="group w-full min-h-[88px] grid grid-cols-[1fr_auto_auto] items-center gap-4 sm:gap-6 py-5 px-2 sm:px-4 text-left rounded-[4px] hover:bg-glass press-soft transition duration-200 ease-spring active:duration-100"
                 >
                   <span className="flex flex-col gap-1 min-w-0">
-                    <span className="font-display text-[28px] leading-[1.1] text-ink"><span className="sr-only">Book </span>{plan.name}</span>
+                    <span className="font-display text-h3 text-ink"><span className="sr-only">Book </span>{plan.name}</span>
                     <span className="text-sm leading-[1.5] text-ink-soft">
                       {plan.line.split(' · ').map((part, i) => (
                         <React.Fragment key={part}>
@@ -55,7 +55,7 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
           ))}
         </ul>
         <p className="text-sm leading-[1.5] text-ink-soft">
-          Pay at the studio. Free cancellation up to 6 hours before class.
+          Pay in person at your session. Free cancellation up to 6 hours before class.
         </p>
       </Reveal>
     </section>

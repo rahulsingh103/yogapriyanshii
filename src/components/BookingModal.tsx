@@ -213,16 +213,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (!currentSession) return '#';
     const title = encodeURIComponent(`Yoga with Priyanshi: ${currentSession.className}`);
     const details = encodeURIComponent(
-      `BurJuman Residence Block D, Dubai\nBooking Token: ${confirmedBooking?.bookingToken || ''}\nInstructor: Priyanshi`
+      `Dubai · details confirmed by Priyanshi\nBooking Token: ${confirmedBooking?.bookingToken || ''}\nInstructor: Priyanshi`
     );
-    const location = encodeURIComponent('BurJuman Residence Block D, Bur Dubai, Dubai, UAE');
+    const location = encodeURIComponent('Dubai, UAE');
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}`;
   };
 
   const titleId = 'booking-modal-title';
 
   return (
-    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal">
+    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal" dismissible={!loading}>
       <div className="flex flex-col gap-6">
         {/* Step indicator and heading */}
         {!confirmedBooking && (
@@ -235,7 +235,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <h2 id={titleId} className={ui.title}>
               {step === 1 ? 'Select practice' : 'Your details'}
             </h2>
-            <p className="text-sm leading-[1.5] text-ink-soft">BurJuman Residence Block D · Dubai</p>
+            <p className="text-sm leading-[1.5] text-ink-soft">Dubai · In person &amp; online</p>
           </div>
         )}
 
@@ -272,7 +272,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       aria-pressed={isSelected}
                       onClick={() => setPlanKey(p.key as any)}
                       className={cn(
-                        'min-h-[88px] p-3 text-left rounded-[12px] border flex flex-col justify-between gap-1 transition-colors duration-200',
+                        'press-soft min-h-[88px] p-3 text-left rounded-[12px] border flex flex-col justify-between gap-1 transition duration-200 ease-spring active:duration-100',
                         isSelected
                           ? 'bg-ink border-ink text-on-ink'
                           : 'bg-surface-alt border-transparent text-ink hover:border-line-strong'
@@ -304,7 +304,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     [
                       'in_person',
                       <>
-                        In-Person<span className="hidden sm:inline"> (BurJuman)</span>
+                        In person
                       </>,
                     ],
                     ['online', 'Online Live Stream'],
@@ -316,7 +316,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     aria-pressed={mode === value}
                     onClick={() => setMode(value)}
                     className={cn(
-                      'min-h-11 px-3 rounded-full text-sm font-medium transition-colors duration-200',
+                      'press-soft min-h-11 px-3 rounded-full text-sm font-medium transition duration-200 ease-spring active:duration-100',
                       mode === value ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
                     )}
                   >
@@ -372,10 +372,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {/* Order summary */}
             <div className={cn(ui.panel, 'flex items-center justify-between gap-4')}>
               <div className="flex flex-col gap-1 min-w-0">
-                <p className="font-display text-[24px] leading-[1.1] text-ink">{currentSession?.className}</p>
+                <p className="font-display text-h4 text-ink">{currentSession?.className}</p>
                 <p className="text-sm text-ink-soft">
                   {currentSession?.dateDubai} · {currentSession?.timeDubai} ·{' '}
-                  {mode === 'in_person' ? 'BurJuman Studio' : 'Online Stream'}
+                  {mode === 'in_person' ? 'In person, Dubai' : 'Online Stream'}
                 </p>
               </div>
               <div className="text-right shrink-0 flex flex-col gap-1">
@@ -429,7 +429,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className={cn(ui.panel, 'flex flex-col gap-2')}>
                 <span className={ui.label}>Payment</span>
                 <p className="text-sm leading-[1.5] text-ink-soft">
-                  Your seat is held immediately. Settle AED {currentPlan.aed} at BurJuman Residence Block D reception desk upon arrival. Online payment is coming soon.
+                  Your seat is held immediately. Pay AED {currentPlan.aed} in person at your session. Priyanshi will message you to confirm the details. Online payment is coming soon.
                 </p>
               </div>
             )}
@@ -447,7 +447,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ? 'Confirming...'
                   : planKey === 'free'
                   ? 'Confirm Free Reservation'
-                  : `Reserve Seat (Pay at Studio)`}
+                  : `Reserve Seat (Pay in Person)`}
               </button>
             </div>
           </div>
@@ -464,7 +464,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 id={titleId}
                 ref={confirmedHeadingRef}
                 tabIndex={-1}
-                className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink focus:outline-none"
+                className="font-display font-normal text-title sm:text-title-lg text-ink focus:outline-none"
               >
                 You&apos;re on the mat.
               </h2>
@@ -494,7 +494,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     onClick={copyToken}
                     aria-label="Copy booking reference"
                     title="Copy booking reference"
-                    className="inline-flex items-center justify-center size-11 shrink-0 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                    className="press inline-flex items-center justify-center size-11 shrink-0 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
                   >
                     <Copy size={16} aria-hidden="true" />
                   </button>
@@ -512,7 +512,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ['Date & Time', confirmedBooking.sessionTimeDubai, ''],
                   [
                     'Location',
-                    confirmedBooking.mode === 'in_person' ? 'BurJuman Residence Block D' : 'Online Stream',
+                    confirmedBooking.mode === 'in_person' ? 'In person, Dubai' : 'Online Stream',
                     '',
                   ],
                   [
@@ -522,7 +522,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           confirmedBooking.paymentStatus === 'paid'
                             ? 'Paid'
                             : confirmedBooking.paymentStatus === 'pending_at_studio'
-                              ? 'Pay at Studio'
+                              ? 'Pay in Person'
                               : 'Payment pending'
                         })`
                       : 'Complimentary',

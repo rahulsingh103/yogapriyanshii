@@ -39,7 +39,36 @@
   /* Type */
   --font-display: "Italiana", "Italiana Fallback", "Didot", Georgia, serif;
   --font-sans: "Figtree", "Figtree Fallback", -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale (DS §3): size, leading and tracking travel together (`text-display`, `text-h2`, …).
+     Large display type sits tighter; the smaller Italiana sizes keep the face's own spacing. */
+  --text-display: clamp(44px, 8vw, 92px);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.02em;
+  --text-h2: clamp(34px, 5.5vw, 58px);
+  --text-h2--line-height: 1.05;
+  --text-h2--letter-spacing: -0.015em;
+  --text-title: 34px;
+  --text-title--line-height: 1.05;
+  --text-title-lg: 40px;
+  --text-title-lg--line-height: 1.05;
+  --text-quote: clamp(26px, 4vw, 40px);
+  --text-quote--line-height: 1.25;
+  --text-h3: 28px;
+  --text-h3--line-height: 1.1;
+  --text-h4: 24px;
+  --text-h4--line-height: 1.1;
+
+  /* Motion (DS §7): a critically damped spring (no overshoot) as a CSS easing, for hover and
+     material changes that CSS still owns. Anything a finger can grab uses a motion spring instead. */
+  --ease-spring: linear(0, 0.057, 0.18, 0.321, 0.455, 0.573, 0.671, 0.75, 0.812, 0.86, 0.896, 0.924, 0.944, 0.96, 0.971, 0.979, 0.985, 0.989, 0.992, 0.994, 0.996, 0.997, 0.998, 0.999, 1);
+
+  /* Glass edge (DS §6): light catching the top of a translucent bar. */
+  --shadow-glass-edge: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 55%, transparent);
 }
+
+/* Matches the OS "Reduce transparency" setting (DS §6). */
+@custom-variant reduce-transparency (@media (prefers-reduced-transparency: reduce));
 
 /* Metric-matched fallbacks: while the self-hosted fonts load (font-display: swap), text renders
    in a local font scaled to the same width and line box, so the swap causes no layout shift.
@@ -167,4 +196,43 @@ h1, h2, h3 {
 @keyframes buddha-turn { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
   .buddha-breathe, .buddha-ring { animation: none; }
+}
+
+/* Press feedback (DS §4, §7): the moment a control is touched it gives, not on release. Opt-in,
+   sized to the element: `press` (0.97) for pills and icon buttons, `press-soft` (0.99) for wide
+   rows and tiles, where 0.97 would move the edges by many pixels. `scale` is its own property, so
+   it never fights a hover `translate`. Every element that uses one also lists `scale` in its
+   transition (`transition duration-200 ease-spring active:duration-100`), so the press animates. */
+@utility press {
+  &:active:not(:disabled) { scale: 0.97; }
+}
+@utility press-soft {
+  &:active:not(:disabled) { scale: 0.99; }
+}
+@layer utilities {
+  .card-lift:active { scale: 0.98; transition-duration: 100ms; }
+  /* Mid-drag the card is being thrown, not pressed. */
+  .practice-track[data-dragging] .card-lift:active { scale: 1; }
+}
+
+/* Carousel glide and mouse drag (PracticeCarousel): snapping is off while script moves the track,
+   then the glide lands exactly on a snap offset. Unlayered, so it beats the snap utilities. */
+.practice-track[data-gliding] { scroll-snap-type: none; }
+.practice-track[data-dragging] { user-select: none; }
+
+/* Materials (DS §6), central accessibility overrides. Unlayered, so they beat every utility
+   without !important. Hooks: `bg-glass` (glass cards and panels), `material-bar` (the scrolled
+   header and the sticky bar), `material-scrim` (the modal backdrop), `scroll-edge` (the soft fades
+   that stand in for hairlines under translucent bars). */
+@media (prefers-reduced-transparency: reduce) {
+  .bg-glass { background-color: var(--color-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .material-bar { background-color: var(--color-bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px var(--color-line); }
+  .material-scrim { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .scroll-edge { display: none; }
+}
+@media (prefers-contrast: more) {
+  .bg-glass { background-color: var(--color-surface); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 0 0 1px var(--color-ink); }
+  .material-bar { background-color: var(--color-bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 1px var(--color-ink); }
+  .material-scrim { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .scroll-edge { display: none; }
 }

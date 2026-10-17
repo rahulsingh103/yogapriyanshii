@@ -19,7 +19,11 @@ export function Reveal({ children, className }: RevealProps) {
       initial={{ opacity: 0.15, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+      // The lift is a critically damped spring; the opacity keeps its gentle tween.
+      transition={{
+        y: { type: 'spring', bounce: 0, visualDuration: 0.8 },
+        opacity: { duration: 0.9, ease: [0.2, 0.7, 0.2, 1] },
+      }}
     >
       {children}
     </m.div>

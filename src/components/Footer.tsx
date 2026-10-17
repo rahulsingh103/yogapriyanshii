@@ -17,7 +17,7 @@ export function Footer({ onOpenCancel, onOpenAdmin }: FooterProps) {
             <a href="#home" className="self-start inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
               YogaPriyanshi
             </a>
-            <p className="text-sm leading-[1.5] text-ink-soft">BurJuman Residence Block D, Bur Dubai, Dubai</p>
+            <p className="text-sm leading-[1.5] text-ink-soft">Dubai, UAE · In person &amp; online</p>
             <a
               href="https://instagram.com/yogapriyanshi"
               target="_blank"

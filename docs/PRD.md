@@ -63,7 +63,7 @@
 
 ## 5. Content (must be used as given)
 
-**Studio:** BurJuman Residence Block D, Dubai, UAE (confirmed 2026-10-10)
+**Location:** no public studio address (changed 2026-10-17). Classes are "in person across Dubai or online". After booking, Priyanshi confirms where and how with the student by message. The site, emails and calendar invites never show an address. Payment for in-person classes is "Pay in Person" (the internal value stays `pending_at_studio`).
 **Email shown on site:** priyanshi@yogapriyanshi.com · **Phone:** placeholder `+971 50 000 0000` (to be replaced)
 **Instagram:** @yogapriyanshi · **Also listed on:** ClassPass, FindYoga
 **Credibility stats (hero strip):** 7+ years · MA Yoga Science · 200hr YTT · 4 signature styles · "Rated on ClassPass" (5 stars)

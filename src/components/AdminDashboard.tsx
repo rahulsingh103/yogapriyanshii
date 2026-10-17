@@ -98,7 +98,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const maxEarnings = stats ? Math.max(0, ...stats.earnings6Months.map((m) => m.amountAed)) : 0;
 
   const titleId = 'admin-modal-title';
-  const sectionTitle = 'font-display font-normal text-[28px] leading-[1.1] text-ink';
+  const sectionTitle = 'font-display font-normal text-h3 text-ink';
   const tile = 'bg-surface-alt rounded-[16px] p-5 flex flex-col gap-1';
   const tileLabel = 'text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft';
   const tileValue = 'font-display font-normal text-[34px] leading-[1.1] text-ink tabular-nums';
@@ -111,6 +111,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       labelledBy={titleId}
       closeLabel="Close admin dashboard"
       size={token ? 'wide' : 'default'}
+      dismissible={false}
     >
       {/* LOGIN SCREEN */}
       {!token ? (
@@ -119,7 +120,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             <span className="inline-flex items-center justify-center size-12 rounded-full bg-surface-alt text-accent-text">
               <Lock className="size-5" aria-hidden="true" />
             </span>
-            <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+            <h2 id={titleId} className="font-display font-normal text-title sm:text-title-lg text-ink">
               Instructor Portal
             </h2>
             <p className="text-sm leading-[1.5] text-ink-soft">
@@ -170,7 +171,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-line">
             <div className="flex flex-col gap-2 pr-12 lg:pr-0">
               <span className={cn(ui.eyebrow, 'text-accent-text')}>Studio Operations</span>
-              <h2 id={titleId} className="font-display font-normal text-[34px] sm:text-[40px] leading-[1.05] text-ink">
+              <h2 id={titleId} className="font-display font-normal text-title sm:text-title-lg text-ink">
                 Priyanshi&apos;s Studio Overview
               </h2>
             </div>
@@ -179,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
               <button
                 type="button"
                 onClick={() => loadStats(token)}
-                className="inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                className="press inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
                 title="Refresh"
                 aria-label="Refresh"
               >
@@ -380,7 +381,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                           href={settingsDriveLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center size-12 shrink-0 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                          className="press inline-flex items-center justify-center size-12 shrink-0 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
                           title="Open Sheet"
                           aria-label="Open Sheet"
                         >

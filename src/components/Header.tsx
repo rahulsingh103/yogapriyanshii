@@ -118,12 +118,20 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
     <header className="fixed top-0 inset-x-0 z-[45]">
       <div
         className={cn(
-          'relative z-10 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(.2,.7,.2,1)]',
+          'relative z-10 border-b border-transparent transition-[background-color,box-shadow,backdrop-filter] duration-300 ease-spring',
           scrolled && !menuOpen
-            ? 'bg-bg/85 backdrop-blur-md border-line shadow-raised'
-            : 'bg-transparent backdrop-blur-[0px] border-transparent shadow-none'
+            ? 'material-bar bg-bg/85 backdrop-blur-[20px] backdrop-saturate-[1.8] shadow-glass-edge'
+            : 'bg-transparent backdrop-blur-[0px] shadow-none'
         )}
       >
+        {/* Scroll edge (DS §6): content softens as it slides under the glass, instead of a hard line. */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            'scroll-edge pointer-events-none absolute inset-x-0 top-[calc(100%-1px)] h-4 bg-linear-to-b from-bg/85 to-transparent transition-opacity duration-300 ease-spring',
+            scrolled && !menuOpen ? 'opacity-100' : 'opacity-0'
+          )}
+        />
         <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
           <a ref={logoRef} href="#home" className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
             YogaPriyanshi
@@ -146,7 +154,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
               ref={pillRef}
               type="button"
               onClick={onOpenBooking}
-              className="hidden sm:inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition-opacity duration-200"
+              className="press hidden sm:inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
             >
               Book free class
             </button>
@@ -159,7 +167,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
                 aria-label="Toggle Navigation Menu"
                 aria-expanded={menuOpen}
                 aria-controls={menuOpen ? 'mobile-menu' : undefined}
-                className="min-[900px]:hidden inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition-colors duration-200"
+                className="press min-[900px]:hidden inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
               >
                 {menuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -177,10 +185,11 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
             aria-label="Menu"
             className="fixed inset-0 z-0 bg-bg min-[900px]:hidden overflow-y-auto"
             data-lenis-prevent
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+            // Full-screen, so it settles in from the centre rather than growing from the toggle.
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
           >
             <div className="min-h-full flex flex-col items-center justify-center gap-12 px-5 pt-24 pb-12 text-center">
               <nav aria-label="Menu links" className="flex flex-col items-center gap-4">

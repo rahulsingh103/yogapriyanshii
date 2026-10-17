@@ -96,16 +96,19 @@ import '@fontsource/figtree/latin-600.css';
 
 **One font pair, everywhere.** Italiana is for headings, class names and quotes; Figtree is for all other text. No third font.
 
-| Role | Font | Size (mobile → desktop) | Line height | Notes |
-|---|---|---|---|---|
-| Display (hero) | Italiana | `clamp(44px, 8vw, 92px)` | 0.98 | One per page; `text-wrap: balance` |
-| H2 (section) | Italiana | `clamp(34px, 5.5vw, 58px)` | 1.05 | |
-| H3 (card title) | Italiana | `28px` | 1.1 | Class names, teacher name |
-| Modal / panel title | Italiana | `34px` → `40px` from `sm` | 1.05 | Modal headings and the schedule detail panel (`ui.title`) |
-| Quote | Italiana | `clamp(26px, 4vw, 40px)` | 1.25 | Italic is fine (browser-slanted) |
+Heading sizes are `@theme` type tokens in `index.css`. Each token carries its size, leading and (for the two largest) tracking, so a heading uses one class (`text-display`, `text-h2`, …) and never arbitrary `text-[…] leading-[…]` values.
+
+| Role | Token | Font | Size (mobile → desktop) | Line height | Tracking | Notes |
+|---|---|---|---|---|---|---|
+| Display (hero) | `text-display` | Italiana | `clamp(44px, 8vw, 92px)` | 0.98 | −0.02em | One per page; `text-wrap: balance` |
+| H2 (section) | `text-h2` | Italiana | `clamp(34px, 5.5vw, 58px)` | 1.05 | −0.015em | |
+| Modal / panel title | `text-title sm:text-title-lg` | Italiana | `34px` → `40px` from `sm` | 1.05 | normal | Modal headings and the schedule detail panel (`ui.title`) |
+| Quote | `text-quote` | Italiana | `clamp(26px, 4vw, 40px)` | 1.25 | normal | Italic is fine (browser-slanted) |
+| H3 (card title) | `text-h3` | Italiana | `28px` | 1.1 | normal | Class names, pricing rows, admin section titles |
+| H4 (small title) | `text-h4` | Italiana | `24px` | 1.1 | normal | Schedule card class names, the booking summary |
 | Body | Figtree 400 | `16px` | 1.6 | Max width 46ch |
 | Small | Figtree 400 | `14px` | 1.5 | Card lines, helper text |
-| Label / eyebrow | Figtree 600 | `12px`, uppercase, `letter-spacing: .14em` (hero eyebrow `.3em`) | 1.4 | |
+| Label / eyebrow | Figtree 600 | `12px`, uppercase, `letter-spacing: .14em` | 1.4 | |
 | Button | Figtree 600 | `12px`, uppercase, `letter-spacing: .14em` | 1 | |
 
 **Rules:**
@@ -113,6 +116,8 @@ import '@fontsource/figtree/latin-600.css';
 - Never use Italiana below 24px; it's too thin to read.
 - **No text under 12px, and body copy is never under 14px.** (The old site had 94 places at 9–11px; all of them go.)
 - Every heading gets `text-wrap: balance`.
+- **Tracking is size-specific.** Only the two largest sizes are tightened (display −0.02em, H2 −0.015em); smaller Italiana keeps the face's own spacing, and labels and buttons keep +0.14em.
+- Two Italiana uses sit outside the scale on purpose: the mobile menu links (34px, leading 1.25) and the admin stat tiles (34px, leading 1.1).
 
 ---
 
@@ -128,6 +133,11 @@ All components have default, hover, focus-visible, active and disabled states. F
 | Icon | 44×44 circle, `border border-line` | Carousel arrows, close, copy |
 
 - **Hover:** primary gets slightly lighter ink (`opacity-90`); secondary and icon get `border-ink`.
+- **Active (pressed):** the press is sized to the element and happens the moment it's touched, not on release (100ms):
+  - `press` (0.97): pills and icon buttons only: `ui.primary` / `ui.secondary`, the hero and header pills, the sticky bar's button, the week filter, `ICON_BUTTON`, the modal close button, the menu toggle and the copy / sheet icon buttons;
+  - `press-soft` (0.99): wide rows and tiles, where 0.97 would move the edges by many pixels: pricing rows, the booking package tiles and format segments, the schedule session cards;
+  - class cards: `card-lift` (0.98), but not while the track is being dragged.
+  - Text links and quiet text buttons don't scale. Every element with a press lists `scale` in its transition (`transition duration-200 ease-spring active:duration-100`), so it eases instead of jumping in one frame.
 - **Disabled:** `opacity-40`, `cursor-not-allowed`.
 
 ### Class card (carousel item)
@@ -136,7 +146,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Text area `p-4 pb-5`:
   - Title: H3, Italiana 28px.
   - **One line:** `"<benefit> · <duration>"` (e.g. "Alignment and breath · 60 min"), 14px, `ink-soft`.
-- Hover: `translateY(-4px)` over 500ms. The whole card is a button.
+- Hover: `translateY(-4px)` over 500ms with `ease-spring`. The whole card is a button.
 - **What a tap does:**
   - The 4 bookable classes (Hatha, Barre, Wheel, Chakra Flow) open the booking with the soonest session of that style preselected.
   - The 4 new classes (Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal) aren't on the timetable yet, so they open the contact pop-up with that class preset as the interest.
@@ -144,22 +154,24 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Carousel ("Choose your practice")
 - A horizontal scroll with `scroll-snap-type: x mandatory`. Card width `min(78%, 300px)`, gap 16px.
 - Prev and next icon buttons sit at the top right (hidden on touch-only screens is fine); keyboard focusable, scrollable with the arrow keys.
+- **Motion:** touch keeps the native swipe and scroll-snap. The arrows and arrow keys glide on a critically damped spring to the exact next snap point (instant with reduced motion). With a mouse (`pointer: fine`, `cursor-grab`), the track can be dragged: 10px threshold, then 1:1; rubber-band past either end; on release the momentum is projected and it glides (slight bounce, with the release velocity) to the nearest snap. A real drag never opens a class; a plain click or tap still does. Any glide stops on a new press, grab, wheel or touch.
 - The 8 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal. The durations of the 4 new classes are placeholders until Priyanshi confirms them.
 
 ### Header / navigation
 - Wordmark "YogaPriyanshi" (Italiana 24px) on the left. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
-- Transparent over the hero. After 80px of scroll it becomes `bg-bg/85` with backdrop blur and a hairline bottom border.
-- On mobile: wordmark plus a menu icon, opening a full-screen calm overlay with links in Italiana 34px.
+- Transparent over the hero. After 80px of scroll it becomes the **bar material** (§6): `bg-bg/85` (the same opacity as before the redesign), `backdrop-blur-[20px] backdrop-saturate-[1.8]`, the `shadow-glass-edge` top light, and a 16px scroll-edge fade below it (`from-bg/85`) instead of a hairline or shadow. 85% keeps the nav labels above 4.5:1 over the busiest content, with margin to spare (the worst pixel measured 4.61:1 even at 80%).
+- On mobile: wordmark plus a menu icon, opening a full-screen calm overlay with links in Italiana 34px. It settles in from the centre (opacity plus scale 0.98 → 1, critically damped spring) and leaves the same way.
 - "Manage booking" and "Studio admin" live in the mobile overlay and the footer, not in the header.
 
 ### Sticky book bar (mobile only)
-- Appears after the hero leaves view: a bottom bar with `bg-bg/90`, blur, safe-area padding, holding one primary button "Book a free class".
+- Appears after the hero leaves view: a bottom bar in the bar material (`bg-bg/90`, 20px blur, `shadow-glass-edge`, a `from-bg/90` scroll-edge fade above it instead of a top border), safe-area padding, holding one primary button "Book a free class". It rises from the bottom edge and leaves the same way.
 - Hides again while "Your first class is free" (`#first-class`) or Contact (`#contact`) is on screen, since both have their own dark button.
 
 ### Booking modal (and Cancel / Admin / Contact modals)
 - All four use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
 - A centred sheet: `bg-surface rounded-[20px]`, max width 560px, inner padding 32px (20px on mobile). The backdrop is `bg-ink/60` with blur.
-- On mobile it becomes a bottom sheet with full width and top corners rounded.
+- On mobile it becomes a bottom sheet with full width and top corners rounded, and a decorative grabber (36×5 pill, `line-strong`, 6px from the top edge) at the top; when the sheet can be dragged its top padding grows to 28px, so the grabber isn't cramped against "Step 1 of 2". The grabber belongs to the sheet's scrolling content, so it scrolls away with a long form; the close button and Escape still close it. A 40px `surface` bleed sits under the sheet's bottom edge and moves with it, so an upward rubber-band never shows a gap onto the backdrop.
+- **Drag to dismiss (phone only):** only the top 48px grab strip drags; content scrolling and form fields stay native. 10px threshold, then 1:1 with the finger (keeping the grab offset); upwards it rubber-bands. On release, the momentum is projected (deceleration 0.998); past half the sheet's height it springs away with the finger's velocity and closes, otherwise it springs back. It can be grabbed again mid-flight, and the backdrop lightens as it moves. Off (`dismissible={false}`) for Admin and while a form is sending.
 - Steps show as "Step 1 of 2" (label style).
 - **Keep every existing behaviour, `data-testid`, role and label.** Restyle only.
 - **Notices:**
@@ -228,7 +240,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 3. Hi, I'm Priyanshi.: photo plus one line.
 4. Quote: "Yoga is the journey of the self, through the self, to the self."
 5. Schedule: this week's classes with spots left (existing live schedule, restyled).
-6. Pricing: free first class, single, 10-pack, 20-pack (compact, pay at studio).
+6. Pricing: free first class, single, 10-pack, 20-pack (compact, pay in person).
 7. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
 8. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
@@ -241,8 +253,16 @@ Testimonials and the photo gallery come back once real ones exist.
 | Level | Treatment | Use |
 |---|---|---|
 | Flat | none | Sections, text |
-| Glass | `bg-glass` + `backdrop-blur-[8px]` | Carousel cards over the mandala |
-| Raised | `shadow-[0_8px_30px_rgb(43_38_32/0.08)]` | Modals, sticky header after scroll |
+| Glass | `bg-glass` + `backdrop-blur-[8px]` | Carousel cards, schedule cards and panel, over the mandala |
+| Bar material | `material-bar`: `bg-bg/85` (header) or `bg-bg/90` (sticky bar) + `backdrop-blur-[20px] backdrop-saturate-[1.8]` + `shadow-glass-edge` | The scrolled header and the sticky book bar |
+| Raised | `shadow-raised` (ink at 8%, `0 8px 30px`) | Modals, the offline pill |
+
+- **`shadow-glass-edge`** is a 1px inset top line of `surface` at 55%: light catching the edge of the glass. It isn't a depth shadow.
+- **Scroll edges, not hairlines:** where content slides under a bar, a 16px `scroll-edge` gradient of the bar's colour softens it, instead of a border or a drop shadow.
+- **No glass on glass:** glass and bars sit over the page, never over each other; modal surfaces are solid `surface`.
+- **Accessibility overrides** live in one unlayered block at the end of `index.css` (no `!important`):
+  - `prefers-reduced-transparency: reduce`: glass becomes solid `surface`, bars become solid `bg` with a `line` edge, the scrim drops its blur, scroll edges hide.
+  - `prefers-contrast: more`: the same solid fills, with a 1px `ink` edge on bars and glass.
 
 **No other shadows.** Borders are hairlines (`border-line`) and used rarely.
 
@@ -251,6 +271,7 @@ Testimonials and the photo gallery come back once real ones exist.
 ## 7. Animation & interaction
 
 **Motion philosophy:** slow, soft and few. One signature (the mandala), gentle reveals, small lifts on hover.
+**Physics:** anything a finger can move uses springs (motion `type: 'spring'` with `bounce` + `duration`), which start from the current value, carry velocity and can be interrupted. Critically damped (`bounce: 0`) is the default; a slight bounce (`0.15`) only follows a gesture that carried momentum (a sheet snap-back, a thrown carousel). CSS-owned transitions (hover, the header material) use `--ease-spring`, a critically damped spring as a `linear()` easing.
 **Tier:** L2 (scroll-linked background plus entrance reveals). No pinning or scroll-jacking.
 
 ### Dependencies (from the toolkit in `design/DESIGN-PHASE.md` §1)
@@ -285,23 +306,25 @@ import { MotionConfig } from 'motion/react';
 - It must never block the content: it sits behind everything, and a mobile frame takes under 4ms to draw.
 
 ### Entrance (scroll reveal)
-- Each section goes from `opacity .15 → 1` and `translateY(18px → 0)` over 900ms, eased `cubic-bezier(.2,.7,.2,1)`, when 15% of it is visible.
+- Each section goes from `opacity .15 → 1` over 900ms (eased `cubic-bezier(.2,.7,.2,1)`) and `translateY(18px → 0)` on a critically damped spring (`visualDuration .8`), when 15% of it is visible.
 - **Never start fully hidden.** The page must read correctly before any JavaScript or animation runs.
 
 ### Hero word fade (approved 2026-10-12)
-- The hero headline appears word by word: each word rises 8px out of an 8px blur over 1.1s, staggered 180ms. The eyebrow, line and button follow. It takes about 2s in total, plays once on load, and is pure CSS (`.word-fade` in `index.css`).
+- The hero headline appears word by word: each word rises 8px out of an 8px blur over 1.1s, staggered 180ms. The line and button follow (the hero has no eyebrow, removed 2026-10-17). It takes about 2s in total, plays once on load, and is pure CSS (`.word-fade` in `index.css`).
 - This is the one exception to "never start fully hidden": it runs without JavaScript and ends within about 2s. With reduced motion everything shows at once.
 
-### Hover & focus
-- Cards lift 4px over 500ms.
+### Hover, press & focus
+- Cards lift 4px over 500ms (`ease-spring`).
+- Press: pills and icon buttons scale to 0.97, wide rows and tiles to 0.99, class cards to 0.98, over 100ms on `ease-spring` (§4).
 - Buttons take 200ms colour transitions.
 - Icon buttons change border, and their Animate UI icon animates once.
 - Focus rings are always visible (§4).
 
 ### Modals
-- They fade in plus a 12px rise over 300ms.
-- On mobile, the bottom sheet slides up over 350ms.
-- The backdrop fades.
+- From 640px they fade in with a 12px rise and scale 0.98 → 1 on a critically damped spring (`bounce 0`, `duration .35`), and leave the same way.
+- On mobile, the bottom sheet slides up on a critically damped spring (`bounce 0`, `duration .35`) and leaves downwards along the same path: an open or close from a button carries no momentum, so it never overshoots (an overshoot lifts the sheet off the bottom edge). Drag to dismiss (§4) uses `bounce 0, duration .3` with the release velocity to leave; only the snap-back after a released drag uses `bounce .15, duration .3`.
+- The backdrop fades over 300ms and follows the sheet while it's dragged.
+- Header menu: opacity plus scale 0.98 → 1, `bounce 0`, `duration .35`. Sticky bar and offline pill: `bounce 0`, `duration .35`, entering and leaving along the same path.
 
 ### Reduced motion
 ```css
@@ -311,7 +334,10 @@ import { MotionConfig } from 'motion/react';
   .card-lift:hover { transform: none; }
 }
 ```
-With reduced motion on, the mandala is drawn once, fully bloomed and still.
+With reduced motion on, the mandala is drawn once, fully bloomed and still. The phone sheet cross-fades in and out instead of sliding; it can still be dragged, but its snap-back is instant and a dismiss closes at once. Carousel glides jump straight to the snap point. The press scale (0.97 / 0.99 / 0.98) stays: it's a tiny change in size with no movement across the screen, so it isn't a vestibular trigger, and it confirms the touch.
+
+### Ambient loops (audit 2026-10-17)
+The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s ring; only while loading) and the hero word fade (plays once, about 2s) all stop under reduced motion. None is a full-viewport moving background or a slow loop on the page, so all three are compliant.
 
 ---
 
@@ -321,7 +347,7 @@ With reduced motion on, the mandala is drawn once, fully bloomed and still.
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (35 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (60 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

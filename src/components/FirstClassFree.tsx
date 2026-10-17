@@ -14,7 +14,7 @@ export function FirstClassFree({ onPickTime }: FirstClassFreeProps) {
       <Reveal className="max-w-[640px] mx-auto flex flex-col items-center gap-6 text-center">
         <h2
           id="first-class-title"
-          className="font-display font-normal text-[clamp(34px,5.5vw,58px)] leading-[1.05] text-ink"
+          className="font-display font-normal text-h2 text-ink"
         >
           Your first class is <em className="italic text-accent-text">free</em>
         </h2>

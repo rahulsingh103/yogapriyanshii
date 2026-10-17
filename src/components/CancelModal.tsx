@@ -109,10 +109,10 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   const row = 'flex justify-between gap-4 py-2 border-b border-line last:border-b-0';
 
   return (
-    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal">
+    <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close modal" dismissible={!loading}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <span className={cn(ui.eyebrow, 'text-accent-text')}>BurJuman Residence Block D, Dubai</span>
+          <span className={cn(ui.eyebrow, 'text-accent-text')}>YogaPriyanshi · Dubai</span>
           <h2 id={titleId} className={ui.title}>
             Manage Reservation
           </h2>
@@ -137,7 +137,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             <h3
               ref={cancelledHeadingRef}
               tabIndex={-1}
-              className="font-display font-normal text-[28px] leading-[1.1] text-ink focus:outline-none"
+              className="font-display font-normal text-h3 text-ink focus:outline-none"
             >
               Reservation Cancelled
             </h3>
@@ -191,7 +191,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                   [
                     'Format',
                     lookedUpBooking.mode === 'in_person'
-                      ? 'In-Person (BurJuman Residence Block D)'
+                      ? 'In person'
                       : 'Online Stream',
                   ],
                   ['Token', lookedUpBooking.bookingToken],
