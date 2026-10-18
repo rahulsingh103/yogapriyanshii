@@ -17,11 +17,11 @@ PATH="$HOME/.local/node22/bin:$PATH" npm audit --omit=dev
 - The admin password for tests is `TEST_ADMIN_PASSWORD` in `e2e/test-admin.ts`. `playwright.config.ts` hashes it into `ADMIN_PASSWORD_HASH` for the test server.
 - Tests run one at a time (`workers: 1`) against one server, in file order. `05` locks the admin portal at its end, so later specs don't sign in.
 
-## What's covered: 63 Playwright tests (`e2e/`)
+## What's covered: 64 Playwright tests (`e2e/`)
 
 | File | Covers |
 |---|---|
-| `01-landing` (5) | Every section renders, images load, header nav, a bookable carousel card preselects its style, the pricing rows open booking with the right plan, schedule tabs and "Book This Class" |
+| `01-landing` (6) | Every section renders, images load, the shared-link preview card (Open Graph image, title, description), header nav, a bookable carousel card preselects its style, the pricing rows open booking with the right plan, schedule tabs and "Book This Class" |
 | `02-booking` (6) | Free-class happy path and validation (token format `YP-` + 16 characters, read by `data-testid="booking-token"`); one free class per email; paid single and packs reserved to pay at the studio; back button keeps choices; API rules for capacity, double-booking (no token in the error), validation, and server-set prices and payment status |
 | `03-manage-booking` (2) | Opened from the footer's "Manage booking": look up and cancel with 6h+ notice refunds the credit; unknown token shows an error |
 | `04-contact` (6) | "Contact Priyanshi" opens the pop-up (`getByRole('dialog')`); an empty submit marks the required fields (`aria-invalid`, described by their message) and focuses the first; the message reaches the admin inbox and alerts the studio (reply-to the student) with no phone line when none is given; a bad phone is refused with a clear message, a given phone reaches the alert and shows in admin as a `tel:` link; focus moves to "Message Sent"; phone and interest API validation (incl. the 4 new classes); the honeypot silently discards; missing and bad fields are rejected |

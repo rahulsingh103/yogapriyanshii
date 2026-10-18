@@ -107,3 +107,19 @@ test('schedule week tabs, session selection and "Book This Class"', async ({ pag
   await expect(modal.locator('select option:checked')).toContainText(detailTitle);
   await shot('booking-preselected');
 });
+
+test('shared links get a preview card (Open Graph image, title and description)', async ({ page, request }) => {
+  await openHome(page);
+  const meta = (sel: string) => page.locator(sel).getAttribute('content');
+  expect(await meta('meta[property="og:title"]')).toContain('YogaPriyanshi');
+  expect(await meta('meta[property="og:description"]')).toBeTruthy();
+  expect(await meta('meta[name="twitter:card"]')).toBe('summary_large_image');
+  const image = await meta('meta[property="og:image"]');
+  expect(image).toBe('https://www.yogapriyanshi.com/og-image.jpg');
+  expect(await meta('meta[property="og:image:width"]')).toBe('1200');
+  expect(await meta('meta[property="og:image:height"]')).toBe('630');
+  // The file itself ships with the site.
+  const res = await request.get('/og-image.jpg');
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/jpeg');
+});
