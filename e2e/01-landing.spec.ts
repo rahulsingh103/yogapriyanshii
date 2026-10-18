@@ -115,7 +115,7 @@ test('shared links get a preview card (Open Graph image, title and description)'
   expect(await meta('meta[property="og:description"]')).toBeTruthy();
   expect(await meta('meta[name="twitter:card"]')).toBe('summary_large_image');
   const image = await meta('meta[property="og:image"]');
-  expect(image).toBe('https://www.yogapriyanshi.com/og-image.jpg');
+  expect(image).toBe('https://www.yogapriyanshi.com/og-image.jpg?v=2');
   expect(await meta('meta[property="og:image:width"]')).toBe('1200');
   expect(await meta('meta[property="og:image:height"]')).toBe('630');
   // The file itself ships with the site.
