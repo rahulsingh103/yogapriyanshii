@@ -10,6 +10,8 @@ interface HeaderProps {
   onOpenBooking: () => void;
   onOpenCancel: () => void;
   onOpenAdmin: () => void;
+  /** Tells App when the mobile menu opens or closes (the WhatsApp button hides behind it). */
+  onMenuOpenChange?: (open: boolean) => void;
 }
 
 const LINKS = [
@@ -19,7 +21,7 @@ const LINKS = [
   { href: '#contact', label: 'Contact' },
 ] as const;
 
-export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps) {
+export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenChange }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const lenis = useLenis();
@@ -27,6 +29,8 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin }: HeaderProps
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
   const pillRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => onMenuOpenChange?.(menuOpen), [menuOpen, onMenuOpenChange]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);

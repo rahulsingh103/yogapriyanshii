@@ -7,9 +7,11 @@ import { Check } from '@/components/animate-ui/icons/check';
 import { Copy } from '@/components/animate-ui/icons/copy';
 import { cn } from '@/lib/utils';
 import { ui } from '@/lib/ui';
+import { WHATSAPP_ENABLED, whatsappUrl } from '@/constants/contact';
 import { api, ApiError } from '../services/api';
 import { ClassSession, ClassStyle, Booking, EmailNotification } from '../types';
 import { ModalSheet } from './ModalSheet';
+import { WhatsAppGlyph } from './WhatsAppGlyph';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -568,6 +570,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <button type="button" onClick={onClose} className={ui.primary}>
               Return to Studio
             </button>
+
+            {WHATSAPP_ENABLED && (
+              // The prefill names the class and time only: never the booking token or the email.
+              <a
+                href={whatsappUrl(
+                  `Hi Priyanshi, I've just booked ${confirmedBooking.sessionTitle} on ${confirmedBooking.sessionTimeDubai} and I have a question.`
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 min-h-11 px-2 text-sm text-ink-soft hover:text-ink underline-offset-4 hover:underline transition-colors duration-200"
+              >
+                <WhatsAppGlyph size={16} />
+                Questions? Chat on WhatsApp
+              </a>
+            )}
           </div>
         )}
       </div>

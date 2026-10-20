@@ -62,10 +62,10 @@ website/
 ├── src/                 React app
 │   ├── components/      one file per section or modal; ModalSheet is the shared modal shell
 │   ├── hooks/           useScrollToSection (Lenis), Animate UI hooks
-│   ├── lib/             cn() and the shared token class strings (ui.ts)
+│   ├── lib/             cn(), the shared token class strings (ui.ts), gestures, the FAQPage JSON-LD builder (faq-schema.ts)
 │   ├── services/api.ts  the only place that calls /api
 │   ├── types/           shared TS types
-│   └── constants/       asset paths
+│   └── constants/       asset paths, classes, the FAQ (faq.ts) and the WhatsApp settings (contact.ts)
 ├── backend/             the API, shared by both entry points
 │   ├── app.ts           createApp(): body limit, routes, error handler
 │   ├── config.ts        the only reader of env; picks the mode and targets
@@ -90,6 +90,9 @@ website/
 └── AGENTS.md            rules for AI coding agents
 ```
 
+- **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`.
+- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
+
 ## 07 Failure handling
 
 | Scenario | Handling |
@@ -100,4 +103,5 @@ website/
 | Invalid input | 400 with a clear message shown inline |
 | Class full or duplicate booking | 400 with a specific message (never the existing booking token) |
 | Body too large | 413 |
+| Offline | The offline pill shows and the WhatsApp button hides (its link can't work offline). |
 | Email send fails | Never blocks or rolls back anything. Logged as `email_failed type=… id=…`, with no personal data. The booking screen says the email couldn't be sent. |

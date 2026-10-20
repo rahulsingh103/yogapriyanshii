@@ -18,6 +18,7 @@ test('landing page renders every section with working images', async ({ page }, 
     ['classes', 'Choose your practice'],
     ['about', "Hi, I'm Priyanshi."],
     ['schedule', 'Weekly schedule'],
+    ['faq', 'Questions, answered'],
     ['contact', 'Get in touch'],
   ] as const) {
     const section = page.locator(`#${id}`);

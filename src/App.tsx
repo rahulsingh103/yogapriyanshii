@@ -6,6 +6,7 @@ import { AboutSection } from './components/AboutSection';
 import { QuoteSection } from './components/QuoteSection';
 import { ScheduleSection } from './components/ScheduleSection';
 import { PricingSection, type PlanKey } from './components/PricingSection';
+import { FaqSection } from './components/FaqSection';
 import { FirstClassFree } from './components/FirstClassFree';
 import { ContactSection } from './components/ContactSection';
 import { ContactModal } from './components/ContactModal';
@@ -16,6 +17,8 @@ import { CancelModal } from './components/CancelModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { MandalaBackground } from './components/MandalaBackground';
 import { OfflineNotice } from './components/OfflineNotice';
+import { WhatsAppChat } from './components/WhatsAppChat';
+import { WHATSAPP_ENABLED } from './constants/contact';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
 import type { PracticeClass } from './constants/classes';
 import type { ClassSession, ClassStyle } from './types';
@@ -32,6 +35,7 @@ export default function App() {
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [contactInterest, setContactInterest] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [booking, setBooking] = useState<BookingOpenState>({ session: null, style: null, planKey: 'free' });
   const scrollToSection = useScrollToSection();
 
@@ -73,6 +77,7 @@ export default function App() {
         onOpenBooking={() => handleOpenBooking()}
         onOpenCancel={() => setCancelModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
+        onMenuOpenChange={setMenuOpen}
       />
 
       <main className="flex-1">
@@ -85,6 +90,7 @@ export default function App() {
           onOpenCancel={() => setCancelModalOpen(true)}
         />
         <PricingSection onOpenBooking={(planKey) => handleOpenBooking({ planKey })} />
+        <FaqSection />
         <FirstClassFree onPickTime={() => scrollToSection('schedule')} />
         <ContactSection onOpenContact={() => handleOpenContact()} />
         <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
@@ -95,6 +101,12 @@ export default function App() {
         onOpenCancel={() => setCancelModalOpen(true)}
         onOpenAdmin={() => setAdminModalOpen(true)}
       />
+
+      {WHATSAPP_ENABLED && (
+        <WhatsAppChat
+          hidden={menuOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen}
+        />
+      )}
 
       <BookingModal
         isOpen={bookingModalOpen}

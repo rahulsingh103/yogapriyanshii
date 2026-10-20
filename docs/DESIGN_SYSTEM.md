@@ -105,7 +105,7 @@ Heading sizes are `@theme` type tokens in `index.css`. Each token carries its si
 | Modal / panel title | `text-title sm:text-title-lg` | Italiana | `34px` → `40px` from `sm` | 1.05 | normal | Modal headings and the schedule detail panel (`ui.title`) |
 | Quote | `text-quote` | Italiana | `clamp(26px, 4vw, 40px)` | 1.25 | normal | Italic is fine (browser-slanted) |
 | H3 (card title) | `text-h3` | Italiana | `28px` | 1.1 | normal | Class names, pricing rows, admin section titles |
-| H4 (small title) | `text-h4` | Italiana | `24px` | 1.1 | normal | Schedule card class names, the booking summary |
+| H4 (small title) | `text-h4` | Italiana | `24px` | 1.1 | normal | Schedule card class names, the booking summary, FAQ questions |
 | Body | Figtree 400 | `16px` | 1.6 | Max width 46ch |
 | Small | Figtree 400 | `14px` | 1.5 | Card lines, helper text |
 | Label / eyebrow | Figtree 600 | `12px`, uppercase, `letter-spacing: .14em` | 1.4 | |
@@ -118,6 +118,7 @@ Heading sizes are `@theme` type tokens in `index.css`. Each token carries its si
 - Every heading gets `text-wrap: balance`.
 - **Tracking is size-specific.** Only the two largest sizes are tightened (display −0.02em, H2 −0.015em); smaller Italiana keeps the face's own spacing, and labels and buttons keep +0.14em.
 - Two Italiana uses sit outside the scale on purpose: the mobile menu links (34px, leading 1.25) and the admin stat tiles (34px, leading 1.1).
+- One measure exception: FAQ answers are capped at 64ch, not the 46ch body measure, so each answer reads as one block under its full-width question row.
 
 ---
 
@@ -134,8 +135,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 - **Hover:** primary gets slightly lighter ink (`opacity-90`); secondary and icon get `border-ink`.
 - **Active (pressed):** the press is sized to the element and happens the moment it's touched, not on release (100ms):
-  - `press` (0.97): pills and icon buttons only: `ui.primary` / `ui.secondary`, the hero and header pills, the sticky bar's button, the week filter, `ICON_BUTTON`, the modal close button, the menu toggle and the copy / sheet icon buttons;
-  - `press-soft` (0.99): wide rows and tiles, where 0.97 would move the edges by many pixels: pricing rows, the booking package tiles and format segments, the schedule session cards;
+  - `press` (0.97): pills and icon buttons only: `ui.primary` / `ui.secondary`, the hero and header pills, the sticky bar's button, the week filter, `ICON_BUTTON`, the modal close button, the menu toggle, the copy / sheet icon buttons, and the WhatsApp button and its close button;
+  - `press-soft` (0.99): wide rows and tiles, where 0.97 would move the edges by many pixels: pricing rows, FAQ question rows, the booking package tiles and format segments, the schedule session cards;
   - class cards: `card-lift` (0.98), but not while the track is being dragged.
   - Text links and quiet text buttons don't scale. Every element with a press lists `scale` in its transition (`transition duration-200 ease-spring active:duration-100`), so it eases instead of jumping in one frame.
 - **Disabled:** `opacity-40`, `cursor-not-allowed`.
@@ -187,8 +188,20 @@ All components have default, hover, focus-visible, active and disabled states. F
 - After a successful submit (booking, cancel, contact), focus moves to the result heading (`tabIndex={-1}`) so screen readers announce it.
 
 ### Contact
-- The Contact section is a heading, one address line and a primary button "Contact Priyanshi". The button opens the contact form in a pop-up (the same sheet as the booking modal), not an inline form.
+- The Contact section is a heading, one address line and a primary button "Contact Priyanshi" (plus the secondary "Chat on WhatsApp" pill while WhatsApp is enabled). The button opens the contact form in a pop-up (the same sheet as the booking modal), not an inline form.
 - The form: name, email, phone (optional, `type="tel"`), interest and message.
+
+### FAQ ("Questions, answered")
+- Between Pricing and "Your first class is free" (`#faq`). The same transparent hairline list as Pricing: each row is an `h3` holding a `<button>` (question in Italiana 24px, `text-h4`, and a 44px circle with a chevron that turns 180° when open), `press-soft`, `hover:bg-glass`.
+- The answer opens below its question (16px body, `ink-soft`, max 64ch, the measure exception in §3). It isn't a `region` landmark: with up to 9 open they would crowd the landmarks; its id stays for `aria-controls`. Several can be open at once; none is open at first. The button has `aria-expanded`, and `aria-controls` while its answer is shown.
+- Answers are facts only (`src/constants/faq.ts`) and never mention WhatsApp, Zoom, mats or props.
+
+### WhatsApp button
+- Shown only while `WHATSAPP_ENABLED` (off in production until the real number is set).
+- **Button:** a 56px circle in WhatsApp green (`--color-whatsapp` #25D366, brand colour used only here) with the white glyph (`--color-on-whatsapp`), a soft ink-tinted shadow, `press`. It is a direct link: one tap opens `wa.me/<number>` in a new tab with the first message typed in (no pop-up in between, as owner requested 2026-10-19). Bottom right: 24px in from the edges from 640px; on phones 20px from the right and 88px plus the safe area from the bottom, so it clears the sticky bar by 16px. `z-40`, below the header menu (`z-45`) and modals (`z-50`). Name: "Chat with Priyanshi on WhatsApp". With more contrast it gets a 2px ink outline. The green is a recognised brand mark, not a palette colour: don't reuse it elsewhere.
+- **Hidden** while any modal sheet or the mobile menu is open, while Contact is on screen (its own WhatsApp pill is there, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
+
+- **Contact:** a secondary "Chat on WhatsApp" pill beside "Contact Priyanshi". **Booking confirmation:** a quiet text link "Questions? Chat on WhatsApp" under "Return to Studio".
 
 ### Schedule
 - A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`, `rounded-[18px]`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
@@ -241,6 +254,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 4. Quote: "Yoga is the journey of the self, through the self, to the self."
 5. Schedule: this week's classes with spots left (existing live schedule, restyled).
 6. Pricing: free first class, single, 10-pack, 20-pack (compact, pay in person).
+6a. Questions, answered: the FAQ, 9 questions that open in place.
 7. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
 8. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
@@ -255,7 +269,7 @@ Testimonials and the photo gallery come back once real ones exist.
 | Flat | none | Sections, text |
 | Glass | `bg-glass` + `backdrop-blur-[8px]` | Carousel cards, schedule cards and panel, over the mandala |
 | Bar material | `material-bar`: `bg-bg/85` (header) or `bg-bg/90` (sticky bar) + `backdrop-blur-[20px] backdrop-saturate-[1.8]` + `shadow-glass-edge` | The scrolled header and the sticky book bar |
-| Raised | `shadow-raised` (ink at 8%, `0 8px 30px`) | Modals, the offline pill |
+| Raised | `shadow-raised` (ink at 8%, `0 8px 30px`) | Modals, the offline pill (the WhatsApp button uses its own soft shadow) |
 
 - **`shadow-glass-edge`** is a 1px inset top line of `surface` at 55%: light catching the edge of the glass. It isn't a depth shadow.
 - **Scroll edges, not hairlines:** where content slides under a bar, a 16px `scroll-edge` gradient of the bar's colour softens it, instead of a border or a drop shadow.
@@ -325,6 +339,8 @@ import { MotionConfig } from 'motion/react';
 - On mobile, the bottom sheet slides up on a critically damped spring (`bounce 0`, `duration .35`) and leaves downwards along the same path: an open or close from a button carries no momentum, so it never overshoots (an overshoot lifts the sheet off the bottom edge). Drag to dismiss (§4) uses `bounce 0, duration .3` with the release velocity to leave; only the snap-back after a released drag uses `bounce .15, duration .3`.
 - The backdrop fades over 300ms and follows the sheet while it's dragged.
 - Header menu: opacity plus scale 0.98 → 1, `bounce 0`, `duration .35`. Sticky bar and offline pill: `bounce 0`, `duration .35`, entering and leaving along the same path.
+- WhatsApp button: appears and leaves with opacity and scale 0.9 → 1 on a critically damped spring (`bounce 0`, `duration .3`); with reduced motion it only fades (200ms).
+- FAQ answers: height 0 → `auto` with opacity, `bounce 0`, `duration .35`, closing along the same path; the chevron turns over 300ms on `ease-spring`.
 
 ### Reduced motion
 ```css
@@ -334,7 +350,7 @@ import { MotionConfig } from 'motion/react';
   .card-lift:hover { transform: none; }
 }
 ```
-With reduced motion on, the mandala is drawn once, fully bloomed and still. The phone sheet cross-fades in and out instead of sliding; it can still be dragged, but its snap-back is instant and a dismiss closes at once. Carousel glides jump straight to the snap point. The press scale (0.97 / 0.99 / 0.98) stays: it's a tiny change in size with no movement across the screen, so it isn't a vestibular trigger, and it confirms the touch.
+With reduced motion on, the mandala is drawn once, fully bloomed and still. The phone sheet cross-fades in and out instead of sliding; it can still be dragged, but its snap-back is instant and a dismiss closes at once. Carousel glides jump straight to the snap point. The WhatsApp pop-up and button only cross-fade (200ms), FAQ answers open and close at once (`duration: 0`) and the chevron turns without a transition. The press scale (0.97 / 0.99 / 0.98) stays: it's a tiny change in size with no movement across the screen, so it isn't a vestibular trigger, and it confirms the touch.
 
 ### Ambient loops (audit 2026-10-17)
 The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s ring; only while loading) and the hero word fade (plays once, about 2s) all stop under reduced motion. None is a full-viewport moving background or a slow loop on the page, so all three are compliant.

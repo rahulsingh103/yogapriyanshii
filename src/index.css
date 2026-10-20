@@ -29,6 +29,10 @@
   --color-error-bg: #f6e9e6;
   --color-calm-bg: #e8ebe4;
 
+  /* WhatsApp brand (the floating chat button only): the green people recognise, with a white glyph. */
+  --color-whatsapp: #25d366;
+  --color-on-whatsapp: #ffffff;
+
   /* Loader illustration (the little Buddha) */
   --color-skin: #f3d7c2;
   --color-cheek: #eab4a3;

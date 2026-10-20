@@ -14,6 +14,8 @@
 | Email alerts | ✅ Wired to Resend: student confirmations, plus booking, cancellation and contact alerts. Alerts go to the `notify_email` setting (**nbsingh2050@gmail.com during testing**, then Priyanshi's email at launch, changed in the admin settings). Students get mail from `EMAIL_FROM`, with replies going to the `studio_email` setting. |
 | Admin dashboard | ✅ On the shared API with real numbers (revenue counts paid orders only, so it's 0 until payments exist). Sign-in needs `ADMIN_PASSWORD_HASH` to be set. |
 | Payments | ⚠️ No online payment yet. Paid classes and packs are **reserved and paid at the studio** (the server accepts only `studio` as the payment method). Paid packs don't yet redeem credits on later bookings. Stripe Checkout comes later (§7.7). |
+| FAQ | ✅ "Questions, answered" between Pricing and "Your first class is free": 9 fact-only answers (`src/constants/faq.ts`), with matching FAQPage JSON-LD in the HTML. Answers never mention WhatsApp, Zoom, mats or props, priority booking, recordings or shared packs. |
+| WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
 | New classes | Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. |
 
 **Still to fill in:** real photos of Priyanshi (token placeholders today), and the slots and durations of the 4 new classes.
@@ -126,6 +128,10 @@ Four class cards (name, level, duration, description, typical slot, **Book →**
 
 ### 6.5 Contact
 The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Private session / Class Packs & Corporate), message. A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
+
+### 6.5a FAQ and WhatsApp
+- **FAQ** ("Questions, answered"), between Pricing and "Your first class is free": free class, beginners, classes, where, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet).
+- **WhatsApp** (Priyanshi's number +971 50 895 5421, set in `src/constants/contact.ts`): a green floating button that opens WhatsApp in one tap with the first message typed in, a secondary link in Contact, and a link on the booking confirmation. All three open `wa.me/971508955421` in a new tab; nothing goes through the backend.
 
 ### 6.6 Join / Book (3-step flow)
 1. **Plan** — pick plan (Free default, "Start here") + practice format (Online / In-person / Both). If Free is chosen but no class time is picked yet, direct the user to the Schedule first. Show the chosen class/time.
