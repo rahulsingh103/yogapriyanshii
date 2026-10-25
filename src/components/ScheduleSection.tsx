@@ -247,7 +247,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
             {/* Good to know: one line and the manage button */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <p className="text-sm leading-[1.5] text-ink-soft">
-                Mats and props provided. Online? Your Zoom link arrives an hour before.
+                Bring your own mat. Online? Priyanshi sends you the class link.
               </p>
               <button type="button" onClick={onOpenCancel} className={cn(ui.secondary, 'self-start sm:self-auto shrink-0 whitespace-nowrap')}>
                 Cancel / Manage Reservation

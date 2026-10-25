@@ -17,8 +17,12 @@ test('landing page renders every section with working images', async ({ page }, 
   for (const [id, heading] of [
     ['classes', 'Choose your practice'],
     ['about', "Hi, I'm Priyanshi."],
+    ['testimonials', 'What students say'],
+    ['how-it-works', 'How it works'],
     ['schedule', 'Weekly schedule'],
+    ['pricing', 'Pricing'],
     ['faq', 'Questions, answered'],
+    ['instagram', 'See Priyanshi in action'],
     ['contact', 'Get in touch'],
   ] as const) {
     const section = page.locator(`#${id}`);
@@ -27,7 +31,13 @@ test('landing page renders every section with working images', async ({ page }, 
     await shot(`section-${id}`);
   }
 
-  // every <img> actually decoded
+  // every <img> actually decoded (the far carousel cards are lazy, so bring them into the track first)
+  const classes = page.locator('#classes');
+  await classes.scrollIntoViewIfNeeded();
+  await classes.getByRole('group', { name: /Classes/ }).evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
+  await expect
+    .poll(() => classes.locator('img').last().evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0))
+    .toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.waitForLoadState('networkidle');
   const undecoded = await page.$$eval('img', (imgs) =>

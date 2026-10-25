@@ -8,17 +8,18 @@
 
 | Area | Status |
 |---|---|
-| Public site | ✅ Built as one page in the "Mandala Bloom" design ([DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §5 order): hero, "Choose your practice" carousel (8 classes), about, quote, live schedule, pricing, "Your first class is free", contact. Testimonials and the gallery return once real ones exist. |
+| Public site | ✅ Built as one page in the "Mandala Bloom" design ([DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §5 order): hero, "Choose your practice" carousel (11 classes), about (credentials and trust numbers), "What students say" (3 verified reviews), quote, "How it works" (3 steps, a safety note, a free 15-minute call link), live schedule, pricing, FAQ, "See Priyanshi in action" (5 Instagram photos), "Your first class is free", contact. |
 | Free-class booking, rules, cancellation | ✅ Built and tested. The live site and the tests now run the same API (`backend/`). |
 | Persistent database | ✅ Wired to Turso `yogapriyanshi-live` (production only; previews have none). Goes live once the env vars are set and `npm run db:migrate:live` has run. See [DATABASE.md](DATABASE.md). |
-| Email alerts | ✅ Wired to Resend: student confirmations, plus booking, cancellation and contact alerts. Alerts go to the `notify_email` setting (**nbsingh2050@gmail.com during testing**, then Priyanshi's email at launch, changed in the admin settings). Students get mail from `EMAIL_FROM`, with replies going to the `studio_email` setting. |
+| Email alerts | ✅ Wired to Resend: student confirmations, plus booking, cancellation and contact alerts. Alerts go to the `notify_email` setting (**a test inbox during testing**, then Priyanshi's email at launch, changed in the admin settings). Students get mail from `EMAIL_FROM`, with replies going to the `studio_email` setting. |
 | Admin dashboard | ✅ On the shared API with real numbers (revenue counts paid orders only, so it's 0 until payments exist). Sign-in needs `ADMIN_PASSWORD_HASH` to be set. |
 | Payments | ⚠️ No online payment yet. Paid classes and packs are **reserved and paid at the studio** (the server accepts only `studio` as the payment method). Paid packs don't yet redeem credits on later bookings. Stripe Checkout comes later (§7.7). |
-| FAQ | ✅ "Questions, answered" between Pricing and "Your first class is free": 9 fact-only answers (`src/constants/faq.ts`), with matching FAQPage JSON-LD in the HTML. Answers never mention WhatsApp, Zoom, mats or props, priority booking, recordings or shared packs. |
-| WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
-| New classes | Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. |
+| FAQ | ✅ "Questions, answered" after Pricing: 10 fact-only answers (`src/constants/faq.ts`), with matching FAQPage JSON-LD in the HTML. Answers never mention WhatsApp, Zoom, props, priority booking, recordings or shared packs (students bring their own mat, so "mat" is allowed). |
+| WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact, in How it works ("Book a free 15-minute call", with its own prefill) and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
+| New classes | Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
+| Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
-**Still to fill in:** real photos of Priyanshi (token placeholders today), and the slots and durations of the 4 new classes.
+**Still to fill in:** real photos for the first 8 class cards (AI placeholders today; Vinyasa, Ashtanga and Aerial are real, and Vinyasa is a small 480px stopgap), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
 
 ---
 
@@ -65,10 +66,10 @@
 
 ## 5. Content (must be used as given)
 
-**Location:** no public studio address (changed 2026-10-17). Classes are "in person across Dubai or online". After booking, Priyanshi confirms where and how with the student by message. The site, emails and calendar invites never show an address. Payment for in-person classes is "Pay in Person" (the internal value stays `pending_at_studio`).
+**Location:** no public studio address (changed 2026-10-17). Classes are "in person in Dubai or online". After booking, Priyanshi confirms where and how with the student by message. The site, emails and calendar invites never show an address. Payment for in-person classes is "Pay in Person" (the internal value stays `pending_at_studio`).
 **Email shown on site:** priyanshi@yogapriyanshi.com · **Phone:** placeholder `+971 50 000 0000` (to be replaced)
-**Instagram:** @yogapriyanshi · **Also listed on:** ClassPass, FindYoga
-**Credibility stats (hero strip):** 7+ years · MA Yoga Science · 200hr YTT · 4 signature styles · "Rated on ClassPass" (5 stars)
+**Instagram:** @yogapriyanshi. Don't link ClassPass or FindYoga: those pages name her former studio, which the site never names (it's described as "one of the UAE's largest yoga studios").
+**Credibility (About, corrected 2026-10-19 to match her resume):** teaching since 2019 (7 years) · Yoga Alliance registered, 300-hour training in Rishikesh · Bachelor's in Yogic Science (Dev Sanskriti Vishwavidyalaya) · up to 500 people led on International Yoga Day · trained in prenatal yoga. The source of truth is the private fact sheet (`design/PRIYANSHI-FACTS.md` in the workspace).
 **Hero:** title "YogaPriyanshi", tagline **"Connect with your body."**, style list "Hatha · Barre · Wheel · Chakra Flow", CTAs "Begin your journey" (→ Join) and "View classes".
 **Timezone:** all times shown in UAE time (GMT+4). **Studio hours:** Mon–Sun 6:30 AM – 8:00 PM. All classes available online and in person.
 
@@ -127,10 +128,11 @@ Four class cards (name, level, duration, description, typical slot, **Book →**
 - One "good to know" line (free cancellation up to 6 hours before) next to the "Cancel / Manage Reservation" button.
 
 ### 6.5 Contact
-The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Private session / Class Packs & Corporate), message. A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
+The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Class Packs & Corporate), message. A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
 
 ### 6.5a FAQ and WhatsApp
-- **FAQ** ("Questions, answered"), between Pricing and "Your first class is free": free class, beginners, classes, where, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet).
+- **FAQ** ("Questions, answered"), after Pricing: free class, beginners, classes, where, what to bring or wear, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet). Payment: in person at the session, or for online classes with the details Priyanshi sends after booking (no method named).
+- **Before class** (FAQ and How it works): comfortable clothes and water, your own mat for in-person classes, no heavy meal for 2 hours before, arrive or log in 5 to 10 minutes early, tell Priyanshi about injuries, health conditions or pregnancy beforehand. Online students get the class link from Priyanshi (the video tool is never named).
 - **WhatsApp** (Priyanshi's number +971 50 895 5421, set in `src/constants/contact.ts`): a green floating button that opens WhatsApp in one tap with the first message typed in, a secondary link in Contact, and a link on the booking confirmation. All three open `wa.me/971508955421` in a new tab; nothing goes through the backend.
 
 ### 6.6 Join / Book (3-step flow)
@@ -229,5 +231,5 @@ Same email books free class twice · same session booked twice · last seat race
 1. Real phone number and final contact email?
 2. Custom domain (`yogapriyanshi.com`?) — owned/registered yet? (Needed for sending email to any customer.)
 3. Should Friday be bookable for private sessions only?
-4. Final testimonial content and permission to use names.
+4. ~~Final testimonial content~~ Resolved 2026-10-19: three verified ClassPass reviews, unnamed.
 5. Should "In-person" vs "Online" affect capacity limits separately?

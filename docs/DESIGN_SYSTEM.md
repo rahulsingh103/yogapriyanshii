@@ -150,13 +150,15 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Hover: `translateY(-4px)` over 500ms with `ease-spring`. The whole card is a button.
 - **What a tap does:**
   - The 4 bookable classes (Hatha, Barre, Wheel, Chakra Flow) open the booking with the soonest session of that style preselected.
-  - The 4 new classes (Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal) aren't on the timetable yet, so they open the contact pop-up with that class preset as the interest.
+  - The 7 new classes (Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga) aren't on the timetable, so they open the contact pop-up with that class preset as the interest. Aerial Yoga is private sessions only: its line is "Private sessions only · on request" (no duration) and its interest is "Private Aerial Yoga".
+- A card whose source photo is small (Vinyasa today) ships only `<slug>-480.webp` (`smallImageOnly`), with no `srcset`.
 
 ### Carousel ("Choose your practice")
 - A horizontal scroll with `scroll-snap-type: x mandatory`. Card width `min(78%, 300px)`, gap 16px.
 - Prev and next icon buttons sit at the top right (hidden on touch-only screens is fine); keyboard focusable, scrollable with the arrow keys.
 - **Motion:** touch keeps the native swipe and scroll-snap. The arrows and arrow keys glide on a critically damped spring to the exact next snap point (instant with reduced motion). With a mouse (`pointer: fine`, `cursor-grab`), the track can be dragged: 10px threshold, then 1:1; rubber-band past either end; on release the momentum is projected and it glides (slight bounce, with the release velocity) to the nearest snap. A real drag never opens a class; a plain click or tap still does. Any glide stops on a new press, grab, wheel or touch.
-- The 8 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal. The durations of the 4 new classes are placeholders until Priyanshi confirms them.
+- The 11 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga. The durations of the new classes are placeholders until Priyanshi confirms them.
+- Photos: Vinyasa (crow), Ashtanga (Burj forearm stand) and Aerial (the original window photo, with a light grade: blues about 25% less saturated and slightly warmer, the silk keeps its blue) are real; the other 8 are AI placeholders until the photo shoot.
 
 ### Header / navigation
 - Wordmark "YogaPriyanshi" (Italiana 24px) on the left. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
@@ -193,33 +195,48 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 ### FAQ ("Questions, answered")
 - Between Pricing and "Your first class is free" (`#faq`). The same transparent hairline list as Pricing: each row is an `h3` holding a `<button>` (question in Italiana 24px, `text-h4`, and a 44px circle with a chevron that turns 180° when open), `press-soft`, `hover:bg-glass`.
-- The answer opens below its question (16px body, `ink-soft`, max 64ch, the measure exception in §3). It isn't a `region` landmark: with up to 9 open they would crowd the landmarks; its id stays for `aria-controls`. Several can be open at once; none is open at first. The button has `aria-expanded`, and `aria-controls` while its answer is shown.
-- Answers are facts only (`src/constants/faq.ts`) and never mention WhatsApp, Zoom, mats or props.
+- The answer opens below its question (16px body, `ink-soft`, max 64ch, the measure exception in §3). It isn't a `region` landmark: with up to 10 open they would crowd the landmarks; its id stays for `aria-controls`. Several can be open at once; none is open at first. The button has `aria-expanded`, and `aria-controls` while its answer is shown.
+- Answers are facts only (`src/constants/faq.ts`) and never mention WhatsApp, Zoom or props. Students bring their own mat, which the "What should I bring or wear?" answer says.
 
 ### WhatsApp button
 - Shown only while `WHATSAPP_ENABLED` (off in production until the real number is set).
 - **Button:** a 56px circle in WhatsApp green (`--color-whatsapp` #25D366, brand colour used only here) with the white glyph (`--color-on-whatsapp`), a soft ink-tinted shadow, `press`. It is a direct link: one tap opens `wa.me/<number>` in a new tab with the first message typed in (no pop-up in between, as owner requested 2026-10-19). Bottom right: 24px in from the edges from 640px; on phones 20px from the right and 88px plus the safe area from the bottom, so it clears the sticky bar by 16px. `z-40`, below the header menu (`z-45`) and modals (`z-50`). Name: "Chat with Priyanshi on WhatsApp". With more contrast it gets a 2px ink outline. The green is a recognised brand mark, not a palette colour: don't reuse it elsewhere.
-- **Hidden** while any modal sheet or the mobile menu is open, while Contact is on screen (its own WhatsApp pill is there, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
+- **Hidden** while any modal sheet or the mobile menu is open, while How it works or Contact is on screen (each has its own WhatsApp link, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
 
-- **Contact:** a secondary "Chat on WhatsApp" pill beside "Contact Priyanshi". **Booking confirmation:** a quiet text link "Questions? Chat on WhatsApp" under "Return to Studio".
+- **Contact:** a secondary "Chat on WhatsApp" pill beside "Contact Priyanshi". **How it works:** a text link "Book a free 15-minute call" with the WhatsApp glyph (its own prefill, `CALL_PREFILL`, asking for a call). **Booking confirmation:** a quiet text link "Questions? Chat on WhatsApp" under "Return to Studio".
 
 ### Schedule
 - A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`, `rounded-[18px]`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
 - Full and past cards fade the surface only (no glass, `border-dashed border-line`); their text keeps the normal tokens, never `opacity`.
-- A glass detail panel for the selected session: one meta line ("60 min · Beginner · In person or online") and the primary "Book This Class (N Left)" button. Then one "good to know" line ("Mats and props provided. Online? Your Zoom link arrives an hour before.") and the secondary "Cancel / Manage Reservation" button.
+- A glass detail panel for the selected session: one meta line ("60 min · Beginner · In person or online") and the primary "Book This Class (N Left)" button. Then one "good to know" line ("Bring your own mat. Online? Priyanshi sends you the class link.") and the secondary "Cancel / Manage Reservation" button.
 
 ### Pricing
-- A hairline list (`border-line`), transparent so the mandala shows through: 4 rows, each a `<button>` that opens booking with that plan (name in Italiana 28px, one short line, the price, an arrow icon). One line below: "Pay at the studio. Free cancellation up to 6 hours before class."
+- A hairline list (`border-line`), transparent so the mandala shows through: 4 rows, each a `<button>` that opens booking with that plan (name in Italiana 28px, one short line, the price, an arrow icon). One line below: "Pay in person at your session, or online with the details Priyanshi sends after you book. Free cancellation up to 6 hours before class."
 
 ### Footer
 - Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
 
 ### Teacher block ("Hi, I'm Priyanshi.")
-- Two columns on desktop (photo | text), stacked on mobile. Photo `min-height: 380px`, `rounded-[4px]`.
-- The heading is H2. One sentence of body text, max.
+- Two columns on desktop (photo | text), stacked on mobile. The photo is the real Burj Khalifa forearm stand (`real/burj-forearm-stand-1`, 480/800/1200), 4:5, `rounded-[18px]`.
+- The heading is H2, then the one-line aim, then a first-person credentials paragraph (about 35 words, 40 at most, facts from the private fact sheet only). It doesn't repeat the trust numbers, and the former studio is described, never named. On phones the photo's `sizes` is capped at `min(100vw, 400px)`.
+- Trust numbers: a 2×2 `<dl>` under a hairline. Each cell shows the value (Italiana 28px, `text-h3`) above its label (14px, `ink-soft`); in the DOM the `dt` label comes first and `flex-col-reverse` puts the value on top. "7 years / Teaching since 2019", "300 hours / Yoga Alliance registered training", "Bachelor's / In Yogic Science", "Up to 500 / People led on International Yoga Day".
+
+### Testimonials ("What students say")
+- Three verified reviews (`src/constants/testimonials.ts`), quoted exactly, as glass cards (`bg-glass`, `rounded-[18px]`, `p-5`): the quote in 16px `ink`, then the caption "Verified ClassPass review · <class> class" in quiet sentence case (`text-sm leading-[1.5] text-ink-soft`), not the uppercase label style, so "ClassPass" reads as spelled.
+- Phones: a native scroll-snap track (cards `min(85%, 340px)`), no arrows and no auto-advance. From `lg`: three columns. No links and no venue names.
+- The track is a `<ul role="list">` with an `aria-label`. It is a keyboard tab stop (`tabIndex={0}`) only while it overflows (`useOverflowsX`, a ResizeObserver), so desktop has no empty tab stop. The Instagram track works the same way.
 
 ### Quote
-- Centred, max 24ch, Italiana. No quotation-mark graphics, no attribution clutter.
+- Centred, Italiana. Priyanshi's chosen line, "Yogas citta vritti nirodhah." (`text-quote`, max 24ch), its meaning below in 16px `ink-soft`, and a label-style caption "Patanjali · Yoga Sutras 1.2" (`ui.eyebrow`). No quotation-mark graphics.
+
+### How it works
+- Three numbered steps in an `<ol>` (one column on phones, three from 640px), each under a hairline: the number in Italiana `text-h3` `accent-text` (the section's one accent), the step title in `text-h4`, one line of body. Steps: "Book your free first class", "Hear from Priyanshi", "Practise".
+- "Practise safely": a compact note, not a card: an `h3` (`text-h4`) and three 14px bullets. It never suggests that Priyanshi gives medical clearance.
+- While `WHATSAPP_ENABLED`: one line "Not sure where to start?" and the text link "Book a free 15-minute call" (WhatsApp glyph, underline, no press scale). Its accessible name never matches the floating button's.
+
+### Instagram ("See Priyanshi in action")
+- After the FAQ, before "Your first class is free". Five real Burj Khalifa photos (`real/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
+- One secondary pill "Follow @yogapriyanshi" (Instagram icon) to the profile. No WhatsApp link, no embed and no third-party script.
 
 ---
 
@@ -249,16 +266,19 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 **Homepage order:**
 1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class]
-2. Choose your practice: the carousel of 8 classes.
-3. Hi, I'm Priyanshi.: photo plus one line.
-4. Quote: "Yoga is the journey of the self, through the self, to the self."
-5. Schedule: this week's classes with spots left (existing live schedule, restyled).
-6. Pricing: free first class, single, 10-pack, 20-pack (compact, pay in person).
-6a. Questions, answered: the FAQ, 9 questions that open in place.
-7. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
-8. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
+2. Choose your practice: the carousel of 11 classes.
+3. Hi, I'm Priyanshi.: photo, the one-line aim, a short credentials paragraph and four trust numbers.
+4. What students say: three verified reviews.
+5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
+6. How it works: three steps, the "Practise safely" note and the free 15-minute call link.
+7. Schedule: this week's classes with spots left (existing live schedule, restyled).
+8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details).
+9. Questions, answered: the FAQ, 10 questions that open in place.
+10. See Priyanshi in action: five Instagram photos and a Follow link.
+11. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
+12. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
-Testimonials and the photo gallery come back once real ones exist.
+About, How it works and the FAQ carry more than one line of text on purpose (approved with Batch 1, 2026-10-19): they answer the questions a first-time student asks before booking.
 
 ---
 
@@ -363,7 +383,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (60 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (84 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

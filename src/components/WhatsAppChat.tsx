@@ -27,17 +27,26 @@ function useOnline() {
   return online;
 }
 
+/** Sections with their own WhatsApp link: How it works (the call link) and Contact (the pill). */
+const OWN_LINK_SECTIONS = ['how-it-works', 'contact'];
+
 /**
- * True while the Contact section is on screen (the same IntersectionObserver pattern as StickyBookBar).
- * Contact carries its own "Chat on WhatsApp" pill, so the floating button steps aside there.
+ * True while any of those sections is on screen (the same IntersectionObserver pattern as
+ * StickyBookBar), so the floating button steps aside and two WhatsApp links never show together.
  */
-function useContactInView() {
+function useOwnLinkSectionInView() {
   const [inView, setInView] = useState(false);
   useEffect(() => {
-    const target = document.getElementById('contact');
-    if (!target) return;
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
-    observer.observe(target);
+    const targets = OWN_LINK_SECTIONS.map((id) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    if (targets.length === 0) return;
+    const seen = new Map<Element, boolean>();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) seen.set(entry.target, entry.isIntersecting);
+      setInView([...seen.values()].some(Boolean));
+    });
+    targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
   return inView;
@@ -46,14 +55,14 @@ function useContactInView() {
 /**
  * The floating WhatsApp button (DESIGN_SYSTEM §4): the familiar green circle that opens a chat with
  * Priyanshi in one tap, with the first message typed in. Bottom right; on phones it sits above the
- * sticky book bar. Hidden while a modal or the menu is open, while Contact (with its own WhatsApp pill)
- * is on screen, and while offline. Render it only when WHATSAPP_ENABLED.
+ * sticky book bar. Hidden while a modal or the menu is open, while How it works or Contact (each with its own
+ * WhatsApp link) is on screen, and while offline. Render it only when WHATSAPP_ENABLED.
  */
 export function WhatsAppChat({ hidden }: WhatsAppChatProps) {
   const online = useOnline();
-  const contactInView = useContactInView();
+  const sectionInView = useOwnLinkSectionInView();
   const reduceMotion = useReducedMotion();
-  const visible = !hidden && online && !contactInView;
+  const visible = !hidden && online && !sectionInView;
 
   const motionProps = reduceMotion
     ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: FADE }

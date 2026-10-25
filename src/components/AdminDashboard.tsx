@@ -149,9 +149,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 placeholder="Enter studio password..."
                 className={ui.input}
               />
-              <p className="text-xs text-ink-soft">
-                Default credentials: <code>Priyanshi2026!</code>
-              </p>
             </div>
 
             <div className="flex gap-3">

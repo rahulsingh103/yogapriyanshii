@@ -3,10 +3,13 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { PracticeCarousel } from './components/PracticeCarousel';
 import { AboutSection } from './components/AboutSection';
+import { TestimonialsSection } from './components/TestimonialsSection';
 import { QuoteSection } from './components/QuoteSection';
+import { HowItWorksSection } from './components/HowItWorksSection';
 import { ScheduleSection } from './components/ScheduleSection';
 import { PricingSection, type PlanKey } from './components/PricingSection';
 import { FaqSection } from './components/FaqSection';
+import { InstagramSection } from './components/InstagramSection';
 import { FirstClassFree } from './components/FirstClassFree';
 import { ContactSection } from './components/ContactSection';
 import { ContactModal } from './components/ContactModal';
@@ -84,13 +87,16 @@ export default function App() {
         <Hero onOpenBooking={() => handleOpenBooking()} />
         <PracticeCarousel onSelectClass={handleSelectPractice} />
         <AboutSection />
+        <TestimonialsSection />
         <QuoteSection />
+        <HowItWorksSection />
         <ScheduleSection
           onSelectSession={(session) => handleOpenBooking({ session })}
           onOpenCancel={() => setCancelModalOpen(true)}
         />
         <PricingSection onOpenBooking={(planKey) => handleOpenBooking({ planKey })} />
         <FaqSection />
+        <InstagramSection />
         <FirstClassFree onPickTime={() => scrollToSection('schedule')} />
         <ContactSection onOpenContact={() => handleOpenContact()} />
         <StickyBookBar onOpenBooking={() => handleOpenBooking()} />

@@ -151,8 +151,9 @@ h1, h2, h3 {
   text-wrap: balance;
 }
 
-/* Carousel track: scroll-snap without a heavy scrollbar. */
-.practice-track {
+/* Carousel and phone snap tracks (classes, reviews, Instagram): scroll-snap without a heavy scrollbar. */
+.practice-track,
+.snap-track {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line) transparent;
 }

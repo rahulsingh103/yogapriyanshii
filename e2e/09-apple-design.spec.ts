@@ -343,6 +343,34 @@ test.describe('desktop carousel', () => {
     await expect(bookingModal(page)).toHaveCount(0);
   });
 
+  test('with 11 cards, the arrows glide snap by snap to the last card', async ({ page }) => {
+    await openHome(page);
+    const classes = page.locator('#classes');
+    await classes.scrollIntoViewIfNeeded();
+    const track = classes.getByRole('group', { name: /Classes/ });
+    await expect(classes.getByTestId('practice-card')).toHaveCount(11);
+    const max = await track.evaluate((el) => el.scrollWidth - el.clientWidth);
+    const next = classes.getByRole('button', { name: 'Next classes' });
+    let s = await rest(page, track);
+    for (let i = 0; i < 12 && s.left < max - 1; i++) {
+      await next.click();
+      const after = await rest(page, track);
+      expect(after.left, `step ${i + 1} moves forward`).toBeGreaterThan(s.left);
+      expect(onSnap(after), `step ${i + 1} rests on a snap (${after.left} in ${after.offsets})`).toBe(true);
+      s = after;
+    }
+    expect(Math.abs(s.left - max)).toBeLessThanOrEqual(1);
+    // The last card (Aerial Yoga) is fully inside the track.
+    const fits = await track.evaluate((el) => {
+      const cards = el.querySelectorAll('[data-testid="practice-card"]');
+      const last = cards[cards.length - 1].getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+      return last.left >= box.left - 1 && last.right <= box.right + 1;
+    });
+    expect(fits).toBe(true);
+    await expect(classes.getByTestId('practice-card').last().locator('h3')).toHaveText('Aerial Yoga');
+  });
+
   test('a press released off the track does not leave a drag behind', async ({ page, request }, info) => {
     const shot = stepShooter(page, FEATURE, info.title);
     const barre = await soonest(request, 'barre');

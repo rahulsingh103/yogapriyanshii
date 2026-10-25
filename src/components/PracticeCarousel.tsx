@@ -300,8 +300,12 @@ export function PracticeCarousel({ onSelectClass }: PracticeCarouselProps) {
             >
               <img
                 src={`/media/images/practice/${practice.image}-480.webp`}
-                srcSet={`/media/images/practice/${practice.image}-480.webp 480w, /media/images/practice/${practice.image}-800.webp 800w`}
-                sizes="300px"
+                srcSet={
+                  practice.smallImageOnly
+                    ? undefined
+                    : `/media/images/practice/${practice.image}-480.webp 480w, /media/images/practice/${practice.image}-800.webp 800w`
+                }
+                sizes={practice.smallImageOnly ? undefined : '300px'}
                 width={480}
                 height={596}
                 loading={i < 2 ? 'eager' : 'lazy'}

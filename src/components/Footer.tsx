@@ -1,4 +1,5 @@
 import { Instagram } from 'lucide-react';
+import { INSTAGRAM_URL } from '@/constants/contact';
 
 interface FooterProps {
   onOpenCancel: () => void;
@@ -19,7 +20,7 @@ export function Footer({ onOpenCancel, onOpenAdmin }: FooterProps) {
             </a>
             <p className="text-sm leading-[1.5] text-ink-soft">Dubai, UAE · In person &amp; online</p>
             <a
-              href="https://instagram.com/yogapriyanshi"
+              href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="self-start inline-flex items-center gap-2 min-h-11 text-sm text-ink-soft hover:text-ink transition-colors duration-200"

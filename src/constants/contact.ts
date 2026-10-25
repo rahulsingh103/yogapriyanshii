@@ -26,6 +26,16 @@ export const WHATSAPP_ENABLED = WHATSAPP_NUMBER.length > 0;
 export const WHATSAPP_PREFILL =
   "Hi Priyanshi, I found you on yogapriyanshi.com and I'd like to know more about your classes.";
 
+/**
+ * The "Book a free 15-minute call" prefill (How it works). It says what the person chose, so Priyanshi
+ * can tell a call request from a general question; she replies with a time.
+ */
+export const CALL_PREFILL =
+  "Hi Priyanshi, I found you on yogapriyanshi.com and I'd like to book a free 15-minute call. When suits you?";
+
+/** Priyanshi's Instagram profile (Footer and the Instagram section). */
+export const INSTAGRAM_URL = 'https://instagram.com/yogapriyanshi';
+
 /** A wa.me chat link with the message typed in. */
 export function whatsappUrl(text: string = WHATSAPP_PREFILL) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;

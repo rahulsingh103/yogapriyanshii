@@ -26,6 +26,9 @@ const INTERESTS: ReadonlyArray<readonly [string, string]> = [
   ['Mobility Yoga', 'Mobility Yoga'],
   ['Yin Yoga', 'Yin Yoga'],
   ['Prenatal & Postnatal', 'Prenatal & Postnatal'],
+  ['Vinyasa Yoga', 'Vinyasa Yoga'],
+  ['Ashtanga Yoga', 'Ashtanga Yoga'],
+  ['Private Aerial Yoga', 'Private Aerial Yoga'],
   ['Private session', 'Private 1-to-1 session'],
   ['Class Packs & Corporate', 'Class Packs & Corporate'],
 ];

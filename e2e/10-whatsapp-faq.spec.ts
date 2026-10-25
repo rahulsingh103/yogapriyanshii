@@ -25,7 +25,7 @@ test('FAQ: answers open and close, several at once, none open at first', async (
   await faq.scrollIntoViewIfNeeded();
   await expect(faq.getByRole('heading', { level: 2 })).toHaveText('Questions, answered');
   const questions = faq.getByRole('heading', { level: 3 }).getByRole('button');
-  await expect(questions).toHaveCount(9);
+  await expect(questions).toHaveCount(10);
   for (const q of await questions.all()) await expect(q).toHaveAttribute('aria-expanded', 'false');
   await expect(answers(faq)).toHaveCount(0);
   await expect(faq.getByRole('region')).toHaveCount(0);
@@ -69,13 +69,16 @@ test('FAQ JSON-LD is in the first HTML response and matches the visible question
   expect(raw).not.toContain('<');
   const data = JSON.parse(raw);
   expect(data['@type']).toBe('FAQPage');
-  expect(data.mainEntity).toHaveLength(9);
+  expect(data.mainEntity).toHaveLength(10);
 
   await openHome(page);
   const visible = await page.locator('#faq h3 button').allInnerTexts();
   expect(data.mainEntity.map((q: { name: string }) => q.name)).toEqual(visible.map((t) => t.trim()));
-  // The FAQ never promises things that aren't built or confirmed.
-  expect(raw).not.toMatch(/whatsapp|zoom|\bmats?\b|props|priority|recording|share/i);
+  // The FAQ never promises things that aren't built or confirmed. Students bring their own mat
+  // (owner answer 6), so "mat" is allowed; any promise that mats are provided is not.
+  expect(raw).not.toMatch(/whatsapp|zoom|props|priority|recording|share/i);
+  expect(raw).not.toMatch(/\bmats?\b[^.]{0,40}\b(provided|supplied|available|included|lend)/i);
+  expect(raw).toContain('bring your own mat');
 });
 
 test('the floating WhatsApp button opens a chat with Priyanshi in one tap', async ({ page }, info) => {
@@ -238,6 +241,15 @@ test.describe('phone', () => {
     await expect(chat(page)).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Menu' })).toHaveCount(0);
+    await expect(chat(page)).toBeVisible();
+
+    // How it works has its own call link, so the floating button steps aside while it's on screen.
+    const how = page.locator('#how-it-works');
+    await how.scrollIntoViewIfNeeded();
+    await expect(how.getByRole('link', { name: 'Book a free 15-minute call' })).toBeVisible();
+    await expect(chat(page)).toHaveCount(0);
+    await shot('how-it-works-no-button');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await expect(chat(page)).toBeVisible();
 
     // Contact has its own WhatsApp pill, so the floating button steps aside while it's on screen.

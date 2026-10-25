@@ -12,6 +12,13 @@ test('mobile layout has no horizontal scroll and menu works', async ({ page }, i
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow, 'horizontal overflow in px').toBeLessThanOrEqual(0);
 
+  // Still no overflow once every section (testimonials and Instagram tracks included) has rendered.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForLoadState('networkidle');
+  const overflowAll = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflowAll, 'horizontal overflow after scrolling the whole page').toBeLessThanOrEqual(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
+
   await page.getByLabel('Toggle Navigation Menu').click();
   const menu = page.getByRole('dialog', { name: 'Menu' });
   await expect(menu.getByRole('link', { name: 'Classes', exact: true })).toBeVisible();

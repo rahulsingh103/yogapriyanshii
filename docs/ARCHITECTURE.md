@@ -65,7 +65,8 @@ website/
 │   ├── lib/             cn(), the shared token class strings (ui.ts), gestures, the FAQPage JSON-LD builder (faq-schema.ts)
 │   ├── services/api.ts  the only place that calls /api
 │   ├── types/           shared TS types
-│   └── constants/       asset paths, classes, the FAQ (faq.ts) and the WhatsApp settings (contact.ts)
+│   └── constants/       asset paths, classes, the FAQ (faq.ts), the reviews (testimonials.ts), and the WhatsApp
+│                        and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL)
 ├── backend/             the API, shared by both entry points
 │   ├── app.ts           createApp(): body limit, routes, error handler
 │   ├── config.ts        the only reader of env; picks the mode and targets
@@ -85,13 +86,15 @@ website/
 ├── api/index.ts         Vercel entry: mounts createApp()
 ├── server.ts            dev/test entry: createApp() + Vite or static files
 ├── e2e/                 Playwright tests
-├── public/media/        site photos and videos
+├── public/media/        site photos and videos: images/practice (class cards), images/real (real photos of
+│                        Priyanshi: the About photo and the Instagram tiles)
 ├── docs/                these 8 docs
 └── AGENTS.md            rules for AI coding agents
 ```
 
 - **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`.
-- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
+- **Instagram:** the section shows our own copies of her photos and links to the profile (`INSTAGRAM_URL`); no embed, API or third-party script.
+- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`) and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
 
 ## 07 Failure handling
 

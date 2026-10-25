@@ -32,6 +32,10 @@ export const CONTACT_INTERESTS = [
   'Mobility Yoga',
   'Yin Yoga',
   'Prenatal & Postnatal',
+  'Vinyasa Yoga',
+  'Ashtanga Yoga',
+  // Aerial is private sessions only, on request.
+  'Private Aerial Yoga',
 ] as const;
 
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;

@@ -55,7 +55,8 @@ export function PricingSection({ onOpenBooking }: PricingSectionProps) {
           ))}
         </ul>
         <p className="text-sm leading-[1.5] text-ink-soft">
-          Pay in person at your session. Free cancellation up to 6 hours before class.
+          Pay in person at your session, or online with the details Priyanshi sends after you book. Free
+          cancellation up to 6 hours before class.
         </p>
       </Reveal>
     </section>

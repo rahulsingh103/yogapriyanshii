@@ -7,13 +7,16 @@ const CLASS_ORDER = [
   'Barre',
   'Wheel',
   'Chakra Flow',
+  'Vinyasa',
+  'Ashtanga',
   'Spine Healing',
   'Mobility Yoga',
   'Yin Yoga',
   'Prenatal & Postnatal',
+  'Aerial Yoga',
 ];
 
-test('the carousel has the 8 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
+test('the carousel has the 11 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const classes = page.locator('#classes');
@@ -21,7 +24,7 @@ test('the carousel has the 8 classes in order, labelled arrows and a keyboard-sc
   await expect(classes.getByRole('heading', { level: 2 })).toHaveText('Choose your practice');
 
   const cards = classes.getByTestId('practice-card');
-  await expect(cards).toHaveCount(8);
+  await expect(cards).toHaveCount(11);
   await expect(cards.locator('h3')).toHaveText(CLASS_ORDER);
   await shot('carousel');
 
@@ -78,6 +81,20 @@ test('the Yin Yoga card opens the contact pop-up with Yin Yoga as the interest',
   await expect(dialog).toHaveCount(0);
   await page.locator('#contact').getByRole('button', { name: 'Contact Priyanshi' }).click();
   await expect(dialog.getByLabel('Area of Interest')).toHaveValue('General enquiry');
+});
+
+test('the Aerial Yoga card (private sessions only) opens the contact pop-up with Private Aerial Yoga', async ({ page }, info) => {
+  const shot = stepShooter(page, FEATURE, info.title);
+  await openHome(page);
+  const classes = page.locator('#classes');
+  await classes.scrollIntoViewIfNeeded();
+  const aerial = classes.getByRole('button', { name: /^Aerial Yoga/ });
+  await expect(aerial).toContainText('Private sessions only · on request');
+  await aerial.click();
+  const dialog = page.getByRole('dialog', { name: 'Send a message' });
+  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Private Aerial Yoga');
+  await expect(bookingModal(page)).toHaveCount(0);
+  await shot('contact-aerial');
 });
 
 test('a header nav link lands the section just below the header', async ({ page }, info) => {
