@@ -67,7 +67,8 @@ website/
 │   ├── types/           shared TS types
 │   └── constants/       asset paths, classes, the FAQ (faq.ts), the reviews (testimonials.ts), the class finder
 │                        (class-finder.ts: questions, mapping table, copy, prefill; pure, relative imports only),
-│                        and the WhatsApp and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL)
+│                        the WhatsApp and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL),
+│                        and the monthly membership copy (membership.ts: card, form copy, membershipPrefill(); pure)
 ├── backend/             the API, shared by both entry points
 │   ├── app.ts           createApp(): body limit, routes, error handler
 │   ├── config.ts        the only reader of env; picks the mode and targets
@@ -75,14 +76,16 @@ website/
 │   ├── migrate.ts       applies db/migrations in order
 │   ├── schedule.ts      creates sessions 56 days ahead; the /api/schedule shape
 │   ├── bookings.ts      book, look up, cancel; prices; the 6-hour rule
-│   ├── contact.ts       stores messages (optional phone), alerts the studio
+│   ├── contact.ts       stores messages (optional phone), alerts the studio; a "Monthly membership" message also
+│   │                    stores its membership request in the same transaction
+│   ├── membership.ts    the membership plan, the Members list (20 a page) and status changes (one step, 409 if stale)
 │   ├── admin.ts         login and lockout, sessions, stats, settings
 │   ├── settings.ts      notify_email, studio_email, drive_link
 │   ├── email.ts         templates and delivery (Resend / outbox / log)
 │   ├── tokens.ts        booking and admin tokens
 │   ├── validate.ts      input allowlists and limits
 │   └── routes.ts        the HTTP routes
-├── db/migrations/       001_init.sql, 002_seed.sql, 003_contact_phone.sql
+├── db/migrations/       001_init.sql, 002_seed.sql, 003_contact_phone.sql, 004_membership_requests.sql
 ├── scripts/             migrate.ts, hash-password.ts
 ├── api/index.ts         Vercel entry: mounts createApp()
 ├── server.ts            dev/test entry: createApp() + Vite or static files
@@ -95,7 +98,7 @@ website/
 
 - **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`.
 - **Instagram:** the section shows our own copies of her photos and links to the profile (`INSTAGRAM_URL`); no embed, API or third-party script.
-- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`), the class finder's "Ask Priyanshi on WhatsApp" (its prefill comes from `classFinderPrefill()` in `class-finder.ts`: fixed labels for the answers and the suggested class, never personal data; the component wraps it with `whatsappUrl()`) and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
+- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`), the class finder's "Ask Priyanshi on WhatsApp" (its prefill comes from `classFinderPrefill()` in `class-finder.ts`: fixed labels for the answers and the suggested class, never personal data; the component wraps it with `whatsappUrl()`), the membership success link "Continue on WhatsApp" (`membershipPrefill()` in `membership.ts`) and the booking-confirmation link. Prefills never carry personal data, with one explicit exception: the membership prefill includes the name the person just typed (owner-approved, Batch 3), and it's only sent if they tap the link. It never includes their email or phone. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
 
 ## 07 Failure handling
 

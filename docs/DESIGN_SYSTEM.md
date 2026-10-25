@@ -192,6 +192,12 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Contact
 - The Contact section is a heading, one address line and a primary button "Contact Priyanshi" (plus the secondary "Chat on WhatsApp" pill while WhatsApp is enabled). The button opens the contact form in a pop-up (the same sheet as the booking modal), not an inline form.
 - The form: name, email, phone (optional, `type="tel"`), interest and message.
+- **Membership mode** (`interest === MEMBERSHIP.interest`, "Monthly membership"). It follows the current select value: "Join the membership" presets it, and picking "Monthly membership" from the list also enters it. Switching to another interest leaves it, clears the format choice and makes the message required again. In the mode:
+  - the title (same id, so it still names the dialog) is "Join the membership", with the intro "12 classes a month for AED 2,999. Send your details and Priyanshi will reply within a day.";
+  - after the interest, "In person or online (optional)": a `role="group"` labelled by that text, with two `aria-pressed` segments, "In person in Dubai" and "Live online", in the booking modal's segment style (`bg-surface-alt` track, `press-soft`, `min-h-11`, pressed `bg-ink text-on-ink`). Tapping the pressed one clears it;
+  - the message is "Preferred days and times (optional)" (placeholder "e.g. Weekday mornings, or Saturdays"), not required;
+  - the submit says "Send Request" ("Sending Request..." while it sends).
+- **Membership success** (shown only after the server's 200): the check, "Request Sent" (focused), "Thank you. Priyanshi will be in touch within 24 hours to set up your membership.", then, while `WHATSAPP_ENABLED`, a `ui.primary` link "Continue on WhatsApp" (glyph, new tab) whose prefill is `membershipPrefill(name)`: the name as typed (trimmed, spaces collapsed) and the plan, never the email or phone. Then a `ui.secondary` "Close". Side by side from 640px, stacked and full width on phones. Every other interest keeps the "Message Sent" view unchanged.
 
 ### FAQ ("Questions, answered")
 - Between Pricing and "Your first class is free" (`#faq`). The same transparent hairline list as Pricing: each row is an `h3` holding a `<button>` (question in Italiana 24px, `text-h4`, and a 44px circle with a chevron that turns 180° when open), `press-soft`, `hover:bg-glass`.
@@ -204,6 +210,12 @@ All components have default, hover, focus-visible, active and disabled states. F
 - **Hidden** while any modal sheet (the class finder included) or the mobile menu is open, while How it works or Contact is on screen (each has its own WhatsApp link, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
 
 - **Contact:** a secondary "Chat on WhatsApp" pill beside "Contact Priyanshi". **How it works:** a text link "Book a free 15-minute call" with the WhatsApp glyph (its own prefill, `CALL_PREFILL`, asking for a call). **Booking confirmation:** a quiet text link "Questions? Chat on WhatsApp" under "Return to Studio".
+
+### Admin Members tab
+- The signed-in dashboard has a `role="tablist"` ("Dashboard sections") under the top bar: "Overview" (the default, its content unchanged) and "Members", in the segment pill style (selected `bg-ink text-on-ink`). `aria-selected`, roving `tabIndex`, Left/Right/Home/End move and select, and the selected tab has `aria-controls`. Only the selected panel is mounted (`role="tabpanel"`, labelled by its tab, `tabIndex={0}`); the title, Refresh and Logout stay outside the panels, so the dialog is still named "Priyanshi's Studio Overview".
+- Members: the `h3` "Membership requests" with "New, then Contacted, then Active with a start date.", then a filter group ("All", "New (n)", "Contacted (n)", "Active (n)", `aria-pressed`; a change goes back to page 1). Each request is a card like Recent Messages (`data-testid="member-request"`, `bg-surface-alt rounded-[16px] p-4 sm:p-5`): a top row with the name (an `h4`, `break-words`) and the status pill (`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]`; New `bg-surface text-ink`, Contacted `border border-line-strong text-ink-soft`, Active `bg-success text-on-ink` (a filled chip, about 5.3:1); a visually hidden "Status: " before the label), then the mailto and tel links. `gap-3` below them: "Format: …" (`text-ink`, "Not given" when empty), "Preferred times: …", "<plan> · AED 2,999 a month", "Requested <d MMM yyyy>" (Dubai) and, when Active, "Start date: <d MMM yyyy>".
+- Under that, a small form: a "Status" select with only the current status and its allowed next steps, a "Start date" date input while Active is chosen or set (defaulting to the saved date or today in Dubai), and a `ui.secondary` "Save" ("Saving..."), disabled until something changes. It updates only from the server's reply (never optimistically) and then refetches the list and counts (only the newest list request may update the screen). After the refetch, focus moves to the saved card's name (`tabIndex={-1}`), or to the "Membership requests" heading if the card has left the filtered list, and a polite `role="status"` reads "Saved: <name> is now <Status>.". A 400 or 409 shows in that card (`ui.error`, `role="alert"`); a 401 signs out. The top-bar Refresh also refetches Members while that tab is shown.
+- "Page X of Y" (`aria-live="polite"`) with Previous and Next (disabled at the ends), "Loading requests..." (`role="status"`), "No membership requests yet." and "No requests with this status.". On phones the filter is a 2×2 grid, and the select and Save are full width. No tables and no email inputs here (the Overview tests count those).
 
 ### Class finder ("Find your class")
 - A `ModalSheet` (`closeLabel` "Close class finder"): three questions, one per step, then a result. Eyebrow "Question 1 of 3" … "Your suggestion" above the `ui.title` "Find your class" (the same on every step; on the result it is visually hidden, `sr-only`, so the eyebrow leads straight into the class name and the dialog keeps its name). The dialog is `aria-describedby` the eyebrow and the first question (ModalSheet's optional `describedBy`), so Q1 is read out on open. Answers and the result reset when the sheet closes, so a reopen never flashes the last result.
@@ -218,6 +230,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 ### Pricing
 - A hairline list (`border-line`), transparent so the mandala shows through: 4 rows, each a `<button>` that opens booking with that plan (name in Italiana 28px, one short line, the price, an arrow icon). One line below: "Pay in person at your session, or online with the details Priyanshi sends after you book. Free cancellation up to 6 hours before class."
+- **The membership card** sits beside the list from `lg` (`grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start`) and below it on smaller screens; the payment line stays under both. The card (`data-testid="membership-card"`): `bg-glass backdrop-blur-[8px] rounded-[18px] border border-line-strong p-5 sm:p-6`, `gap-5`. Inside: the `h3` "Monthly membership" (`text-h3`), "AED 2,999" (`text-base font-semibold tabular-nums text-ink`) then " a month" (`text-sm text-ink-soft`), a list of the three perks with a lucide `Check` (`size-4`, `accent-text`: the section's one accent) in 16px `ink-soft`, and the `ui.primary` "Join the membership" with the arrow (full width on phones). The button comes after the list, outside every `li`, so `#pricing li button` still starts with the first plan row. No tags, no "Most popular" and no per-class price. The copy lives only in `src/constants/membership.ts`.
 
 ### Footer
 - Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
@@ -278,7 +291,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
 6. How it works: three steps, the "Practise safely" note and the free 15-minute call link.
 7. Schedule: this week's classes with spots left (existing live schedule, restyled).
-8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details).
+8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
 9. Questions, answered: the FAQ, 10 questions that open in place.
 10. See Priyanshi in action: five Instagram photos and a Follow link.
 11. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
@@ -389,7 +402,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (101 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (112 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

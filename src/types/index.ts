@@ -88,3 +88,33 @@ export interface EmailNotification {
   type: 'student_confirmation' | 'studio_alert';
   sentAt: string;
 }
+
+/** Monthly membership requests (admin Members tab). Status moves one step at a time on the server. */
+export type MemberStatus = 'new' | 'contacted' | 'active';
+export type MemberFormat = 'in_person' | 'online';
+
+export interface MembershipRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  planKey: string;
+  planLabel: string;
+  priceAed: number;
+  format: MemberFormat | null;
+  /** The optional "Preferred days and times"; '' when none was given. */
+  preferredTimes: string;
+  status: MemberStatus;
+  /** YYYY-MM-DD, only while Active. */
+  startDate: string | null;
+  requestedAt: string;
+  updatedAt: string;
+}
+
+export interface MembersPage {
+  members: MembershipRequest[];
+  page: number;
+  pageSize: number;
+  total: number;
+  counts: Record<MemberStatus, number>;
+}

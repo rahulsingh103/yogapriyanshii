@@ -26,6 +26,8 @@ export const CONTACT_INTERESTS = [
   'Wheel Yoga',
   'Chakra Yoga Flow',
   'Private session',
+  // The monthly membership (Pricing card): also stores a membership_requests row (backend/membership.ts).
+  'Monthly membership',
   'Class Packs & Corporate',
   // Classes not on the timetable yet: their carousel cards open the contact form with these preset.
   'Spine Healing',
@@ -37,6 +39,15 @@ export const CONTACT_INTERESTS = [
   // Aerial is private sessions only, on request.
   'Private Aerial Yoga',
 ] as const;
+
+export const MEMBER_STATUSES = ['new', 'contacted', 'active'] as const;
+export type MemberStatus = (typeof MEMBER_STATUSES)[number];
+
+export const MEMBER_FORMATS = ['in_person', 'online'] as const;
+export type MemberFormat = (typeof MEMBER_FORMATS)[number];
+
+/** crypto.randomUUID() ids (lowercase v4), e.g. contact message ids. */
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
 const SESSION_ID_RE = /^sess-[a-z]{2,12}-\d{10,16}$/;
@@ -101,4 +112,12 @@ export function httpsUrlOrEmpty(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+/** A real calendar date as `YYYY-MM-DD` (2026-02-30 is refused), or null. */
+export function isoDateOrNull(value: unknown): string | null {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, m, d] = value.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d ? value : null;
 }

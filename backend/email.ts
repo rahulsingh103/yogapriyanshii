@@ -258,16 +258,19 @@ export interface ContactEmailData {
   phone: string | null;
   interest: string;
   message: string;
+  /** Extra lines after Interest (a membership request's plan and format). Other messages have none. */
+  details?: string[];
 }
 
 export async function sendContactAlert(d: ContactEmailData, notifyEmail: string): Promise<EmailRecord | null> {
+  const hasDetails = Boolean(d.details?.length);
   const body = `New message from the website contact form.
 
 • Name: ${d.name}
 • Email: ${d.email}${d.phone ? `\n• Phone: ${d.phone}` : ''}
-• Interest: ${d.interest}
+• Interest: ${d.interest}${hasDetails ? `\n${d.details!.join('\n')}` : ''}
 
-${d.message}
+${hasDetails && !d.message ? 'No preferred times given.' : d.message}
 
 Reply to this email to answer ${d.name} directly.`;
 

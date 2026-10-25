@@ -18,6 +18,7 @@
 | WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact, in How it works ("Book a free 15-minute call", with its own prefill) and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
 | New classes | Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
 | Class finder | ✅ "Find your class": a three-question pop-up (goal, experience, format) opened from a quiet link under the hero button and above the class cards. It suggests one class (plus an alternative, except for pregnancy) from a fixed table (`src/constants/class-finder.ts`). "Book this class" appears only for the 4 bookable classes in a group format and opens booking at the soonest session of that style (live online preselects "Online Live Stream"); every other result opens the contact pop-up with the matching interest. While WhatsApp is enabled it also offers "Ask Priyanshi on WhatsApp" with a prefill naming the answers and the class. Frontend only: no backend, data or analytics. |
+| Monthly membership | ✅ A card in Pricing: "Monthly membership", AED 2,999 a month, with three perks (12 classes a month; recordings included, details shared when you join; in person in Dubai or live online). No priority booking and no shareable packs. "Join the membership" opens the contact pop-up preset to "Monthly membership" (FR-15b); the request is saved, alerts Priyanshi, and then offers "Continue on WhatsApp" with the person's name and the plan typed in. Priyanshi tracks requests in the admin Members tab (New → Contacted → Active with a start date). No payment or credits: she arranges those with the member. Needs migration 004 on the live database before release. |
 | Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
 **Still to fill in:** real photos for the first 8 class cards (AI placeholders today; Vinyasa, Ashtanga and Aerial are real, and Vinyasa is a small 480px stopgap), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
@@ -127,6 +128,8 @@ Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to
 ### 6.3 Classes & Pricing
 Four class cards (name, level, duration, description, typical slot, **Book →** which leads to the Schedule). Below, a dark "Choose your practice" pricing section with the plans from §5 (cards, perks, tags, "Get Started"). Footer strip: private session price, shareable packs, free cancellation.
 
+**As built (2026-10-25):** Pricing is the four plan rows (free, single, 10-pack, 20-pack) plus, beside them from desktop width and below them on phones, the **monthly membership** card: "Monthly membership", "AED 2,999 a month", the perks "12 classes a month", "Recordings included (details shared when you join)" and "In person in Dubai or live online", and the button "Join the membership" (FR-15b). No tags, no "Most popular", no per-class price and no priority booking or shareable packs. The copy lives in `src/constants/membership.ts`.
+
 ### 6.4 Schedule
 - Pulls **real upcoming sessions** (not hard-coded). One card per weekday showing the **soonest upcoming** occurrence; Friday shows "Rest".
 - Each shows time, class, level, duration, and **spots left**. If full → show "Fully booked"/"Full" and disable booking.
@@ -135,10 +138,10 @@ Four class cards (name, level, duration, description, typical slot, **Book →**
 - One "good to know" line (free cancellation up to 6 hours before) next to the "Cancel / Manage Reservation" button.
 
 ### 6.5 Contact
-The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Class Packs & Corporate), message. A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
+The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Monthly membership / Class Packs & Corporate), message. With "Monthly membership" selected (preset by "Join the membership", or picked from the list) the pop-up is in **membership mode**: title "Join the membership", an optional "In person or online" choice, and the message becomes the optional "Preferred days and times" (FR-15b). A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
 
 ### 6.5a FAQ and WhatsApp
-- **FAQ** ("Questions, answered"), after Pricing: free class, beginners, classes, where, what to bring or wear, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet). Payment: in person at the session, or for online classes with the details Priyanshi sends after booking (no method named).
+- **FAQ** ("Questions, answered"), after Pricing: free class, beginners, classes, where, what to bring or wear, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet). Recordings are part of the monthly membership, but they appear on the membership card only: the FAQ and its JSON-LD stay unchanged and never mention them. Payment: in person at the session, or for online classes with the details Priyanshi sends after booking (no method named).
 - **Before class** (FAQ and How it works): comfortable clothes and water, your own mat for in-person classes, no heavy meal for 2 hours before, arrive or log in 5 to 10 minutes early, tell Priyanshi about injuries, health conditions or pregnancy beforehand. Online students get the class link from Priyanshi (the video tool is never named).
 - **WhatsApp** (Priyanshi's number +971 50 895 5421, set in `src/constants/contact.ts`): a green floating button that opens WhatsApp in one tap with the first message typed in, a secondary link in Contact, and a link on the booking confirmation. All three open `wa.me/971508955421` in a new tab; nothing goes through the backend.
 
@@ -154,7 +157,8 @@ Login screen (email + password). After login, one page showing:
 - **Earnings — last 6 months** bar chart (month vs AED).
 - **Google Drive / Sheet link** (clickable) — editable.
 - **Upcoming classes** (next ~10) with spots left / capacity.
-- **Recent messages** from the contact form (name, email, phone as a tap-to-call link when given, interest, message, date).
+- **Recent messages** from the contact form (name, email, phone as a tap-to-call link when given, interest, message, date). A membership request without preferred times shows no message block.
+- **Members tab** (as built 2026-10-25): the dashboard has two tabs, **Overview** (everything above and below, the default) and **Members**. Members lists the membership requests, newest first, 20 per page, with a filter (All / New / Contacted / Active, each with its count). Each request shows the name, email and phone links, the plan and price, the format, the preferred times, the request date and, when Active, the start date. Priyanshi moves it one step at a time: New → Contacted → Active (with a start date within a year either side of today), and back one step. Leaving Active clears the start date.
 - **Settings:** Drive/Sheet link, and **notification email** (where booking/message alerts go).
 - Log out. Must not be indexed by search engines.
 
@@ -183,6 +187,7 @@ Login screen (email + password). After login, one page showing:
 
 ### 7.4 Contact
 - FR-15: Messages are stored and visible in the admin dashboard; admin is emailed on new messages.
+- FR-15b: **Membership requests.** A contact message with interest "Monthly membership" is a membership request. Its message (preferred days and times) is optional, up to 2,000 characters with no control characters (each refused with its own message), stored as empty when not given. An optional `format` (`in_person` or `online`) is validated on the server and ignored for every other interest. In the same transaction as the message, the server stores a membership request row with the plan's label and price at that moment (`12-class monthly membership`, AED 2,999), status New and no start date. The alert adds "Plan" and, when given, "Format" lines ("No preferred times given." when the message is empty). The reply is the same as any message. Status changes (admin only) go one step at a time, need the status the admin last saw (otherwise 409, "updated elsewhere"), and Active needs a real start date within 365 days of today in Dubai. Nothing is paid or credited by a request.
 - FR-16: Honeypot-filled submissions are silently discarded (bot looks like it succeeded).
 - FR-16a: Phone is optional. When given it's validated on the server (one line, at most 30 characters, digits with an optional leading +, spaces, brackets and dashes, 6–15 digits), stored, shown in admin and included in the alert. When empty it's stored as NULL. It never appears in logs.
 
@@ -207,6 +212,7 @@ Login screen (email + password). After login, one page showing:
 - **Order** (customer, plan, amount, status, credits total/remaining, expiry, access token)
 - **Booking** (customer, session, order, mode, status, access token; unique per customer+session)
 - **Contact message** (name, email, optional phone, interest, message)
+- **Membership request** (one contact message; plan key, label and price snapshot, optional format, status New / Contacted / Active, start date while Active)
 - **Admin user** (email, password hash, failed attempts, locked-until)
 - **Settings** (key/value: drive link, notify email)
 

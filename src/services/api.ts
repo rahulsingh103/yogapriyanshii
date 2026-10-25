@@ -1,4 +1,15 @@
-import { ClassSession, YogaClass, Booking, ContactMessage, AdminStats, EmailNotification } from '../types';
+import {
+  ClassSession,
+  YogaClass,
+  Booking,
+  ContactMessage,
+  AdminStats,
+  EmailNotification,
+  MemberFormat,
+  MemberStatus,
+  MembersPage,
+  MembershipRequest,
+} from '../types';
 
 // Every failure surfaces as an ApiError with a human message. Nothing is ever faked locally:
 // if the server didn't confirm it, the UI must not claim it happened.
@@ -86,6 +97,8 @@ export const api = {
     interest: string;
     message: string;
     website?: string;
+    /** Membership requests only: in person or online, when chosen. */
+    format?: MemberFormat;
   }): Promise<{ success: boolean; message: string }> {
     return request('/api/contact', json(payload));
   },
@@ -109,5 +122,19 @@ export const api = {
     settings: { googleDriveLink?: string; notificationEmail?: string }
   ): Promise<{ settings: { googleDriveLink: string; notificationEmail: string }; message: string }> {
     return request('/api/admin/settings', json(settings, token));
+  },
+
+  async getMembers(token: string, query: { page: number; status: MemberStatus | null }): Promise<MembersPage> {
+    const params = new URLSearchParams({ page: String(query.page) });
+    if (query.status) params.set('status', query.status);
+    return request(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+  },
+
+  async updateMember(
+    token: string,
+    id: string,
+    body: { status: MemberStatus; expectedStatus: MemberStatus; startDate?: string }
+  ): Promise<{ member: MembershipRequest }> {
+    return request(`/api/admin/members/${encodeURIComponent(id)}`, json(body, token));
   },
 };

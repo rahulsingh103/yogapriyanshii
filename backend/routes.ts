@@ -5,6 +5,7 @@ import { getDb } from './db.js';
 import { cancelBooking, createBooking, getBookingByToken } from './bookings.js';
 import { submitContact } from './contact.js';
 import { login, logout, requireAdmin, resetAdminLockout, saveSettings, stats } from './admin.js';
+import { listMembers, parseMembersQuery, updateMember } from './membership.js';
 import { createAdhocSession, listSchedule } from './schedule.js';
 import { testOutbox } from './email.js';
 import { bad } from './validate.js';
@@ -123,6 +124,23 @@ export function buildRouter(): express.Router {
     requireAdmin,
     wrap(async (req, res) => {
       res.json(await saveSettings(bodyOf(req)));
+    })
+  );
+
+  // Membership requests (Members tab): 20 per page, newest first, with a count per status.
+  r.get(
+    '/api/admin/members',
+    requireAdmin,
+    wrap(async (req, res) => {
+      res.json(await listMembers(parseMembersQuery(req.query as Record<string, unknown>)));
+    })
+  );
+
+  r.post(
+    '/api/admin/members/:id',
+    requireAdmin,
+    wrap(async (req, res) => {
+      res.json(await updateMember(req.params.id, bodyOf(req)));
     })
   );
 

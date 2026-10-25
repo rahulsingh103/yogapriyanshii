@@ -23,6 +23,7 @@ import { MandalaBackground } from './components/MandalaBackground';
 import { OfflineNotice } from './components/OfflineNotice';
 import { WhatsAppChat } from './components/WhatsAppChat';
 import { WHATSAPP_ENABLED } from './constants/contact';
+import { MEMBERSHIP } from './constants/membership';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
 import type { PracticeClass } from './constants/classes';
 import type { FinderChoice } from './constants/class-finder';
@@ -114,7 +115,10 @@ export default function App() {
           onSelectSession={(session) => handleOpenBooking({ session })}
           onOpenCancel={() => setCancelModalOpen(true)}
         />
-        <PricingSection onOpenBooking={(planKey) => handleOpenBooking({ planKey })} />
+        <PricingSection
+          onOpenBooking={(planKey) => handleOpenBooking({ planKey })}
+          onJoinMembership={() => handleOpenContact(MEMBERSHIP.interest)}
+        />
         <FaqSection />
         <InstagramSection />
         <FirstClassFree onPickTime={() => scrollToSection('schedule')} />

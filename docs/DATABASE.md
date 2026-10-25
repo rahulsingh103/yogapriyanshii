@@ -22,7 +22,7 @@
 - Local `file:` databases migrate themselves when the server starts. Turso never auto-migrates.
 - Each migration file runs as one atomic batch, and re-running is safe.
 
-## Schema (`db/migrations/001_init.sql`, plus `003_contact_phone.sql`)
+## Schema (`db/migrations/001_init.sql`, plus `003_contact_phone.sql` and `004_membership_requests.sql`)
 
 | Table | Key columns | Notes |
 |---|---|---|
@@ -33,11 +33,17 @@
 | `orders` | `id` PK, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at, paid_at | `payment_status` is **set by the server only**: `pending` or `pending_at_studio` today; `paid` only after a verified payment (Phase 2). |
 | `bookings` | `id` PK, token UNIQUE, customer_id, session_id, order_id, plan_key, mode, status, credit_status, booked_at, cancelled_at | Partial unique index on (customer_id, session_id) `WHERE status = 'confirmed'`. The token is `YP-` + 16 Crockford base32 characters. |
 | `contact_messages` | `id` PK, name, email, phone, interest, message, created_at | `phone` is optional (NULL when empty), added by `003_contact_phone.sql`. |
+| `membership_requests` | `message_id` PK → contact_messages, plan_key, plan_label, price_aed, format, status, start_date, created_at, updated_at | One row per "Monthly membership" contact message, written in the same transaction. The plan's label and price are a snapshot (today `monthly12`, "12-class monthly membership", 2999). `format` is NULL, `in_person` or `online`; `status` is `new`, `contacted` or `active`; `start_date` is a real `YYYY-MM-DD`, set exactly when Active (`CHECK ((status = 'active') = (start_date IS NOT NULL))`). Personal data stays in `contact_messages`. Indexed on (created_at) and (status, created_at). |
 | `settings` | `key` PK, value | `notify_email` (where alerts go), `studio_email` (reply-to for students, shown when a rebook is refused), `drive_link` |
 | `admin_users` | `id` PK, email, failed_attempts, locked_until | One row. The password hash is **not** here: it's the `ADMIN_PASSWORD_HASH` env var. |
 | `admin_sessions` | `token_hash` PK (SHA-256), admin_id, created_at, expires_at | 2-hour sessions. Deleted on logout. |
 
 `003_contact_phone.sql` adds the optional `contact_messages.phone` column. It's additive, so code from before it keeps working against a migrated database. Release order: run `db:migrate:live` first, then deploy.
+
+`004_membership_requests.sql` adds the `membership_requests` table and its two indexes (`IF NOT EXISTS`, so a re-run does nothing). It's additive: code from before 004 never reads or writes the table, and that code rejects the "Monthly membership" interest, so there's nothing to backfill. `plan_key` has no CHECK on purpose (plans may change; the server allowlist decides). The start-date CHECK is `start_date IS NULL OR COALESCE(date(start_date) = start_date, 0)`: SQLite's `date()` gives NULL for text that isn't a date and a NULL CHECK would pass, so the COALESCE turns it into a failure ('2026-02-30' and 'abc' are refused).
+- **Release order:** 003 is already live, so only 004 is pending. Check with `turso db shell yogapriyanshi-live "SELECT version FROM schema_migrations"`, run `PATH="$HOME/.local/node22/bin:$PATH" npm run db:migrate:live` from `website/` (human-run, Node 22), check `.schema membership_requests`, then deploy. If the code deploys first, membership requests fail with the friendly 500 (never a fake success); other messages are unaffected.
+- **Rollback:** revert the code and leave the table; dropping it is a manual, human-only step.
+- **Members queries:** the list joins `contact_messages`, filters with `WHERE (? IS NULL OR m.status = ?)`, orders by `created_at DESC, message_id DESC` and pages with `LIMIT 20 OFFSET ?` (page 1 to 1000), plus one `GROUP BY status` for the counts. A status change is one transaction: read the row, compare with the status the admin saw (409 if different), check the step, then `UPDATE … WHERE message_id = ? AND status = ?` (409 if no row changed). Leaving Active clears `start_date`.
 
 `002_seed.sql` adds reference data only: the classes, the weekly template, the default settings and the admin row. There are no sample customers, bookings or messages.
 

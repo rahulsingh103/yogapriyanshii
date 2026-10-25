@@ -5,8 +5,11 @@ import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { Check } from '@/components/animate-ui/icons/check';
 import { cn } from '@/lib/utils';
 import { ui } from '@/lib/ui';
+import { WHATSAPP_ENABLED, whatsappUrl } from '@/constants/contact';
+import { MEMBERSHIP, MEMBERSHIP_FORM, membershipPrefill, type MembershipFormat } from '../constants/membership';
 import { api } from '../services/api';
 import { ModalSheet } from './ModalSheet';
+import { WhatsAppGlyph } from './WhatsAppGlyph';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -30,6 +33,7 @@ const INTERESTS: ReadonlyArray<readonly [string, string]> = [
   ['Ashtanga Yoga', 'Ashtanga Yoga'],
   ['Private Aerial Yoga', 'Private Aerial Yoga'],
   ['Private session', 'Private 1-to-1 session'],
+  [MEMBERSHIP.interest, 'Monthly membership'],
   ['Class Packs & Corporate', 'Class Packs & Corporate'],
 ];
 
@@ -47,9 +51,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
   const [interest, setInterest] = useState(DEFAULT_INTEREST);
   const [message, setMessage] = useState('');
   const [honeypot, setHoneypot] = useState(''); // Hidden anti-bot trap
+  // Membership mode follows the selected interest ("Join the membership" presets it).
+  const [format, setFormat] = useState<MembershipFormat | null>(null);
+  const isMembership = interest === MEMBERSHIP.interest;
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  /** What was sent, captured only after the server accepted it: the success view and its WhatsApp prefill use it. */
+  const [sent, setSent] = useState<{ membership: boolean; name: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const sentHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -65,6 +74,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
     setFieldErrors({});
   }, [isOpen, initialInterest]);
 
+  // Leaving membership mode drops the format choice, and the message is required again.
+  useEffect(() => {
+    if (!isMembership) setFormat(null);
+    else setFieldErrors((prev) => (prev.message ? { ...prev, message: undefined } : prev));
+  }, [isMembership]);
+
   // Screen readers hear the result: focus moves to the "Message Sent" heading.
   useEffect(() => {
     if (submitted) sentHeadingRef.current?.focus();
@@ -79,7 +94,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
     if (!name.trim()) found.name = 'Please enter your name.';
     if (!email.trim()) found.email = 'Please enter your email address.';
     else if (!EMAIL_SHAPE.test(email.trim())) found.email = 'Please enter a valid email address.';
-    if (!message.trim()) found.message = 'Please write a short message.';
+    if (!isMembership && !message.trim()) found.message = 'Please write a short message.';
     const firstInvalid = (['name', 'email', 'message'] as const).find((field) => found[field]);
     if (firstInvalid) {
       setFieldErrors(found);
@@ -103,12 +118,15 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
         interest,
         message,
         website: honeypot, // Honeypot field
+        ...(isMembership && format ? { format } : {}),
       });
+      setSent({ membership: isMembership, name: name.trim() });
       setSubmitted(true);
       setName('');
       setEmail('');
       setPhone('');
       setMessage('');
+      setFormat(null);
     } catch (err: any) {
       const text: string = err?.message || 'Failed to send message. Please try again.';
       setError(text);
@@ -140,7 +158,40 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
 
   return (
     <ModalSheet isOpen={isOpen} onClose={onClose} labelledBy={titleId} closeLabel="Close contact form" dismissible={!loading}>
-      {submitted ? (
+      {submitted && sent?.membership ? (
+        <div className="flex flex-col items-center gap-6 py-4 text-center">
+          <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
+            <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
+          </span>
+          <div className="flex flex-col gap-2">
+            <h2
+              id={titleId}
+              ref={sentHeadingRef}
+              tabIndex={-1}
+              className="font-display font-normal text-title sm:text-title-lg text-ink focus:outline-none"
+            >
+              {MEMBERSHIP_FORM.sentTitle}
+            </h2>
+            <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">{MEMBERSHIP_FORM.sentBody}</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {WHATSAPP_ENABLED && (
+              <a
+                href={whatsappUrl(membershipPrefill(sent.name))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(ui.primary, 'w-full sm:w-auto')}
+              >
+                <WhatsAppGlyph size={16} />
+                Continue on WhatsApp
+              </a>
+            )}
+            <button type="button" onClick={onClose} className={cn(ui.secondary, 'w-full sm:w-auto')}>
+              Close
+            </button>
+          </div>
+        </div>
+      ) : submitted ? (
         <div className="flex flex-col items-center gap-6 py-4 text-center">
           <span className="inline-flex items-center justify-center size-12 rounded-full bg-calm-bg text-success">
             <Check size={22} animateOnView animateOnViewOnce aria-hidden="true" />
@@ -166,10 +217,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h2 id={titleId} className={ui.title}>
-              Send a message
+              {isMembership ? MEMBERSHIP_FORM.title : 'Send a message'}
             </h2>
             <p className="text-sm leading-[1.5] text-ink-soft">
-              Priyanshi reads every message and replies within a day.
+              {isMembership ? MEMBERSHIP_FORM.intro : 'Priyanshi reads every message and replies within a day.'}
             </p>
             <p className="text-sm leading-[1.5] text-ink-soft">* required</p>
           </div>
@@ -283,20 +334,53 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
             </div>
           </div>
 
+          {isMembership && (
+            <div className="flex flex-col gap-3">
+              <span id="contact-format-label" className={ui.label}>
+                {MEMBERSHIP_FORM.formatLabel}
+              </span>
+              <div
+                role="group"
+                aria-labelledby="contact-format-label"
+                className="grid grid-cols-2 gap-1 p-1 bg-surface-alt rounded-full"
+              >
+                {MEMBERSHIP_FORM.formats.map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={format === value}
+                    // Tapping the chosen one again clears it: the format is optional.
+                    onClick={() => setFormat((prev) => (prev === value ? null : value))}
+                    className={cn(
+                      'press-soft min-h-11 px-3 rounded-full text-sm font-medium transition duration-200 ease-spring active:duration-100',
+                      format === value ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <label htmlFor="contact-message" className={ui.label}>
-              Your Message *
+              {isMembership ? MEMBERSHIP_FORM.timesLabel : 'Your Message *'}
             </label>
             <textarea
               id="contact-message"
-              required
+              required={!isMembership}
               rows={4}
               value={message}
               onChange={(e) => {
                 setMessage(e.target.value);
                 clearFieldError('message');
               }}
-              placeholder="Tell Priyanshi about your experience level, goals, or scheduling preferences..."
+              placeholder={
+                isMembership
+                  ? MEMBERSHIP_FORM.timesPlaceholder
+                  : 'Tell Priyanshi about your experience level, goals, or scheduling preferences...'
+              }
               className={cn(ui.textarea, 'resize-y min-h-[120px]')}
               {...fieldA11y('message')}
             />
@@ -306,10 +390,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, ini
           <AnimateIcon animateOnHover asChild>
             <button type="submit" disabled={loading} className={cn(ui.primary, 'w-full')}>
               {loading ? (
-                'Sending Message...'
+                isMembership ? MEMBERSHIP_FORM.sending : 'Sending Message...'
               ) : (
                 <>
-                  <span>Send Message</span>
+                  <span>{isMembership ? MEMBERSHIP_FORM.submit : 'Send Message'}</span>
                   <ArrowRight size={16} aria-hidden="true" />
                 </>
               )}

@@ -197,6 +197,8 @@ test('reduced motion: answers appear without movement', async ({ page }) => {
   await faq.getByRole('button', { name: 'When are classes?' }).click();
   const when = answer(faq, 'when');
   await expect(when).toContainText('Friday, which is a rest day');
+  // Let the open commit and lay out (two frames) before measuring.
+  await when.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   // duration 0: already at full height, no spring in progress.
   const { height, full } = await when.evaluate((el) => ({
     height: el.getBoundingClientRect().height,
