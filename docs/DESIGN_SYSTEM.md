@@ -171,7 +171,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Hides again while "Your first class is free" (`#first-class`) or Contact (`#contact`) is on screen, since both have their own dark button.
 
 ### Booking modal (and Cancel / Admin / Contact modals)
-- All four use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
+- All four, and the class finder, use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
 - A centred sheet: `bg-surface rounded-[20px]`, max width 560px, inner padding 32px (20px on mobile). The backdrop is `bg-ink/60` with blur.
 - On mobile it becomes a bottom sheet with full width and top corners rounded, and a decorative grabber (36×5 pill, `line-strong`, 6px from the top edge) at the top; when the sheet can be dragged its top padding grows to 28px, so the grabber isn't cramped against "Step 1 of 2". The grabber belongs to the sheet's scrolling content, so it scrolls away with a long form; the close button and Escape still close it. A 40px `surface` bleed sits under the sheet's bottom edge and moves with it, so an upward rubber-band never shows a gap onto the backdrop.
 - **Drag to dismiss (phone only):** only the top 48px grab strip drags; content scrolling and form fields stay native. 10px threshold, then 1:1 with the finger (keeping the grab offset); upwards it rubber-bands. On release, the momentum is projected (deceleration 0.998); past half the sheet's height it springs away with the finger's velocity and closes, otherwise it springs back. It can be grabbed again mid-flight, and the backdrop lightens as it moves. Off (`dismissible={false}`) for Admin and while a form is sending.
@@ -201,9 +201,15 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### WhatsApp button
 - Shown only while `WHATSAPP_ENABLED` (off in production until the real number is set).
 - **Button:** a 56px circle in WhatsApp green (`--color-whatsapp` #25D366, brand colour used only here) with the white glyph (`--color-on-whatsapp`), a soft ink-tinted shadow, `press`. It is a direct link: one tap opens `wa.me/<number>` in a new tab with the first message typed in (no pop-up in between, as owner requested 2026-10-19). Bottom right: 24px in from the edges from 640px; on phones 20px from the right and 88px plus the safe area from the bottom, so it clears the sticky bar by 16px. `z-40`, below the header menu (`z-45`) and modals (`z-50`). Name: "Chat with Priyanshi on WhatsApp". With more contrast it gets a 2px ink outline. The green is a recognised brand mark, not a palette colour: don't reuse it elsewhere.
-- **Hidden** while any modal sheet or the mobile menu is open, while How it works or Contact is on screen (each has its own WhatsApp link, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
+- **Hidden** while any modal sheet (the class finder included) or the mobile menu is open, while How it works or Contact is on screen (each has its own WhatsApp link, so two never show together), and while offline (the link can't work, and it keeps the offline pill clear).
 
 - **Contact:** a secondary "Chat on WhatsApp" pill beside "Contact Priyanshi". **How it works:** a text link "Book a free 15-minute call" with the WhatsApp glyph (its own prefill, `CALL_PREFILL`, asking for a call). **Booking confirmation:** a quiet text link "Questions? Chat on WhatsApp" under "Return to Studio".
+
+### Class finder ("Find your class")
+- A `ModalSheet` (`closeLabel` "Close class finder"): three questions, one per step, then a result. Eyebrow "Question 1 of 3" … "Your suggestion" above the `ui.title` "Find your class" (the same on every step; on the result it is visually hidden, `sr-only`, so the eyebrow leads straight into the class name and the dialog keeps its name). The dialog is `aria-describedby` the eyebrow and the first question (ModalSheet's optional `describedBy`), so Q1 is read out on open. Answers and the result reset when the sheet closes, so a reopen never flashes the last result.
+- Each question is an `h3` (`text-h4`) over a `role="group"` of full-width answer buttons: `press-soft`, `min-h-12`, `rounded-[12px]`, `bg-surface-alt` (hover `border-line-strong`); the earlier choice is `aria-pressed` and `bg-ink text-on-ink`. A tap moves on at once (no timer), and focus moves to the new heading (`tabIndex={-1}`, described by the eyebrow; no ring on a heading, a quiet `line-strong` underline with `focus-visible` instead). Under Q2 and Q3 a quiet "Back" text button. The inline text buttons ("Back", "Start again", the "Also a good fit" class) keep a 44px hit area with `-my-3`, so they add no layout height.
+- The result: the class name (`text-h3`, focused on arrival), a one-line reason, the class length only ("60 min", none for Aerial), the format note (private: "Just you and Priyanshi. She arranges the details with you."), then "Your first class is free." (bookable class in a group format only) or "Not on the timetable. Send a message and Priyanshi will find a time with you." (contact-only). Pregnancy and back care add a gentle `ui.notice`. "Also a good fit:" and a text button swap the main and alternative classes (no alternative for pregnancy). Actions: one `ui.primary` whose label says exactly what it does ("Book this class" only for the 4 bookable classes in a group format), the `ui.secondary` "Ask Priyanshi on WhatsApp" while WhatsApp is enabled, and a quiet "Start again". The two buttons always stack (`flex flex-col gap-3`), each `w-full`, at every width.
+- Copy and the mapping live in `src/constants/class-finder.ts`. Never medical, clearance or "safe" wording; "free" never shows on a private or contact-only result.
 
 ### Schedule
 - A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`, `rounded-[18px]`); the selected card is `bg-ink text-on-ink`. Friday is a dashed "Rest Day" card.
@@ -265,8 +271,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Longer content (class details, chakra knowledge, policies) goes on its own page or behind a tap, never on the homepage.
 
 **Homepage order:**
-1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class]
-2. Choose your practice: the carousel of 11 classes.
+1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class], with the quiet line "Not sure? Find your class" (a text link, 14px, no pill or press, `wf-after` after the button) under it.
+2. Choose your practice: the carousel of 11 classes, with "Not sure which to choose? Find your class" on its own row between the heading row and the track (never in the arrow row).
 3. Hi, I'm Priyanshi.: photo, the one-line aim, a short credentials paragraph and four trust numbers.
 4. What students say: three verified reviews.
 5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
@@ -370,7 +376,7 @@ import { MotionConfig } from 'motion/react';
   .card-lift:hover { transform: none; }
 }
 ```
-With reduced motion on, the mandala is drawn once, fully bloomed and still. The phone sheet cross-fades in and out instead of sliding; it can still be dragged, but its snap-back is instant and a dismiss closes at once. Carousel glides jump straight to the snap point. The WhatsApp pop-up and button only cross-fade (200ms), FAQ answers open and close at once (`duration: 0`) and the chevron turns without a transition. The press scale (0.97 / 0.99 / 0.98) stays: it's a tiny change in size with no movement across the screen, so it isn't a vestibular trigger, and it confirms the touch.
+With reduced motion on, the mandala is drawn once, fully bloomed and still. The phone sheet cross-fades in and out instead of sliding; it can still be dragged, but its snap-back is instant and a dismiss closes at once. Carousel glides jump straight to the snap point. The WhatsApp pop-up and button only cross-fade (200ms), class finder steps change at once (they otherwise cross-fade, opacity only, `bounce 0`, `duration .3`), FAQ answers open and close at once (`duration: 0`) and the chevron turns without a transition. The press scale (0.97 / 0.99 / 0.98) stays: it's a tiny change in size with no movement across the screen, so it isn't a vestibular trigger, and it confirms the touch.
 
 ### Ambient loops (audit 2026-10-17)
 The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s ring; only while loading) and the hero word fade (plays once, about 2s) all stop under reduced motion. None is a full-viewport moving background or a slow loop on the page, so all three are compliant.
@@ -383,7 +389,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (84 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (101 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

@@ -65,8 +65,9 @@ website/
 │   ├── lib/             cn(), the shared token class strings (ui.ts), gestures, the FAQPage JSON-LD builder (faq-schema.ts)
 │   ├── services/api.ts  the only place that calls /api
 │   ├── types/           shared TS types
-│   └── constants/       asset paths, classes, the FAQ (faq.ts), the reviews (testimonials.ts), and the WhatsApp
-│                        and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL)
+│   └── constants/       asset paths, classes, the FAQ (faq.ts), the reviews (testimonials.ts), the class finder
+│                        (class-finder.ts: questions, mapping table, copy, prefill; pure, relative imports only),
+│                        and the WhatsApp and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL)
 ├── backend/             the API, shared by both entry points
 │   ├── app.ts           createApp(): body limit, routes, error handler
 │   ├── config.ts        the only reader of env; picks the mode and targets
@@ -94,7 +95,7 @@ website/
 
 - **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`.
 - **Instagram:** the section shows our own copies of her photos and links to the profile (`INSTAGRAM_URL`); no embed, API or third-party script.
-- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`) and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
+- **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`), the class finder's "Ask Priyanshi on WhatsApp" (its prefill comes from `classFinderPrefill()` in `class-finder.ts`: fixed labels for the answers and the suggested class, never personal data; the component wraps it with `whatsappUrl()`) and the booking-confirmation link. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
 
 ## 07 Failure handling
 

@@ -20,6 +20,8 @@ interface BookingModalProps {
   /** From a carousel card: preselect the soonest available session of this style. */
   preselectedStyle?: ClassStyle | null;
   initialPlanKey?: 'free' | 'single' | 'pack10' | 'pack20';
+  /** From the class finder: start on this format. Unset or null keeps the last choice. */
+  initialMode?: 'in_person' | 'online' | null;
   onBookingSuccess?: (booking: Booking) => void;
 }
 
@@ -36,6 +38,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   preselectedSession,
   preselectedStyle,
   initialPlanKey = 'free',
+  initialMode = null,
   onBookingSuccess,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -92,6 +95,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       if (initialPlanKey) {
         setPlanKey(initialPlanKey);
       }
+      if (initialMode) setMode(initialMode);
 
       api
         .getSchedule()
@@ -115,7 +119,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           setError(err instanceof Error ? err.message : 'Unable to load the live schedule.');
         });
     }
-  }, [isOpen, preselectedSession, preselectedStyle, initialPlanKey]);
+  }, [isOpen, preselectedSession, preselectedStyle, initialPlanKey, initialMode]);
 
   const currentPlan = PLANS.find((p) => p.key === planKey) || PLANS[0];
   const currentSession = sessions.find((s) => s.id === selectedSessionId) || preselectedSession;

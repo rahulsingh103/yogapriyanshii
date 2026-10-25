@@ -78,3 +78,6 @@ export async function openHome(page: Page) {
 
 export const bookingModal = (page: Page) =>
   page.locator('div.fixed.inset-0').filter({ has: page.getByLabel('Close modal') });
+
+/** The "Find your class" sheet (its close button is "Close class finder", so bookingModal() never matches it). */
+export const classFinder = (page: Page) => page.getByRole('dialog', { name: 'Find your class' });

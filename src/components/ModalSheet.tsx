@@ -19,6 +19,8 @@ interface ModalSheetProps {
   onClose: () => void;
   /** id of the visible heading that names the dialog. */
   labelledBy: string;
+  /** Optional space-separated ids that describe the dialog, read out when it opens (the class finder's first question). */
+  describedBy?: string;
   /** Accessible name of the close button (the e2e helpers find modals by it). */
   closeLabel: string;
   /** Admin needs room for its tables. */
@@ -34,7 +36,7 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * The one modal shell (DESIGN_SYSTEM §4, §7) for Booking, Cancel, Admin and Contact.
+ * The one modal shell (DESIGN_SYSTEM §4, §7) for Booking, Cancel, Admin, Contact and the class finder.
  * Centred sheet from 640px, a bottom sheet below. While open: Escape closes it, Tab stays
  * inside, the page behind is inert and Lenis is stopped; on close, focus returns to the opener.
  * The outer `div.fixed.inset-0` and "close button first" order are relied on by the e2e helpers.
@@ -48,6 +50,7 @@ export function ModalSheet({
   isOpen,
   onClose,
   labelledBy,
+  describedBy,
   closeLabel,
   size = 'default',
   dismissible = true,
@@ -276,6 +279,7 @@ export function ModalSheet({
               role="dialog"
               aria-modal="true"
               aria-labelledby={labelledBy}
+              aria-describedby={describedBy}
               tabIndex={-1}
               data-lenis-prevent
               style={{ y: dragY }}

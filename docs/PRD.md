@@ -17,6 +17,7 @@
 | FAQ | ✅ "Questions, answered" after Pricing: 10 fact-only answers (`src/constants/faq.ts`), with matching FAQPage JSON-LD in the HTML. Answers never mention WhatsApp, Zoom, props, priority booking, recordings or shared packs (students bring their own mat, so "mat" is allowed). |
 | WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact, in How it works ("Book a free 15-minute call", with its own prefill) and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
 | New classes | Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
+| Class finder | ✅ "Find your class": a three-question pop-up (goal, experience, format) opened from a quiet link under the hero button and above the class cards. It suggests one class (plus an alternative, except for pregnancy) from a fixed table (`src/constants/class-finder.ts`). "Book this class" appears only for the 4 bookable classes in a group format and opens booking at the soonest session of that style (live online preselects "Online Live Stream"); every other result opens the contact pop-up with the matching interest. While WhatsApp is enabled it also offers "Ask Priyanshi on WhatsApp" with a prefill naming the answers and the class. Frontend only: no backend, data or analytics. |
 | Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
 **Still to fill in:** real photos for the first 8 class cards (AI placeholders today; Vinyasa, Ashtanga and Aerial are real, and Vinyasa is a small 480px stopgap), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
@@ -113,6 +114,12 @@ Warm, short, confident, second-person ("Start with a free class — no card, no 
 
 ### 6.1 Home
 Hero (see §5), credibility strip, "Four paths" section introducing the 4 classes, a student-testimonials section (can be toggled on/off), a short "A minute with Priyanshi" intro, an "From the studio" Instagram-style photo strip linking to her Instagram, a closing CTA to book. Footer on every page with nav + Join link.
+
+**As built (2026-10-25), the class finder:** a "Not sure? Find your class" text link under the hero's "Book a free class" and a "Not sure which to choose? Find your class" line above the carousel open the **Find your class** pop-up. Three questions, one per step (What would you like yoga to give you? · How much yoga have you done? · How would you like to practise?), then one suggested class with a short reason, its length (none for Aerial), the format note and one honest action:
+- a bookable class (Hatha, Barre, Wheel, Chakra Flow) in person or online: "Book this class", plus "Your first class is free.";
+- a class not on the timetable: "Ask about this class" (contact pop-up with that class as the interest);
+- private: "Ask about a private session" (interest "Private session"), Aerial "Ask about private Aerial" ("Private Aerial Yoga"), Prenatal "Ask about this class" ("Prenatal & Postnatal").
+Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to tell Priyanshi before the first class; Aerial is suggested only for private; back care never suggests Wheel. No medical or clearance wording.
 
 ### 6.2 About
 "Hello, I'm Priyanshi" hero; her story ("A path that began…"); philosophy/approach; CTA to book. Warm first-person tone.

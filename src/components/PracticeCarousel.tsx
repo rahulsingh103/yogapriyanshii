@@ -5,10 +5,12 @@ import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { DRAG_THRESHOLD, project, recordSample, releaseVelocity, rubberBand, type Sample } from '@/lib/gesture';
 import { PRACTICE_CLASSES, type PracticeClass } from '../constants/classes';
+import { FindClassLink } from './FindClassLink';
 import { Reveal } from './Reveal';
 
 interface PracticeCarouselProps {
   onSelectClass: (practice: PracticeClass) => void;
+  onOpenClassFinder: () => void;
 }
 
 const ICON_BUTTON =
@@ -35,7 +37,7 @@ const nearest = (offsets: number[], x: number) =>
  * at the ends, momentum projected to a snap). Any glide can be interrupted by a new press, a grab,
  * a wheel or a touch.
  */
-export function PracticeCarousel({ onSelectClass }: PracticeCarouselProps) {
+export function PracticeCarousel({ onSelectClass, onOpenClassFinder }: PracticeCarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const glideRef = useRef<{ controls: AnimationPlaybackControls; target: number; lastSet: number } | null>(null);
@@ -258,22 +260,26 @@ export function PracticeCarousel({ onSelectClass }: PracticeCarouselProps) {
   return (
     <section ref={sectionRef} id="classes" className="py-20 lg:py-32 data-[banding]:overflow-x-clip">
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="font-display font-normal text-h2 text-ink">
-            Choose your practice
-          </h2>
-          <div className="flex gap-2">
-            <AnimateIcon animateOnHover asChild>
-              <button type="button" aria-label="Previous classes" onClick={() => scrollByCard(-1)} className={ICON_BUTTON}>
-                <ArrowLeft size={18} aria-hidden="true" />
-              </button>
-            </AnimateIcon>
-            <AnimateIcon animateOnHover asChild>
-              <button type="button" aria-label="Next classes" onClick={() => scrollByCard(1)} className={ICON_BUTTON}>
-                <ArrowRight size={18} aria-hidden="true" />
-              </button>
-            </AnimateIcon>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display font-normal text-h2 text-ink">
+              Choose your practice
+            </h2>
+            <div className="flex gap-2">
+              <AnimateIcon animateOnHover asChild>
+                <button type="button" aria-label="Previous classes" onClick={() => scrollByCard(-1)} className={ICON_BUTTON}>
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </button>
+              </AnimateIcon>
+              <AnimateIcon animateOnHover asChild>
+                <button type="button" aria-label="Next classes" onClick={() => scrollByCard(1)} className={ICON_BUTTON}>
+                  <ArrowRight size={18} aria-hidden="true" />
+                </button>
+              </AnimateIcon>
+            </div>
           </div>
+          {/* Its own row, so the arrow row keeps only the heading and the arrows. */}
+          <FindClassLink lead="Not sure which to choose?" onOpen={onOpenClassFinder} />
         </div>
 
         <div
