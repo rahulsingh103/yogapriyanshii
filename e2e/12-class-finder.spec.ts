@@ -50,8 +50,8 @@ function expected(goal: Goal, exp: Experience, format: Format) {
   return { main, alt, primary };
 }
 
-const heroLink = (page: Page) => page.locator('#home').getByRole('button', { name: 'Find your class' });
-const carouselLink = (page: Page) => page.locator('#classes').getByRole('button', { name: 'Find your class' });
+const heroLink = (page: Page) => page.locator('#home').getByRole('button', { name: 'Take the 30-second quiz' });
+const carouselLink = (page: Page) => page.locator('#classes').getByRole('button', { name: 'Take the 30-second quiz' });
 const chat = (page: Page) => page.getByTestId('whatsapp-chat');
 const resultName = (finder: Locator) => finder.getByTestId('class-finder-result').getByRole('heading', { level: 3 });
 
@@ -108,7 +108,7 @@ async function soonest(request: APIRequestContext, style: string) {
   return s;
 }
 
-test('hero: a quiet link under "Book a free class" opens the finder, and Escape returns focus', async ({ page }, info) => {
+test('hero: a soft quiz pill under "Book a free class" opens the finder, and Escape returns focus', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const hero = page.locator('#home');
@@ -124,20 +124,18 @@ test('hero: a quiet link under "Book a free class" opens the finder, and Escape 
   expect(l.y, 'the link sits below the button').toBeGreaterThanOrEqual(c.y + c.height);
   expect(l.height).toBeLessThanOrEqual(c.height);
   expect(l.height).toBeGreaterThanOrEqual(44);
+  // Easy to see, but lighter than the dark primary: a light outlined pill, not the ink fill.
+  await expect(hero.getByText('Not sure?', { exact: true })).toBeVisible();
   const style = await link.evaluate((el) => {
     const s = getComputedStyle(el);
-    return { bg: s.backgroundColor, radius: s.borderRadius, decoration: s.textDecorationLine, size: parseFloat(s.fontSize) };
+    return { bg: s.backgroundColor, border: parseFloat(s.borderTopWidth), radius: parseFloat(s.borderRadius) };
   });
-  expect(style.bg).toBe('rgba(0, 0, 0, 0)');
-  expect(style.radius).toBe('0px');
-  expect(style.decoration).toBe('underline');
-  expect(style.size).toBeLessThanOrEqual(14);
-  // No press scale on a text link.
-  await link.hover();
-  await page.mouse.down();
-  expect(await link.evaluate((el) => getComputedStyle(el).scale)).toBe('none');
-  await page.mouse.up();
+  const ctaBg = await cta.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(style.bg).not.toBe(ctaBg);
+  expect(style.border).toBeGreaterThan(0);
+  expect(style.radius).toBeGreaterThan(20);
   await shot('hero-link');
+  await link.click();
 
   const finder = classFinder(page);
   await expect(finder.getByText('Question 1 of 3')).toBeVisible();
@@ -159,7 +157,7 @@ test('carousel: the link sits above the track, opens the finder, and the X retur
   await classes.scrollIntoViewIfNeeded();
   const link = carouselLink(page);
   await expect(link).toBeVisible();
-  await expect(classes.getByText('Not sure which to choose?')).toBeVisible();
+  await expect(classes.getByText('Not sure?', { exact: true })).toBeVisible();
   const track = classes.getByRole('group', { name: /Classes/ });
   const l = (await link.boundingBox())!;
   const t = (await track.boundingBox())!;

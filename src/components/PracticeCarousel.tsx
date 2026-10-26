@@ -279,7 +279,7 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder }: PracticeC
             </div>
           </div>
           {/* Its own row, so the arrow row keeps only the heading and the arrows. */}
-          <FindClassLink lead="Not sure which to choose?" onOpen={onOpenClassFinder} />
+          <FindClassLink onOpen={onOpenClassFinder} />
         </div>
 
         <div
