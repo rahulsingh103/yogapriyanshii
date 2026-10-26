@@ -16,12 +16,12 @@ interface FindClassLinkProps {
  */
 export function FindClassLink({ onOpen, lead = 'Not sure?', className, style }: FindClassLinkProps) {
   return (
-    <p className={cn('text-base leading-[1.5] text-ink-soft', className)} style={style}>
-      {lead}{' '}
+    <p className={cn('flex flex-wrap items-center gap-x-1.5 text-base leading-[1.5] text-ink-soft', className)} style={style}>
+      <span>{lead}</span>
       <button
         type="button"
         onClick={onOpen}
-        className="inline-flex items-center min-h-11 align-middle font-semibold text-ink underline underline-offset-4 decoration-line-strong hover:decoration-ink transition-colors duration-200"
+        className="inline-flex items-center min-h-11 text-base leading-[1.5] font-medium text-ink underline underline-offset-4 decoration-line-strong hover:decoration-ink transition-colors duration-200"
       >
         Take the 30-second quiz
       </button>
