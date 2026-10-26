@@ -37,7 +37,7 @@ export function Hero({ onOpenBooking, onOpenClassFinder }: HeroProps) {
               <ArrowRight size={16} aria-hidden="true" />
             </button>
           </AnimateIcon>
-          <FindClassLink onOpen={onOpenClassFinder} className="wf-after justify-center" style={{ '--i': 6 } as CSSProperties} />
+          <FindClassLink onOpen={onOpenClassFinder} className="wf-after" style={{ '--i': 6 } as CSSProperties} />
         </div>
       </div>
     </section>

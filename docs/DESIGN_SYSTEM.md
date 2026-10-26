@@ -284,8 +284,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Longer content (class details, chakra knowledge, policies) goes on its own page or behind a tap, never on the homepage.
 
 **Homepage order:**
-1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class], with "Not sure?" and a soft outlined pill [Take the 30-second quiz] under it (compass icon and arrow, `border-line-strong bg-surface`, `press-soft`, 44px, `wf-after` after the button). Made more visible at the owner's request (2026-10-25); it stays lighter than the dark primary.
-2. Choose your practice: the carousel of 11 classes, with the same line and [Take the 30-second quiz] pill on its own row between the heading row and the track (never in the arrow row).
+1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class], with the line "Not sure? Take the 30-second quiz" under it (an underlined text link, 16px like the subtitle, no pill or press, `wf-after` after the button; owner request 2026-10-25).
+2. Choose your practice: the carousel of 11 classes, with the same "Not sure? Take the 30-second quiz" line on its own row between the heading row and the track (never in the arrow row).
 3. Hi, I'm Priyanshi.: photo, the one-line aim, a short credentials paragraph and four trust numbers.
 4. What students say: three verified reviews.
 5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
