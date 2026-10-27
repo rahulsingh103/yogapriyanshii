@@ -1,6 +1,6 @@
 # Architecture & Data
 
-How every part connects. Last updated 2026-10-10.
+How every part connects. Last updated 2026-10-26.
 
 ## 01 System overview
 
@@ -61,14 +61,16 @@ The full schema is in [DATABASE.md](DATABASE.md). The core entities are Class, S
 website/
 ├── src/                 React app
 │   ├── components/      one file per section or modal; ModalSheet is the shared modal shell
-│   ├── hooks/           useScrollToSection (Lenis), Animate UI hooks
-│   ├── lib/             cn(), the shared token class strings (ui.ts), gestures, the FAQPage JSON-LD builder (faq-schema.ts)
+│   ├── hooks/           useScrollToSection (Lenis), useRoute (use-route.ts: pathname, Back/Forward, navigate), Animate UI hooks
+│   ├── lib/             cn(), the shared token class strings (ui.ts), gestures, the FAQPage JSON-LD builder (faq-schema.ts),
+│   │                    routing: route.ts (resolveRoute), page-meta.ts (the head SEO block), route-html.ts (applyRoute)
 │   ├── services/api.ts  the only place that calls /api
 │   ├── types/           shared TS types
 │   └── constants/       asset paths, classes, the FAQ (faq.ts), the reviews (testimonials.ts), the class finder
 │                        (class-finder.ts: questions, mapping table, copy, prefill; pure, relative imports only),
 │                        the WhatsApp and Instagram settings (contact.ts: number, prefills incl. CALL_PREFILL, INSTAGRAM_URL),
 │                        and the monthly membership copy (membership.ts: card, form copy, membershipPrefill(); pure)
+│                        and the class pages' copy (class-pages.ts: who it's for, about, details, photos, what to bring; pure)
 ├── backend/             the API, shared by both entry points
 │   ├── app.ts           createApp(): body limit, routes, error handler
 │   ├── config.ts        the only reader of env; picks the mode and targets
@@ -88,7 +90,7 @@ website/
 ├── db/migrations/       001_init.sql, 002_seed.sql, 003_contact_phone.sql, 004_membership_requests.sql
 ├── scripts/             migrate.ts, hash-password.ts
 ├── api/index.ts         Vercel entry: mounts createApp()
-├── server.ts            dev/test entry: createApp() + Vite or static files
+├── server.ts            dev/test entry: createApp() + Vite (applyRoute on every page) or the built files
 ├── e2e/                 Playwright tests
 ├── public/media/        site photos and videos: images/practice (class cards), images/real (real photos of
 │                        Priyanshi: the About photo and the Instagram tiles)
@@ -96,7 +98,10 @@ website/
 └── AGENTS.md            rules for AI coding agents
 ```
 
-- **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`.
+- **Build-time HTML:** `vite.config.ts` has one small plugin, `faq-structured-data`, that injects the FAQPage JSON-LD (built from `src/constants/faq.ts` by `src/lib/faq-schema.ts`) into `<head>`, so it's in the first HTML response in dev and in the build. Those two files stay pure: relative imports only, no `@/` alias and no `import.meta.env`. So do the modules the `route-pages` plugin reads: `src/lib/route.ts`, `src/lib/page-meta.ts`, `src/lib/route-html.ts` and `src/constants/class-pages.ts` (and what they import: `classes.ts`, `class-finder.ts`, `testimonials.ts`).
+- **Pages and routing (Batch 4a):** one React app, one shell. `src/lib/route.ts` maps a pathname to home, a class (`/classes/<slug>`, slugs from `classes.ts`, matched exactly, trailing slash fine) or notFound (articles and drafts are 4b). `App.tsx` renders the home `<main>` unchanged, or a lazy `ClassPage` / `NotFound` chunk inside the same header, footer, WhatsApp button and modals. In-app links use `history.pushState` (`src/hooks/use-route.ts`): before leaving home it saves `{ y, cardSlug }` in the home entry, and the page entry carries `{ yp: 'class', from: 'home' }`, so "All classes" can go Back and Back restores the card (Lenis jump to `#classes`, the track scrolled to the card, focus on its "Learn more"). `scrollRestoration` becomes `manual` on the first in-app navigation only. The `cardSlug` read back from `history.state` is checked against the known slugs before it is used in a selector. Going home from a page that unmounts (a header or footer link, the 404's links, "All classes" after a direct load) jumps to the section and then focuses its heading (the hero's h1 without a section) with `preventScroll`. Those handlers call `stopPropagation()` as well as `preventDefault()`, so Lenis's window-level anchor handling never starts its own smooth scroll.
+- **Prerender (option D):** the same pure transform, `applyRoute(html, route)` in `src/lib/route-html.ts`, runs in two places. In the build, the `route-pages` plugin in `vite.config.ts` (`apply: 'build'`, `generateBundle` with `order: 'post'`) takes the finished home HTML and emits `classes/<slug>/index.html` (11), `404.html`, `sitemap.xml` and `robots.txt` (allow all, `Disallow: /api/`, the sitemap URL); each page gets a `modulepreload` for its lazy chunk. It fails the build if the `<!-- seo:start -->` / `<!-- seo:end -->` markers in `index.html` aren't there exactly once, if the FAQ JSON-LD is missing from home, or if `HOME_META` (`page-meta.ts`) no longer mirrors the marked block. In dev and tests, the `server.ts` catch-all runs `vite.transformIndexHtml('/', …)` then `applyRoute` on the URL's pathname, and answers 404 for notFound. `applyRoute` swaps the marked head block (title, description, canonical, og:url, Twitter title and description; the 404 drops canonical and og:url and adds robots noindex), removes the FAQ JSON-LD off home, makes `./` asset paths root-relative and fills `<div id="root">` with escaped static content that React replaces on load. Home is returned untouched, so its HTML differs from before only by the two marker comments. The client keeps the head in step with `setDocumentHead()`. The preloader fades on home at once, elsewhere only once the lazy page has mounted.
+- **Serving built pages:** `server.ts` in production serves `dist` with `express.static(dist, { redirect: false, index: 'index.html' })` (serve-static rejects `index: true`); a `/classes/<slug>` path must be one of the prerendered slugs (else `404.html` with 404), every other unknown path gets `404.html` with 404. On Vercel, static files are served before rewrites and a missing path gets `404.html` with a 404; `vercel.json` is unchanged in 4a. **Check on a Vercel preview before release:** 200 with the right h1 and canonical for `/`, `/classes/hatha` and `/classes/hatha/`; 404 status and the 404 body for `/classes/Hatha`, `/classes/nope` and `/nope`; `/api/health` and one `/api` POST against preview or test data only; `/og-image.jpg`, `/sitemap.xml` and `/robots.txt` with the right content types.
 - **Instagram:** the section shows our own copies of her photos and links to the profile (`INSTAGRAM_URL`); no embed, API or third-party script.
 - **WhatsApp:** links go straight to `https://wa.me/<number>?text=…`; nothing passes through the backend. `WHATSAPP_ENABLED` in `src/constants/contact.ts` is the one switch for the floating button, the Contact link, the How it works call link ("Book a free 15-minute call", `CALL_PREFILL`), the class finder's "Ask Priyanshi on WhatsApp" (its prefill comes from `classFinderPrefill()` in `class-finder.ts`: fixed labels for the answers and the suggested class, never personal data; the component wraps it with `whatsappUrl()`), the membership success link "Continue on WhatsApp" (`membershipPrefill()` in `membership.ts`) and the booking-confirmation link. Prefills never carry personal data, with one explicit exception: the membership prefill includes the name the person just typed (owner-approved, Batch 3), and it's only sent if they tap the link. It never includes their email or phone. It's false in production builds until the real number replaces the placeholder, and the placeholder is compiled out of the bundle.
 
@@ -111,4 +116,5 @@ website/
 | Class full or duplicate booking | 400 with a specific message (never the existing booking token) |
 | Body too large | 413 |
 | Offline | The offline pill shows and the WhatsApp button hides (its link can't work offline). |
+| A lazy page chunk fails to load (often a deploy replaced the files) | `PageErrorBoundary` around the lazy pages' `Suspense` does one hard reload, guarded by the `yp-chunk-reload` sessionStorage flag (cleared once a page mounts), so it never loops. Any other error, or a second failure, fades the preloader and shows a calm "This page didn't load" message with a link to `/`. |
 | Email send fails | Never blocks or rolls back anything. Logged as `email_failed type=… id=…`, with no personal data. The booking screen says the email couldn't be sent. |

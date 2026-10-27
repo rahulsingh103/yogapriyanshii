@@ -152,13 +152,28 @@ All components have default, hover, focus-visible, active and disabled states. F
   - The 4 bookable classes (Hatha, Barre, Wheel, Chakra Flow) open the booking with the soonest session of that style preselected.
   - The 7 new classes (Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga) aren't on the timetable, so they open the contact pop-up with that class preset as the interest. Aerial Yoga is private sessions only: its line is "Private sessions only · on request" (no duration) and its interest is "Private Aerial Yoga".
 - A card whose source photo is small (Vinyasa today) ships only `<slug>-480.webp` (`smallImageOnly`), with no `srcset`.
+- **"Learn more"** (Batch 4a): each card sits in a wrapper (`snap-start flex flex-col gap-1`, not positioned, `data-card-slug`) that stretches to the row's height; the card button is unchanged inside it (plus `flex-1`). Under the card, a text link "Learn more" (`/classes/<slug>`, accessible name "Learn more about <Name>", 14px semibold `ink`, underline in `line-strong`, `min-h-11 px-4` so it lines up with the card text and has a 44px hit area, no press scale, `draggable={false}`). A plain click opens the class page in the app; a modifier click keeps the browser's new tab. The track's drag click-suppression covers it, so a drag that starts on it never navigates.
+
+### Class page (`/classes/<slug>`, Batch 4a)
+- One class per page, inside the same shell (header, footer, WhatsApp button and every modal). Container 1040px, `px-5 pt-24 pb-24 lg:pt-32 lg:pb-32` (on the spacing scale), `gap-8 lg:gap-12` between the back link and the grid.
+- Order: the back link "All classes" (arrow-left icon, 14px semibold `ink-soft`, `min-h-11`), then the h1 class name (Italiana `text-h2`, `tabIndex={-1}` with the class finder's quiet focus underline) with the card's benefit line under it (16px `ink-soft`), the photo, then the body.
+- Layout: stacked on phones (title, photo, body), `gap-y-12` so the title block stands apart from the body; from `lg` two columns, `grid-cols-[400px_minmax(0,1fr)] gap-x-16`: the photo on the left spanning both rows and sticky (`lg:sticky lg:top-32 lg:self-start`, no motion), title and body on the right.
+- Photo: a real photo of Priyanshi (mapping in `class-pages.ts`, replaced after the shoot), 4:5, `rounded-[18px]`, `object-position` per photo, specific alt text, `fetchpriority="high"` (it is the page's main image). The static HTML uses the same source, `sizes` and width cap (`classPhotoSizes()` / `classPhotoMaxClass()` in `class-pages.ts`). Width capped so a 480w source is never shown much past 1.5×: `max-w-[320px]` for 480-only photos, `max-w-[400px]` with `srcset` where an 800w version exists.
+- Body (`gap-12`): "Who it's for" and "About the class" (`h2` in `text-h4`, 16px `ink-soft` body, 46ch); a hairline `<dl>` in the About trust-number style (2 columns, `gap-x-4 gap-y-6`: 14px `ink-soft` label above a 16px `ink` value) with Duration (none for Aerial), Intensity, Level (the 4 timetabled classes only) and Format; "What to bring" (6 items, 5 for private Aerial, which drops the own-mat line; 6px `accent` dots, the section's one accent); notices in `ui.notice`; the class's review (if any) as a glass card like Testimonials.
+- Actions (`id="class-actions"`, under a hairline): the line ("In person in Dubai or live online. Your first class is free." / the owner's "Not on the timetable yet…" line / "Private, one-to-one sessions, arranged with Priyanshi."), then `ui.primary` ("Book a free class" for the 4 timetabled classes, otherwise "Ask about this class" or "Ask about private Aerial") and, while WhatsApp is on, `ui.secondary` "Ask Priyanshi on WhatsApp". Labels never wrap (`whitespace-nowrap`) and the row is `flex-wrap`: full width and stacked on phones, side by side from 640px, and a pill that doesn't fit drops to its own line (no text overflows from 320 to 1440px). The floating WhatsApp button hides while the actions are on screen.
+- Focus: in-app navigation scrolls to the top and focuses the h1; a direct load moves no focus. Back to home restores the carousel at the card used and focuses its "Learn more".
+- Without JavaScript the prerendered HTML shows the same content (no buttons and no WhatsApp link).
+
+### Not found (404)
+- Narrow container (640px), `pt-32 pb-24 lg:pb-32`: h1 "Page not found" (`text-h2`), one line "This page has moved or never existed.", then `ui.primary` "Back to the homepage" and `ui.secondary` "See all classes" (stacked full width on phones). Served with a 404 status and robots `noindex`. Its links go home in the app and then focus the hero's h1 or the classes heading.
+- A lazy page that fails to load (after its one automatic reload) shows the same layout: h1 "This page didn't load", one line "Please check your connection and try again in a moment." and `ui.primary` "Back to the homepage" (a plain link to `/`).
 
 ### Carousel ("Choose your practice")
 - A horizontal scroll with `scroll-snap-type: x mandatory`. Card width `min(78%, 300px)`, gap 16px.
 - Prev and next icon buttons sit at the top right (hidden on touch-only screens is fine); keyboard focusable, scrollable with the arrow keys.
 - **Motion:** touch keeps the native swipe and scroll-snap. The arrows and arrow keys glide on a critically damped spring to the exact next snap point (instant with reduced motion). With a mouse (`pointer: fine`, `cursor-grab`), the track can be dragged: 10px threshold, then 1:1; rubber-band past either end; on release the momentum is projected and it glides (slight bounce, with the release velocity) to the nearest snap. A real drag never opens a class; a plain click or tap still does. Any glide stops on a new press, grab, wheel or touch.
 - The 11 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga. The durations of the new classes are placeholders until Priyanshi confirms them.
-- Photos: Vinyasa (crow), Ashtanga (Burj forearm stand) and Aerial (the original window photo, with a light grade: blues about 25% less saturated and slightly warmer, the silk keeps its blue) are real; the other 8 are AI placeholders until the photo shoot.
+- Photos: Vinyasa (crow), Ashtanga (Burj forearm stand) and Aerial (the original window photo, with a light grade: blues about 25% less saturated and slightly warmer, the silk keeps its blue) are real; the other 8 are AI placeholders until the photo shoot. The class pages use real photos only.
 
 ### Header / navigation
 - Wordmark "YogaPriyanshi" (Italiana 24px) on the left. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
@@ -281,7 +296,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 
 **Text budget, to avoid clutter:**
 - Each section has **one heading, at most one line of body (about 15 words) and at most one button.**
-- Longer content (class details, chakra knowledge, policies) goes on its own page or behind a tap, never on the homepage.
+- Longer content (class details, chakra knowledge, policies) goes on its own page or behind a tap, never on the homepage. Class details now live on the class pages (`/classes/<slug>`), reached from each card's "Learn more".
 
 **Homepage order:**
 1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class], with the line "Not sure? Take the 30-second quiz" under it (an underlined text link, 16px like the subtitle, no pill or press, `wf-after` after the button; owner request 2026-10-25).
@@ -402,7 +417,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (112 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (133 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

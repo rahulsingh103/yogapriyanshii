@@ -20,6 +20,7 @@ These are the security policies for this codebase. This repo is **public**, so k
 11. **Headers:** Content-Security-Policy, X-Frame-Options/frame-ancestors, Referrer-Policy and HSTS, via `vercel.json`.
 12. **Dependencies:** run `npm audit` before every release. No source maps on live.
 13. **SSRF:** the server never fetches a user-supplied URL.
+14. **Unpublished content:** article drafts live outside the repo (`content-drafts/`, in the workspace) and are never committed, built, tested against, quoted in docs or screenshots, or put in commit messages. The build never reads the drafts folder, and spec 14 proves it with a canary draft: the canary, `__drafts` and `content-drafts` must appear nowhere in the build output. Unknown paths (including `/guides`, `/drafts/*` and `/__drafts/*`) answer 404.
 
 ## Environment variables
 

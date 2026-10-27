@@ -6,6 +6,8 @@ import { WhatsAppGlyph } from './WhatsAppGlyph';
 interface WhatsAppChatProps {
   /** True while a modal sheet or the mobile menu is open. */
   hidden: boolean;
+  /** Changes once a new page has mounted, so the sections are looked up again. */
+  pageKey?: number | null;
 }
 
 const SPRING = { type: 'spring', bounce: 0, duration: 0.3 } as const;
@@ -27,16 +29,17 @@ function useOnline() {
   return online;
 }
 
-/** Sections with their own WhatsApp link: How it works (the call link) and Contact (the pill). */
-const OWN_LINK_SECTIONS = ['how-it-works', 'contact'];
+/** Sections with their own WhatsApp link: How it works (the call link), Contact (the pill) and a class page's actions. */
+const OWN_LINK_SECTIONS = ['how-it-works', 'contact', 'class-actions'];
 
 /**
  * True while any of those sections is on screen (the same IntersectionObserver pattern as
  * StickyBookBar), so the floating button steps aside and two WhatsApp links never show together.
  */
-function useOwnLinkSectionInView() {
+function useOwnLinkSectionInView(pageKey: number | null | undefined) {
   const [inView, setInView] = useState(false);
   useEffect(() => {
+    setInView(false); // the last page's sections are gone
     const targets = OWN_LINK_SECTIONS.map((id) => document.getElementById(id)).filter(
       (el): el is HTMLElement => el !== null
     );
@@ -48,7 +51,7 @@ function useOwnLinkSectionInView() {
     });
     targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [pageKey]);
   return inView;
 }
 
@@ -58,9 +61,9 @@ function useOwnLinkSectionInView() {
  * sticky book bar. Hidden while a modal or the menu is open, while How it works or Contact (each with its own
  * WhatsApp link) is on screen, and while offline. Render it only when WHATSAPP_ENABLED.
  */
-export function WhatsAppChat({ hidden }: WhatsAppChatProps) {
+export function WhatsAppChat({ hidden, pageKey }: WhatsAppChatProps) {
   const online = useOnline();
-  const sectionInView = useOwnLinkSectionInView();
+  const sectionInView = useOwnLinkSectionInView(pageKey);
   const reduceMotion = useReducedMotion();
   const visible = !hidden && online && !sectionInView;
 

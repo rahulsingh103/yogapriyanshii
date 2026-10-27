@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { useLenis } from 'lenis/react';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { Menu } from '@/components/animate-ui/icons/menu';
 import { X } from '@/components/animate-ui/icons/x';
 import { cn } from '@/lib/utils';
+import { isPlainClick } from '@/hooks/use-route';
 
 interface HeaderProps {
   onOpenBooking: () => void;
@@ -12,6 +13,10 @@ interface HeaderProps {
   onOpenAdmin: () => void;
   /** Tells App when the mobile menu opens or closes (the WhatsApp button hides behind it). */
   onMenuOpenChange?: (open: boolean) => void;
+  /** False on a class page or the 404: the section links then go home first. */
+  isHome?: boolean;
+  /** Goes home in the app, then to the section (top of the page without one). */
+  onNavigateHome?: (sectionId?: string) => void;
 }
 
 const LINKS = [
@@ -21,7 +26,7 @@ const LINKS = [
   { href: '#contact', label: 'Contact' },
 ] as const;
 
-export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenChange }: HeaderProps) {
+export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenChange, isHome = true, onNavigateHome }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const lenis = useLenis();
@@ -107,10 +112,25 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
     };
   }, [menuOpen, lenis]);
 
-  // Restart Lenis before the anchor click reaches it, so it can scroll to the section.
+  // Restart Lenis before the anchor click reaches it, so it can scroll to the section. The link is about
+  // to unmount with the overlay, so focus goes back to the toggle (off home, App then moves it on to the
+  // section's heading once home has rendered).
   const closeForLink = () => {
     lenis?.start();
+    toggleRef.current?.focus({ preventScroll: true });
     setMenuOpen(false);
+  };
+
+  // Off home, "#schedule" becomes "/#schedule" and the click goes home in the app, then to the section.
+  // On home nothing changes: Lenis's anchor handling scrolls as before.
+  const hrefFor = (hash: string) => (isHome ? hash : `/${hash}`);
+  const goHome = (hash: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    if (isHome || !onNavigateHome || !isPlainClick(e)) return;
+    e.preventDefault();
+    // Lenis (anchors: true) listens on window: it must not start its own smooth scroll to "/#id".
+    e.stopPropagation();
+    const id = hash.slice(1);
+    onNavigateHome(id === 'home' ? undefined : id);
   };
 
   const closeThen = (action: () => void) => () => {
@@ -137,7 +157,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
           )}
         />
         <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
-          <a ref={logoRef} href="#home" className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
+          <a ref={logoRef} href={isHome ? '#home' : '/'} onClick={goHome('#home')} className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
             YogaPriyanshi
           </a>
 
@@ -145,7 +165,8 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
             {LINKS.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={hrefFor(link.href)}
+                onClick={goHome(link.href)}
                 className="inline-flex items-center min-h-11 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200"
               >
                 {link.label}
@@ -201,8 +222,11 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
                   <a
                     key={link.href}
                     ref={i === 0 ? firstLinkRef : undefined}
-                    href={link.href}
-                    onClick={closeForLink}
+                    href={hrefFor(link.href)}
+                    onClick={(e) => {
+                      closeForLink();
+                      goHome(link.href)(e);
+                    }}
                     className="font-display text-[34px] leading-tight text-ink hover:text-accent-text transition-colors duration-200 px-4 py-1"
                   >
                     {link.label}

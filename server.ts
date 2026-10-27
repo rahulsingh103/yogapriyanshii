@@ -29,11 +29,19 @@ async function startServer() {
     });
     app.use(vite.middlewares);
 
+    // The same pure transform the build uses (src/lib/route-html.ts), so dev and tests serve each route's
+    // own head and static content, and unknown paths get a real 404 (DESIGN_SYSTEM "Not found").
+    const { resolveRoute } = await import('./src/lib/route.ts');
+    const { applyRoute, isNotFound } = await import('./src/lib/route-html.ts');
+
     app.use('*', async (req: Request, res: Response, next: NextFunction) => {
       try {
+        const route = resolveRoute(new URL(req.originalUrl, 'http://x').pathname);
         let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
-        template = await vite.transformIndexHtml(req.originalUrl, template);
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        // Always transformed as '/', so every route gets exactly the home HTML before applyRoute.
+        template = await vite.transformIndexHtml('/', template);
+        const html = applyRoute(template, route);
+        res.status(isNotFound(route) ? 404 : 200).set({ 'Content-Type': 'text/html' }).end(html);
       } catch (e) {
         vite.ssrFixStacktrace(e as Error);
         next(e);
@@ -41,10 +49,30 @@ async function startServer() {
     });
   } else {
     const distPath = path.resolve(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(distPath, 'index.html'));
+    // The prerendered class pages (vite.config.ts) are the known list: dist/classes/<slug>/index.html.
+    const classesDir = path.resolve(distPath, 'classes');
+    const classSlugs = new Set(
+      fs.existsSync(classesDir)
+        ? fs
+            .readdirSync(classesDir)
+            .filter((slug) => /^[a-z0-9-]{1,60}$/.test(slug) && fs.existsSync(path.resolve(classesDir, slug, 'index.html')))
+        : []
+    );
+    const notFound = (res: Response) => res.status(404).sendFile(path.resolve(distPath, '404.html'));
+
+    // Slugs match exactly, also on case-insensitive disks (/classes/Hatha is a 404, never the Hatha page).
+    app.use('/classes', (req: Request, res: Response, next: NextFunction) => {
+      const slug = req.path.split('/')[1];
+      if (slug && !classSlugs.has(slug)) return notFound(res);
+      next();
     });
+    // index: 'index.html' (serve-static wants the file name; `true` is refused) serves /classes/<slug>/ from its folder.
+    app.use(express.static(distPath, { redirect: false, index: 'index.html' }));
+    app.get('/classes/:slug', (req: Request, res: Response, next: NextFunction) => {
+      if (!classSlugs.has(req.params.slug)) return next();
+      res.sendFile(path.resolve(classesDir, req.params.slug, 'index.html'));
+    });
+    app.get('*', (_req: Request, res: Response) => notFound(res));
   }
 
   app.listen(PORT, '0.0.0.0', () => {

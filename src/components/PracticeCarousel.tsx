@@ -5,12 +5,16 @@ import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { DRAG_THRESHOLD, project, recordSample, releaseVelocity, rubberBand, type Sample } from '@/lib/gesture';
 import { PRACTICE_CLASSES, type PracticeClass } from '../constants/classes';
+import { isPlainClick } from '../hooks/use-route';
+import { classPath } from '../lib/route';
 import { FindClassLink } from './FindClassLink';
 import { Reveal } from './Reveal';
 
 interface PracticeCarouselProps {
   onSelectClass: (practice: PracticeClass) => void;
   onOpenClassFinder: () => void;
+  /** "Learn more": the class page, in the app (no reload). */
+  onLearnMore: (practice: PracticeClass) => void;
 }
 
 const ICON_BUTTON =
@@ -37,7 +41,7 @@ const nearest = (offsets: number[], x: number) =>
  * at the ends, momentum projected to a snap). Any glide can be interrupted by a new press, a grab,
  * a wheel or a touch.
  */
-export function PracticeCarousel({ onSelectClass, onOpenClassFinder }: PracticeCarouselProps) {
+export function PracticeCarousel({ onSelectClass, onOpenClassFinder, onLearnMore }: PracticeCarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const glideRef = useRef<{ controls: AnimationPlaybackControls; target: number; lastSet: number } | null>(null);
@@ -297,12 +301,15 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder }: PracticeC
           className="practice-track [@media(pointer:fine)]:cursor-grab data-[dragging]:cursor-grabbing grid grid-flow-col auto-cols-[min(78%,300px)] gap-4 overflow-x-auto snap-x snap-mandatory pt-2 pb-3 rounded-[18px]"
         >
           {PRACTICE_CLASSES.map((practice, i) => (
+            // The wrapper snaps and stretches to the row's height; the card button inside is unchanged.
+            // "Learn more" sits under it (a link can't live inside a button), and the track's
+            // onClickCapture swallows its click after a drag, as it does for the card.
+            <div key={practice.name} data-card-slug={practice.slug} className="snap-start flex flex-col gap-1 min-w-0">
             <button
-              key={practice.name}
               type="button"
               data-testid="practice-card"
               onClick={() => onSelectClass(practice)}
-              className="card-lift [@media(pointer:fine)]:cursor-grab focus-visible:outline-offset-[-3px] snap-start grid grid-rows-[auto_1fr] min-w-0 text-left bg-glass backdrop-blur-[8px] rounded-[18px] overflow-hidden transition-transform duration-500 ease-spring hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="card-lift [@media(pointer:fine)]:cursor-grab focus-visible:outline-offset-[-3px] snap-start flex-1 grid grid-rows-[auto_1fr] min-w-0 text-left bg-glass backdrop-blur-[8px] rounded-[18px] overflow-hidden transition-transform duration-500 ease-spring hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               <img
                 src={`/media/images/practice/${practice.image}-480.webp`}
@@ -326,6 +333,20 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder }: PracticeC
                 <p className="text-sm leading-[1.5] text-ink-soft">{practice.line}</p>
               </div>
             </button>
+            <a
+              href={classPath(practice.slug)}
+              draggable={false}
+              aria-label={`Learn more about ${practice.name}`}
+              onClick={(e) => {
+                if (!isPlainClick(e)) return; // a new tab or window keeps the browser's own behaviour
+                e.preventDefault();
+                onLearnMore(practice);
+              }}
+              className="self-start inline-flex items-center min-h-11 px-4 text-sm font-semibold text-ink underline underline-offset-4 decoration-line-strong hover:decoration-ink transition-colors duration-200 focus-visible:outline-offset-[-3px] [@media(pointer:fine)]:cursor-pointer"
+            >
+              Learn more
+            </a>
+            </div>
           ))}
         </div>
       </Reveal>
