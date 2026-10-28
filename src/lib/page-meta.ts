@@ -36,6 +36,8 @@ export const NOT_FOUND_META: PageMeta = {
   noindex: true,
 };
 
+// The Guides metas (GUIDES_META, articleMeta, DRAFT_META) are in article-meta.ts, outside the homepage bundle.
+
 export const absoluteUrl = (path: string) => `${SITE_URL}${path}`;
 
 const escapeAttr = (s: string) =>

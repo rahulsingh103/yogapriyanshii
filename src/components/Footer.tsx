@@ -1,6 +1,8 @@
 import type { MouseEvent } from 'react';
 import { Instagram } from 'lucide-react';
 import { INSTAGRAM_URL } from '@/constants/contact';
+import { PUBLISHED_ARTICLES } from '@/content/articles';
+import { GUIDES_PATH } from '@/lib/route';
 import { isPlainClick } from '@/hooks/use-route';
 
 interface FooterProps {
@@ -9,12 +11,20 @@ interface FooterProps {
   /** False on a class page or the 404: the wordmark then goes home in the app. */
   isHome?: boolean;
   onNavigateHome?: (sectionId?: string) => void;
+  /** In-app navigation (the Guides link). */
+  onNavigate?: (path: string) => void;
 }
 
 const QUIET_BUTTON =
   'inline-flex items-center min-h-11 text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft hover:text-ink transition-colors duration-200';
 
-export function Footer({ onOpenCancel, onOpenAdmin, isHome = true, onNavigateHome }: FooterProps) {
+export function Footer({ onOpenCancel, onOpenAdmin, isHome = true, onNavigateHome, onNavigate }: FooterProps) {
+  const goGuides = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (!onNavigate || !isPlainClick(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    onNavigate(GUIDES_PATH);
+  };
   const goHome = (e: MouseEvent<HTMLAnchorElement>) => {
     if (isHome || !onNavigateHome || !isPlainClick(e)) return;
     e.preventDefault();
@@ -43,6 +53,12 @@ export function Footer({ onOpenCancel, onOpenAdmin, isHome = true, onNavigateHom
           </div>
 
           <div className="flex flex-col items-start sm:items-end gap-1">
+            {/* Only once an article is published: until then there is no public Guides page. */}
+            {PUBLISHED_ARTICLES.length > 0 && (
+              <a href={GUIDES_PATH} onClick={goGuides} className={QUIET_BUTTON}>
+                Guides
+              </a>
+            )}
             <button type="button" onClick={onOpenCancel} className={QUIET_BUTTON}>
               Manage booking
             </button>

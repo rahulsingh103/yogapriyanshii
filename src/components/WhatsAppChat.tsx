@@ -29,8 +29,8 @@ function useOnline() {
   return online;
 }
 
-/** Sections with their own WhatsApp link: How it works (the call link), Contact (the pill) and a class page's actions. */
-const OWN_LINK_SECTIONS = ['how-it-works', 'contact', 'class-actions'];
+/** Sections with their own WhatsApp link or actions: How it works (the call link), Contact (the pill), a class page's and an article's actions. */
+const OWN_LINK_SECTIONS = ['how-it-works', 'contact', 'class-actions', 'article-actions'];
 
 /**
  * True while any of those sections is on screen (the same IntersectionObserver pattern as

@@ -4,7 +4,7 @@ import path from 'path';
 import zlib from 'zlib';
 import { spawnSync } from 'child_process';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { test, expect, bookingModal } from './helpers';
+import { test, expect, bookingModal, classFinder } from './helpers';
 // Pure data modules (relative imports, no import.meta.env), so the tests check against the source of truth.
 import { PRACTICE_CLASSES } from '../src/constants/classes';
 import {
@@ -15,6 +15,10 @@ import {
   classPagePrefill,
 } from '../src/constants/class-pages';
 import type { ClassName } from '../src/constants/class-finder';
+import { isSafeHref, itemText, parseArticle, splitFrontMatter } from '../src/lib/article-md';
+import { readPublishedArticles } from '../src/lib/article-files';
+import { applyRoute } from '../src/lib/route-html';
+import { resolveRoute } from '../src/lib/route';
 
 /**
  * Homepage gzip total at 0d64302 (before Batch 4a): the built index.html was parsed for its entry
@@ -39,6 +43,10 @@ const decode = (s: string) =>
 /** No video tool, former studio, private email or old schedule line, anywhere. */
 const FACTS_GUARD = /zoom|lifestyle yoga|gmail|mats and props/i;
 const WORDING_GUARD = /\b(cures?|treat(s|ment)?|heal(s|ed|ing)?|guarantee[sd]?|prevents?)\b|safe for/i;
+/** The drafts (outside the repo). Tests read them only to lint them; their text never enters the repo. */
+const DRAFTS_DIR = path.resolve('..', 'content-drafts', 'articles');
+/** Synthetic lorem fixture for the article view (P9): no draft text and no health claims. */
+const FIXTURE = path.join('e2e', 'fixtures', 'article.md');
 
 async function soonest(request: APIRequestContext, style: string) {
   const { sessions } = await (await request.get('/api/schedule')).json();
@@ -423,6 +431,250 @@ test('screenshots at 1024, 1280 and 375', async ({ browser }) => {
   }
 });
 
+// ---- Part B (Batch 4b): the hidden article pipeline. Synthetic lorem text only. ----
+
+test.describe('articles (hidden)', () => {
+  test('the parser returns plain blocks, keeps only https links and rejects bad front matter', () => {
+    const article = parseArticle(fs.readFileSync(FIXTURE, 'utf-8'));
+    expect(article.meta).toEqual({
+      title: 'Lorem ipsum dolor sit amet',
+      description: 'Consectetur adipiscing elit, sed do eiusmod tempor incididunt.',
+      status: 'draft',
+      reviewedBy: '',
+      published: null,
+      action: 'book',
+      interest: null,
+    });
+    expect(article.blocks.map((b) => b.kind)).toEqual([
+      'paragraph', 'heading', 'paragraph', 'list', 'heading', 'paragraph', 'heading', 'list',
+    ]);
+    const links = article.blocks.flatMap((b) =>
+      b.kind === 'paragraph' ? b.inlines : b.kind === 'list' ? b.items.flatMap((it) => it.inlines) : []
+    ).filter((i) => i.kind === 'link');
+    expect(links.map((l) => (l.kind === 'link' ? l.href : ''))).toEqual(['https://example.com/lorem', 'https://example.com/source']);
+    // The javascript: and http: links keep their words as text, without a URL; a leading "Label:" or
+    // "**Label.**" becomes the item's label.
+    const list = article.blocks[3];
+    expect(list.kind === 'list' && list.items.map((it) => it.label)).toEqual(['Irure dolor:', null, 'Fugiat.']);
+    expect(list.kind === 'list' && list.items.map(itemText)).toEqual([
+      'Irure dolor: in reprehenderit',
+      'Voluptate velit esse cillum dolore',
+      'Fugiat. nulla pariatur',
+    ]);
+    // "## Sources" marks its heading and list; a source never gets a label, even with a colon.
+    const sourcesHeading = article.blocks[6];
+    const sources = article.blocks[7];
+    expect(sourcesHeading.kind === 'heading' && sourcesHeading.sources).toBe(true);
+    expect(list.kind === 'list' && list.sources).toBe(false);
+    expect(sources.kind === 'list' && sources.sources && sources.items.every((it) => it.label === null)).toBe(true);
+    expect(isSafeHref('https://example.com')).toBe(true);
+    for (const bad of ['http://example.com', 'javascript:alert(1)', '//example.com', 'data:text/html,x', 'https//x'])
+      expect(isSafeHref(bad), bad).toBe(false);
+    expect(() => parseArticle('no front matter')).toThrow();
+    expect(() => parseArticle('---\ntitle: Lorem\n---\n')).toThrow(/description/);
+    expect(() => parseArticle('---\ntitle: Lorem\ndescription: Ipsum\nstatus: live\n---\n')).toThrow(/status/);
+    // A bad line is named by its number, never by its text.
+    let message = '';
+    try {
+      parseArticle('---\ntitle: Lorem\nsit amet consectetur\n---\n');
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toMatch(/line 3/);
+    expect(message).not.toContain('consectetur');
+    // `action: ask` needs a known contact interest; `interest` alone is refused.
+    const head = '---\ntitle: Lorem\ndescription: Ipsum\nstatus: draft\n';
+    expect(parseArticle(`${head}action: ask\ninterest: Yin Yoga\n---\n`).meta).toMatchObject({ action: 'ask', interest: 'Yin Yoga' });
+    expect(() => parseArticle(`${head}action: ask\n---\n`)).toThrow(/interest/);
+    expect(() => parseArticle(`${head}action: ask\ninterest: Lorem ipsum\n---\n`)).toThrow(/contact interests/);
+    expect(() => parseArticle(`${head}interest: Yin Yoga\n---\n`)).toThrow(/only for action: ask/);
+    expect(() => parseArticle(`${head}action: call\n---\n`)).toThrow(/action/);
+  });
+
+  test('only approved articles can ship, and a published one prerenders escaped, with its own head', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'yp-articles-'));
+    try {
+      expect(readPublishedArticles(path.join(tmp, 'missing'))).toEqual([]);
+      const md = fs.readFileSync(FIXTURE, 'utf-8');
+      fs.writeFileSync(path.join(tmp, 'lorem-ipsum.md'), md);
+      // status: draft, no date, no reviewer: the build would fail.
+      expect(() => readPublishedArticles(tmp)).toThrow(/published/);
+      const approved = md.replace('status: draft', 'status: published\npublished: 2026-01-01').replace('reviewedBy:', 'reviewedBy: Lorem');
+      fs.writeFileSync(path.join(tmp, 'lorem-ipsum.md'), approved);
+      // Approved, but its sources are still unverified: the build would fail too.
+      expect(() => readPublishedArticles(tmp)).toThrow(/unverified sources/);
+      fs.writeFileSync(path.join(tmp, 'lorem-ipsum.md'), approved.replace(/ \(link to verify\)/g, '').replace(/URL to confirm/g, ''));
+      expect(() => readPublishedArticles(tmp)).not.toThrow();
+      fs.writeFileSync(path.join(tmp, 'lorem-ipsum.md'), approved.replace(/ \(link to verify\)/g, '').replace(/URL to confirm/g, '').concat('\nURL to confirm\n'));
+      expect(() => readPublishedArticles(tmp)).toThrow(/unverified sources/);
+      fs.writeFileSync(path.join(tmp, 'lorem-ipsum.md'), approved.replace(/ \(link to verify\)/g, '').replace(/URL to confirm/g, ''));
+      const [only] = readPublishedArticles(tmp);
+      expect(only.slug).toBe('lorem-ipsum');
+
+      const route = resolveRoute('/guides/lorem-ipsum', { publishedArticles: ['lorem-ipsum'] });
+      expect(route).toEqual({ kind: 'article', slug: 'lorem-ipsum' });
+      expect(resolveRoute('/guides', { publishedArticles: ['lorem-ipsum'] })).toEqual({ kind: 'guides' });
+      expect(resolveRoute('/guides')).toEqual({ kind: 'notFound' });
+      expect(resolveRoute('/guides/lorem-ipsum')).toEqual({ kind: 'notFound' });
+      expect(resolveRoute('/drafts/lorem-ipsum')).toEqual({ kind: 'notFound' });
+
+      const home = [
+        '<html><head>',
+        '  <!-- seo:start -->',
+        '  <title>x</title>',
+        '  <!-- seo:end -->',
+        '</head><body><div id="root"></div></body></html>',
+      ].join('\n');
+      const html = applyRoute(home, route, { article: only.article });
+      expect(h1(html)).toBe('Lorem ipsum dolor sit amet');
+      expect(decode(attr(html, /<title>([^<]*)<\/title>/) ?? '')).toBe('Lorem ipsum dolor sit amet · YogaPriyanshi');
+      expect(canonical(html)).toBe(`${SITE}/guides/lorem-ipsum`);
+      expect(html).toContain('&lt;script&gt;');
+      expect(html).not.toContain('<script>alert');
+      expect(html).not.toMatch(/href="(javascript|http):/);
+      expect(html).toContain('href="https://example.com/lorem" target="_blank" rel="noopener noreferrer"');
+      expect(html).toContain('<span class="sr-only"> (opens in a new tab)</span>');
+      expect(html).toMatch(/<a href="\/guides" class="[^"]*min-h-11[^"]*">All guides<\/a>/);
+      expect(html).toContain('<span class="font-medium text-ink">Irure dolor: </span>');
+      const index = applyRoute(home, { kind: 'guides' }, { guides: [{ slug: only.slug, meta: only.article.meta }] });
+      expect(index).toContain('href="/guides/lorem-ipsum"');
+      expect(canonical(index)).toBe(`${SITE}/guides`);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  test('the article view renders the synthetic fixture on the test-only page', async ({ page, request }) => {
+    const res = await request.get('/__test/article');
+    expect(res.status()).toBe(200);
+    expect(res.headers()['x-robots-tag']).toBe('noindex');
+    expect(await res.text()).toContain('<meta name="robots" content="noindex" />');
+    const md = await request.get('/__test/article.md');
+    expect(md.headers()['cache-control']).toBe('no-store');
+
+    await page.goto('/__test/article');
+    await settled(page);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lorem ipsum dolor sit amet');
+    const banner = page.getByTestId('draft-banner');
+    await expect(banner).toHaveText('Draft, not published. Not yet reviewed by Priyanshi.');
+    expect(await banner.getAttribute('role')).toBeNull();
+    await expect(page).toHaveTitle('Draft preview · YogaPriyanshi');
+    const body = page.getByTestId('article-body');
+    await expect(body.getByRole('heading', { level: 2 })).toHaveText(['Ut enim ad minim', 'Excepteur sint', 'Sources']);
+    await expect(body.locator('li')).toHaveCount(5);
+    // Text, never markup: the script tag shows as words and never runs.
+    await expect(body).toContainText("<script>alert('x')</script>");
+    expect(await body.locator('script').count()).toBe(0);
+    const hrefs = await body.locator('a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+    expect(hrefs).toEqual(['https://example.com/lorem', 'https://example.com/source']);
+    const link = body.getByRole('link', { name: 'a safe link (opens in a new tab)' });
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', /noopener/);
+    // A bullet's label is in ink; the Sources list is smaller and has no accent dots.
+    await expect(body.locator('li span.font-medium.text-ink').first()).toHaveText('Irure dolor:');
+    const sources = page.getByTestId('article-sources');
+    await expect(sources.locator('li')).toHaveCount(2);
+    await expect(sources).toHaveClass(/\btext-sm\b/);
+    expect(await sources.locator('.bg-accent').count()).toBe(0);
+    expect(await sources.locator('span.font-medium').count()).toBe(0);
+
+    const actions = page.locator('#article-actions');
+    await actions.getByRole('button', { name: 'Book a free class' }).click();
+    await expect(bookingModal(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(bookingModal(page)).toHaveCount(0);
+    await actions.getByRole('button', { name: 'Take the 30-second quiz' }).click();
+    await expect(classFinder(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(classFinder(page)).toHaveCount(0);
+
+    // `action: ask`: the class pages' on-request pattern, opening Contact with the article's interest.
+    const asked = fs
+      .readFileSync(FIXTURE, 'utf-8')
+      .replace('reviewedBy:\n', 'reviewedBy:\naction: ask\ninterest: Yin Yoga\n');
+    await page.route('**/__test/article.md', (r) => r.fulfill({ status: 200, contentType: 'text/plain', body: asked }));
+    await page.goto('/__test/article');
+    await settled(page);
+    await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
+    await expect(actions.getByRole('button', { name: 'Book a free class' })).toHaveCount(0);
+    await expect(actions.getByRole('button', { name: 'Take the 30-second quiz' })).toBeVisible();
+    await actions.getByRole('button', { name: 'Ask about this class' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Send a message' });
+    await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Yin Yoga');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await page.unroute('**/__test/article.md');
+
+    // Draft previews are off in this server (no SHOW_DRAFTS): the routes stay 404s.
+    for (const p of ['/drafts/first-yoga-class', '/__drafts/first-yoga-class', '/guides/first-yoga-class']) {
+      expect((await request.get(p)).status(), p).toBe(404);
+    }
+  });
+
+  test.describe('article view at 375px', () => {
+    test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    test('no overflow, 44px controls', async ({ page }) => {
+      await page.goto('/__test/article');
+      await settled(page);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+      // Inline text links are exempt (WCAG 2.5.8); the back link and the buttons are not.
+      const small = await page.locator('main').evaluate((main) =>
+        [...main.querySelectorAll<HTMLElement>('button, article > a, #article-actions a')]
+          .map((el) => ({ el, r: el.getBoundingClientRect() }))
+          .filter(({ r }) => r.width > 0 && (r.width < 44 || r.height < 44))
+          .map(({ el }) => el.textContent)
+      );
+      expect(small).toEqual([]);
+    });
+  });
+});
+
+// Lints the real drafts in the workspace (outside the repo). Skipped when the folder isn't there (CI, a fresh clone).
+// Every assertion is on a boolean or a number, so a failure never prints draft text into the test report.
+test('drafts lint: length, sources, links and wording', () => {
+  test.skip(!fs.existsSync(DRAFTS_DIR), 'no content-drafts folder');
+  const files = fs.readdirSync(DRAFTS_DIR).filter((f) => f.endsWith('.md'));
+  expect(files.length).toBeGreaterThanOrEqual(4);
+  for (const f of files) {
+    const md = fs.readFileSync(path.join(DRAFTS_DIR, f), 'utf-8');
+    // A parse error is reported as a boolean, so its message can never carry draft text.
+    let article: ReturnType<typeof parseArticle> | null = null;
+    try {
+      article = parseArticle(md);
+    } catch {
+      article = null;
+    }
+    expect(article !== null, `${f}: parses`).toBe(true);
+    expect(article!.meta.status === 'draft', `${f}: status is draft`).toBe(true);
+    expect(article!.meta.reviewedBy === '', `${f}: reviewedBy is empty`).toBe(true);
+    const { body } = splitFrontMatter(md);
+    // Like `wc -w` on everything under the front matter.
+    const words = body.split(/\s+/).filter(Boolean).length;
+    expect(words >= 600 && words <= 900, `${f}: ${words} words`).toBe(true);
+    const [prose, sources, ...extra] = body.split(/^## Sources\s*$/m);
+    expect(sources !== undefined && extra.length === 0, `${f}: one "## Sources" section`).toBe(true);
+    expect(/^#\s/m.test(body), `${f}: no h1 in the body`).toBe(false);
+    const items = sources.split('\n').filter((l) => l.startsWith('- '));
+    expect(items.length >= 2, `${f}: ${items.length} sources`).toBe(true);
+    for (const [i, item] of items.entries()) {
+      expect(item.includes('(link to verify)'), `${f}: source ${i + 1} is marked "(link to verify)"`).toBe(true);
+      const hrefs = [...item.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]);
+      expect(hrefs.length > 0 || item.includes('URL to confirm'), `${f}: source ${i + 1} has a link or "URL to confirm"`).toBe(true);
+    }
+    // Every link anywhere is https; never a DOI (none may be invented).
+    const allHrefs = [...md.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]);
+    expect(allHrefs.every(isSafeHref), `${f}: every link is https`).toBe(true);
+    expect(/doi\.org|\b10\.\d{4,9}\//i.test(md), `${f}: no DOI`).toBe(false);
+    // The wording guard covers the article itself and skips "## Sources", so the publications' titles
+    // stay exact (owner decision, round 3 review item 18; docs/TESTING.md).
+    expect(WORDING_GUARD.test(prose.replace(/Spine Healing/g, '')), `${f}: wording guard`).toBe(false);
+    expect(FACTS_GUARD.test(md), `${f}: facts guard`).toBe(false);
+    expect(/postnatal (yoga )?(training|trained)|trained in postnatal/i.test(md), `${f}: no postnatal training claim`).toBe(false);
+  }
+});
+
 // Last on purpose (P11): a full production build into a temp folder, with draft previews switched on and a canary draft.
 test('build guarantees: pages, 404, sitemap, no draft text, home size and code split', async () => {
   test.setTimeout(240_000);
@@ -431,7 +683,11 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
   const drafts = path.join(tmp, 'drafts');
   const canary = `CANARY-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   fs.mkdirSync(drafts);
-  fs.writeFileSync(path.join(drafts, 'canary-draft.md'), `---\ntitle: ${canary} title\nstatus: draft\n---\n\n${canary} body.\n`);
+  // A well-formed draft, so nothing but the build's design keeps it out.
+  fs.writeFileSync(
+    path.join(drafts, 'canary-draft.md'),
+    `---\ntitle: ${canary} title\ndescription: ${canary} description\nstatus: published\npublished: 2026-01-01\nreviewedBy: ${canary}\n---\n\n${canary} body.\n`
+  );
   try {
     const build = spawnSync('npx', ['vite', 'build', '--outDir', out, '--emptyOutDir'], {
       env: { ...process.env, SHOW_DRAFTS: '1', DRAFTS_DIR: drafts },
@@ -451,20 +707,35 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
     walk(out);
     // Real drafts (outside the repo) must never reach the build either.
     const realDrafts = path.resolve('..', 'content-drafts', 'articles');
-    const secrets = [canary, '__drafts', 'content-drafts'];
+    // The dev-only preview code (P7) and the test fixture must be compiled out too.
+    const secrets: Array<[string, string]> = [
+      ['the canary', canary],
+      ['__drafts', '__drafts'],
+      ['content-drafts', 'content-drafts'],
+      ['the yp-drafts flag', 'yp-drafts'],
+      ['the draft banner', 'Draft, not published'],
+      ['the test page', '__test/article'],
+      ['the test fixture title', parseArticle(fs.readFileSync(FIXTURE, 'utf-8')).meta.title],
+    ];
+    let realCount = 0;
     if (fs.existsSync(realDrafts)) {
       for (const f of fs.readdirSync(realDrafts).filter((n) => n.endsWith('.md'))) {
-        const md = fs.readFileSync(path.join(realDrafts, f), 'utf-8');
-        const title = md.match(/^title:\s*(.+)$/m)?.[1]?.trim();
-        const para = md.split(/\n---\n/)[1]?.split(/\n\n/).map((s) => s.trim()).find((s) => s && !s.startsWith('#'));
-        if (title) secrets.push(title.replace(/^["']|["']$/g, ''));
-        if (para) secrets.push(para.slice(0, 80));
+        const { meta, blocks } = parseArticle(fs.readFileSync(path.join(realDrafts, f), 'utf-8'));
+        const first = blocks.find((b) => b.kind === 'paragraph');
+        secrets.push([`${f} title`, meta.title], [`${f} description`, meta.description]);
+        if (first?.kind === 'paragraph') secrets.push([`${f} first paragraph`, first.inlines.map((i) => i.text).join('').slice(0, 80)]);
+        realCount++;
       }
     }
+    console.log(`build guarantee: ${secrets.length} strings checked (${realCount} real drafts) across ${files.length} files`);
     for (const f of files) {
       const text = fs.readFileSync(f, 'utf-8');
-      for (const s of secrets) expect(text.includes(s), `${s.slice(0, 30)} in ${path.relative(out, f)}`).toBe(false);
+      // Labels only in the message, so a failure never prints draft text.
+      for (const [label, s] of secrets) expect(text.includes(s), `${label} in ${path.relative(out, f)}`).toBe(false);
     }
+    // No guides are published, so none are built, and the preview component has no chunk.
+    expect(fs.existsSync(path.join(out, 'guides'))).toBe(false);
+    expect(fs.readdirSync(path.join(out, 'assets')).some((n) => /^DraftPreview/.test(n))).toBe(false);
 
     for (const cls of PRACTICE_CLASSES) {
       const html = fs.readFileSync(path.join(out, 'classes', cls.slug, 'index.html'), 'utf-8');
@@ -507,7 +778,17 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
       expect(js.includes(CLASS_PAGE_ON_REQUEST_LINE), url).toBe(false);
     }
     const lazy = fs.readdirSync(path.join(out, 'assets')).find((f) => /^ClassPage-.+\.js$/.test(f))!;
-    expect(fs.readFileSync(path.join(out, 'assets', lazy), 'utf-8')).toContain(CLASS_PAGE_ON_REQUEST_LINE);
+    expect(fs.readFileSync(path.join(out, 'assets', lazy), 'utf-8')).toContain(sentence);
+    // The owner's on-request line is shared with on-request articles (src/constants/on-request.ts): a lazy
+    // chunk that the class pages preload, never one the homepage loads.
+    const lineChunk = fs
+      .readdirSync(path.join(out, 'assets'))
+      .filter((f) => f.endsWith('.js'))
+      .find((f) => fs.readFileSync(path.join(out, 'assets', f), 'utf-8').includes(CLASS_PAGE_ON_REQUEST_LINE))!;
+    expect(lineChunk).toBeTruthy();
+    expect(homeFiles.some((u) => u.endsWith(`/${lineChunk}`))).toBe(false);
+    const vinyasa = fs.readFileSync(path.join(out, 'classes', 'vinyasa', 'index.html'), 'utf-8');
+    expect(vinyasa).toContain(`href="/assets/${lineChunk}"`);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

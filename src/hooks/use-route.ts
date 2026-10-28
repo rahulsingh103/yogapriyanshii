@@ -1,5 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
+import { PUBLISHED_ARTICLES } from '@/content/articles';
 import { resolveRoute, type Route } from '@/lib/route';
+
+/**
+ * Draft previews exist only in dev, and only when the dev server was started with SHOW_DRAFTS=1 (it then
+ * adds `<meta name="yp-drafts" content="on">`). In a build `import.meta.env.DEV` is false, so this, the
+ * draft route and the preview component are all dropped from the bundle (P7).
+ */
+export const draftsEnabled = () =>
+  import.meta.env.DEV && !!document.querySelector('meta[name="yp-drafts"][content="on"]');
+
+/**
+ * DEV ONLY: where the draft preview loads its Markdown, or null. A draft route (SHOW_DRAFTS=1) reads
+ * `/__drafts/<slug>`; the e2e test page `/__test/article` (APP_ENV=test only, flagged by the server with
+ * `<meta name="yp-test-article">`) reads a synthetic lorem fixture (P9). Always null in a build.
+ */
+export function devPreviewSource(pathname: string, route: Route): string | null {
+  if (!import.meta.env.DEV) return null;
+  if (route.kind === 'draft' && draftsEnabled()) return `/__drafts/${route.slug}`;
+  if (pathname === '/__test/article' && document.querySelector('meta[name="yp-test-article"][content="on"]'))
+    return '/__test/article.md';
+  return null;
+}
+
+/** Every pathname resolves with the published articles and (dev only) the draft flag. */
+export const routeFor = (pathname: string): Route =>
+  resolveRoute(pathname, { publishedArticles: PUBLISHED_ARTICLES, drafts: draftsEnabled() });
 
 /** What App needs to restore home after Back: where the page was and which class card was used. */
 export interface HomeHistoryState {
@@ -45,7 +71,7 @@ let manualRestoration = false;
 export function useRoute() {
   const [state, setState] = useState<RouteState>(() => ({
     pathname: window.location.pathname,
-    route: resolveRoute(window.location.pathname),
+    route: routeFor(window.location.pathname),
     kind: 'initial',
     key: 0,
   }));
@@ -58,7 +84,7 @@ export function useRoute() {
           ? prev
           : {
               pathname: window.location.pathname,
-              route: resolveRoute(window.location.pathname),
+              route: routeFor(window.location.pathname),
               kind: 'pop',
               key: prev.key + 1,
             }
@@ -73,12 +99,12 @@ export function useRoute() {
       window.history.scrollRestoration = 'manual';
       manualRestoration = true;
     }
-    const fromHome = resolveRoute(window.location.pathname).kind === 'home';
+    const fromHome = routeFor(window.location.pathname).kind === 'home';
     if (fromHome) {
       const home: HomeHistoryState = { yp: 'home', y: window.scrollY, cardSlug };
       window.history.replaceState(home, '', window.location.pathname);
     }
-    const target = resolveRoute(new URL(path, window.location.origin).pathname);
+    const target = routeFor(new URL(path, window.location.origin).pathname);
     const next: PageHistoryState | HomeHistoryState =
       target.kind === 'home'
         ? { yp: 'home', y: 0, cardSlug: null }
@@ -86,7 +112,7 @@ export function useRoute() {
     window.history.pushState(next, '', path);
     setState((prev) => ({
       pathname: window.location.pathname,
-      route: resolveRoute(window.location.pathname),
+      route: routeFor(window.location.pathname),
       kind: 'push',
       key: prev.key + 1,
     }));

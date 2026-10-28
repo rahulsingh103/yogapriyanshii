@@ -13,6 +13,7 @@ import type { ClassName } from './class-finder';
 import { FINDER_BACK_NOTICE, FINDER_PREGNANCY_NOTICE } from './class-finder';
 import { PRACTICE_CLASSES, type PracticeClass } from './classes';
 import { TESTIMONIALS, type Testimonial } from './testimonials';
+import { CLASS_PAGE_ON_REQUEST_LINE } from './on-request';
 
 export interface ClassPhoto {
   src: string;
@@ -42,9 +43,8 @@ export interface ClassPageContent {
   testimonial: Testimonial | null;
 }
 
-/** The owner's line for the classes that aren't on the timetable (2026-10-26), verbatim. */
-export const CLASS_PAGE_ON_REQUEST_LINE =
-  'Not on the timetable yet. Send a message and Priyanshi will find a time with you. In person in Dubai or live online.';
+/** The owner's line for the classes that aren't on the timetable (on-request.ts, shared with on-request articles). */
+export { CLASS_PAGE_ON_REQUEST_LINE };
 export const CLASS_PAGE_BOOKABLE_LINE = 'In person in Dubai or live online. Your first class is free.';
 export const CLASS_PAGE_PRIVATE_LINE = 'Private, one-to-one sessions, arranged with Priyanshi.';
 

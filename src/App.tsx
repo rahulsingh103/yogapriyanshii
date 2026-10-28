@@ -27,7 +27,7 @@ import { PageErrorBoundary, clearChunkReloadFlag } from './components/PageErrorB
 import { WHATSAPP_ENABLED } from './constants/contact';
 import { MEMBERSHIP } from './constants/membership';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
-import { homeHistoryState, pageHistoryState, useRoute } from './hooks/use-route';
+import { devPreviewSource, homeHistoryState, pageHistoryState, useRoute } from './hooks/use-route';
 import { HOME_META, setDocumentHead } from './lib/page-meta';
 import { CLASS_SLUGS, classPath } from './lib/route';
 import type { PracticeClass } from './constants/classes';
@@ -37,6 +37,13 @@ import type { ClassSession, ClassStyle } from './types';
 // The class pages and the 404 are their own chunks, so none of their copy is in the homepage bundle.
 const ClassPage = lazy(() => import('./components/ClassPage').then((mod) => ({ default: mod.ClassPage })));
 const NotFound = lazy(() => import('./components/NotFound').then((mod) => ({ default: mod.NotFound })));
+// The guides: lazy too, and only routed once an article is published (src/content/articles.ts).
+const ArticlePage = lazy(() => import('./components/ArticlePage').then((mod) => ({ default: mod.ArticlePage })));
+const GuidesIndex = lazy(() => import('./components/GuidesIndex').then((mod) => ({ default: mod.GuidesIndex })));
+// DEV ONLY (P7): in a build `import.meta.env.DEV` is false, so the preview and its import are dropped.
+const DraftPreview = import.meta.env.DEV
+  ? lazy(() => import('./components/DraftPreview').then((mod) => ({ default: mod.DraftPreview })))
+  : null;
 
 /** Runs after the next layout and paint: the page has swapped and Lenis can measure it. */
 const afterLayout = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn));
@@ -60,7 +67,8 @@ export default function App() {
   const [booking, setBooking] = useState<BookingOpenState>({ session: null, style: null, planKey: 'free', mode: null });
   const scrollToSection = useScrollToSection();
   const lenis = useLenis();
-  const { route, kind: navKind, key: navKey, navigate } = useRoute();
+  const { route, pathname, kind: navKind, key: navKey, navigate } = useRoute();
+  const previewSource = devPreviewSource(pathname, route);
   const isHome = route.kind === 'home';
   // The navigation whose page has mounted (home at once; a lazy page once it calls onReady).
   const [readyKey, setReadyKey] = useState<number | null>(isHome ? 0 : null);
@@ -239,7 +247,32 @@ export default function App() {
           {/* Keyed by navigation, so a failed page never sticks to the next one. */}
           <PageErrorBoundary key={navKey} onError={markFailed}>
           <Suspense fallback={<main className="flex-1" />}>
-            {route.kind === 'class' ? (
+            {DraftPreview && previewSource ? (
+              <DraftPreview
+                source={previewSource}
+                focusHeading={navKind !== 'initial'}
+                onReady={markReady}
+                onNavigateHome={navigateHome}
+                missing={<NotFound onReady={markReady} onNavigateHome={navigateHome} />}
+                onBook={() => handleOpenBooking()}
+                onAsk={(interest) => handleOpenContact(interest)}
+                onOpenQuiz={() => setClassFinderOpen(true)}
+              />
+            ) : route.kind === 'article' ? (
+              <ArticlePage
+                slug={route.slug}
+                focusHeading={navKind !== 'initial'}
+                onReady={markReady}
+                onNavigate={navigate}
+                onNavigateHome={navigateHome}
+                missing={<NotFound onReady={markReady} onNavigateHome={navigateHome} />}
+                onBook={() => handleOpenBooking()}
+                onAsk={(interest) => handleOpenContact(interest)}
+                onOpenQuiz={() => setClassFinderOpen(true)}
+              />
+            ) : route.kind === 'guides' ? (
+              <GuidesIndex focusHeading={navKind !== 'initial'} onReady={markReady} onNavigate={navigate} />
+            ) : route.kind === 'class' ? (
               <ClassPage
                 slug={route.slug}
                 focusHeading={navKind !== 'initial'}
@@ -262,6 +295,7 @@ export default function App() {
         onOpenAdmin={() => setAdminModalOpen(true)}
         isHome={isHome}
         onNavigateHome={navigateHome}
+        onNavigate={navigate}
       />
 
       {WHATSAPP_ENABLED && (

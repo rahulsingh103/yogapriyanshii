@@ -7,7 +7,8 @@ import { defineConfig, type Plugin } from 'vite';
 import { FAQ_ITEMS } from './src/constants/faq.ts';
 import { faqJsonLd } from './src/lib/faq-schema.ts';
 import { HOME_META, absoluteUrl, headTags } from './src/lib/page-meta.ts';
-import { CLASS_SLUGS, classPath, type Route } from './src/lib/route.ts';
+import { readPublishedArticles } from './src/lib/article-files.ts';
+import { CLASS_SLUGS, GUIDES_PATH, articlePath, classPath, type Route } from './src/lib/route.ts';
 import { SEO_END, SEO_START, applyRoute } from './src/lib/route-html.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +33,8 @@ function faqStructuredData(): Plugin {
 
 /**
  * Build only: from the finished home HTML (hashed asset URLs included) it emits the 11 prerendered class
- * pages (classes/<slug>/index.html), 404.html, sitemap.xml and robots.txt, with the same pure transform
+ * pages (classes/<slug>/index.html), 404.html, the published guides (guides/<slug>/index.html and
+ * guides/index.html, none yet), sitemap.xml and robots.txt, with the same pure transform
  * the dev server uses (src/lib/route-html.ts). It fails the build rather than ship a wrong page.
  */
 function routePages(): Plugin {
@@ -74,7 +76,23 @@ function routePages(): Plugin {
         }
         emit('404.html', applyRoute(html, { kind: 'notFound' }, { preload: preloadFor('NotFound') }));
 
-        const urls = ['/', ...CLASS_SLUGS.map(classPath)];
+        // Published guides only: src/content/articles/ in the repo (empty until Priyanshi approves one).
+        // The drafts folder is never read here, whatever SHOW_DRAFTS or DRAFTS_DIR say (spec 14 proves it).
+        const published = readPublishedArticles(path.resolve(__dirname, 'src', 'content', 'articles'));
+        if (published.length) {
+          const guides = published.map((a) => ({ slug: a.slug, meta: a.article.meta }));
+          const articlePreload = preloadFor('ArticlePage');
+          for (const { slug, article } of published) {
+            emit(`guides/${slug}/index.html`, applyRoute(html, { kind: 'article', slug }, { preload: articlePreload, article }));
+          }
+          emit('guides/index.html', applyRoute(html, { kind: 'guides' }, { preload: preloadFor('GuidesIndex'), guides }));
+        }
+
+        const urls = [
+          '/',
+          ...CLASS_SLUGS.map(classPath),
+          ...(published.length ? [GUIDES_PATH, ...published.map((a) => articlePath(a.slug))] : []),
+        ];
         emit(
           'sitemap.xml',
           [

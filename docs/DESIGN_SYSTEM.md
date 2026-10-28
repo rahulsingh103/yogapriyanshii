@@ -164,6 +164,19 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Focus: in-app navigation scrolls to the top and focuses the h1; a direct load moves no focus. Back to home restores the carousel at the card used and focuses its "Learn more".
 - Without JavaScript the prerendered HTML shows the same content (no buttons and no WhatsApp link).
 
+### Article page (`/guides/<slug>`, Batch 4b; hidden until an article is published)
+- One guide per page in the same shell. A narrow reading column: container 680px, `px-5 pt-24 pb-24 lg:pt-32 lg:pb-32`, `gap-8`.
+- Order: the back link "All guides" (the class page's back-link style), the h1 title (Italiana `text-h2`, `tabIndex={-1}`, the same quiet focus underline), the description as a 16px `ink` lede, then the body under a hairline (`pt-8 border-t border-line`, `gap-6`): `h2` in `text-h4`, paragraphs in 16px `ink-soft` at leading 1.6, bullets with the 6px `accent` dots. A bullet can start with a short label ("Label:" or `**Label.**` in the Markdown): the label is `font-medium text-ink`, the rest `ink-soft`. Article text uses the FAQ's 64ch measure (long-form reading), not the 46ch body measure.
+- Sources (the `## Sources` section): its heading one step down, in the eyebrow style (12px uppercase `ink-soft`, `tracking-[0.14em]`), and the list in `text-sm leading-[1.5] text-ink-soft` with no accent dots and no labels.
+- Links inside the text: underlined `ink` with a `line-strong` underline, open in a new tab with `noopener` and a visually hidden " (opens in a new tab)"; only https links exist (`src/lib/article-md.ts`). Inline links are exempt from the 44px rule; the back link and buttons are not.
+- Actions (`id="article-actions"`, under a hairline): one line "Your first class with Priyanshi is free, in person in Dubai or live online.", then `ui.primary` "Book a free class" (booking) and `ui.secondary` "Take the 30-second quiz" (the class finder). An article about an on-request class (front matter `action: ask` with `interest: <a contact interest>`) uses the class pages' on-request pattern instead: the owner's "Not on the timetable yet…" line and `ui.primary` "Ask about this class" (Contact with that interest), the quiz still the secondary. Same `flex-wrap`, `whitespace-nowrap` row as the class page. The floating WhatsApp button hides while the actions are on screen. The article text itself doesn't repeat the free-class or quiz line; the actions carry it.
+- Focus and scroll: like the class page (top of the page; in-app navigation focuses the h1).
+- The dev-only draft preview uses this exact layout, with a plain `ui.notice` banner (not a live region) "Draft, not published. Not yet reviewed by Priyanshi." at the top and "Back to the homepage" as the back link.
+
+### Guides index (`/guides`, only once an article is published)
+- Same 680px column: h1 "Guides" (`text-h2`), one 16px `ink-soft` line, then a hairline list, newest first: each row is one link (title an `h2` in Italiana `text-h4`, its underline appears on hover in `line-strong`; the description under it in 16px `ink-soft`), `py-6`.
+- The footer shows a quiet "Guides" link (the "Manage booking" style) only while at least one article is published.
+
 ### Not found (404)
 - Narrow container (640px), `pt-32 pb-24 lg:pb-32`: h1 "Page not found" (`text-h2`), one line "This page has moved or never existed.", then `ui.primary` "Back to the homepage" and `ui.secondary` "See all classes" (stacked full width on phones). Served with a 404 status and robots `noindex`. Its links go home in the app and then focus the hero's h1 or the classes heading.
 - A lazy page that fails to load (after its one automatic reload) shows the same layout: h1 "This page didn't load", one line "Please check your connection and try again in a moment." and `ui.primary` "Back to the homepage" (a plain link to `/`).
@@ -248,7 +261,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - **The membership card** sits beside the list from `lg` (`grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start`) and below it on smaller screens; the payment line stays under both. The card (`data-testid="membership-card"`): `bg-glass backdrop-blur-[8px] rounded-[18px] border border-line-strong p-5 sm:p-6`, `gap-5`. Inside: the `h3` "Monthly membership" (`text-h3`), "AED 2,999" (`text-base font-semibold tabular-nums text-ink`) then " a month" (`text-sm text-ink-soft`), a list of the three perks with a lucide `Check` (`size-4`, `accent-text`: the section's one accent) in 16px `ink-soft`, and the `ui.primary` "Join the membership" with the arrow (full width on phones). The button comes after the list, outside every `li`, so `#pricing li button` still starts with the first plan row. No tags, no "Most popular" and no per-class price. The copy lives only in `src/constants/membership.ts`.
 
 ### Footer
-- Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin", and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
+- Transparent with a hairline top border: wordmark, address, Instagram, the quiet buttons "Manage booking" and "Studio admin" (above them a quiet "Guides" link, only once an article is published), and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
 
 ### Teacher block ("Hi, I'm Priyanshi.")
 - Two columns on desktop (photo | text), stacked on mobile. The photo is the real Burj Khalifa forearm stand (`real/burj-forearm-stand-1`, 480/800/1200), 4:5, `rounded-[18px]`.
@@ -417,7 +430,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (133 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (138 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**
