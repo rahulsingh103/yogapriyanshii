@@ -9,7 +9,7 @@
  */
 import {
   classBeforeList,
-  classDuration,
+  classDetailRows,
   classPage,
   classPageKind,
   classPageLine,
@@ -62,13 +62,7 @@ function classBody(slug: string): string | null {
   if (!page) return null;
   const { cls, content } = page;
   const e = escapeHtml;
-  const duration = classDuration(cls);
-  const rows: Array<[string, string]> = [
-    ...(duration ? [['Duration', duration] as [string, string]] : []),
-    ['Intensity', content.intensity],
-    ...(content.level ? [['Level', content.level] as [string, string]] : []),
-    ['Format', content.format],
-  ];
+  const rows = classDetailRows(cls, content);
   const p = content.photo;
   const kind = classPageKind(cls);
   return [
@@ -79,7 +73,7 @@ function classBody(slug: string): string | null {
     `<img src="${e(p.src)}"${p.srcSet ? ` srcset="${e(p.srcSet)}" sizes="${e(classPhotoSizes(p))}"` : ''} width="${p.width}" height="${p.height}" fetchpriority="high" alt="${e(p.alt)}" class="w-full ${classPhotoMaxClass(p)} aspect-[4/5] object-cover rounded-[18px]" />`,
     `<section class="flex flex-col gap-2"><h2 class="font-display font-normal text-h4 text-ink">Who it&#39;s for</h2><p data-testid="class-who-for" class="text-base leading-[1.6] text-ink-soft max-w-[46ch]">${e(content.whoFor)}</p></section>`,
     `<section class="flex flex-col gap-2"><h2 class="font-display font-normal text-h4 text-ink">About the class</h2><p class="text-base leading-[1.6] text-ink-soft max-w-[46ch]">${e(content.about)}</p></section>`,
-    `<dl class="grid gap-2">${rows.map(([k, v]) => `<div><dt class="text-sm text-ink-soft">${e(k)}</dt><dd class="text-base text-ink">${e(v)}</dd></div>`).join('')}</dl>`,
+    `<dl class="grid gap-2">${rows.map((r) => `<div><dt class="text-sm text-ink-soft">${e(r.label)}</dt><dd data-testid="class-${r.key}" class="text-base text-ink">${e(r.value)}</dd></div>`).join('')}</dl>`,
     `<section class="flex flex-col gap-2"><h2 class="font-display font-normal text-h4 text-ink">What to bring</h2><ul data-testid="class-before" class="list-disc pl-5 text-base leading-[1.6] text-ink-soft">${classBeforeList(kind).map((b) => `<li>${e(b)}</li>`).join('')}</ul></section>`,
     ...content.notices.map((n) => `<p class="p-4 rounded-[12px] bg-calm-bg text-ink text-sm leading-[1.5]">${e(n)}</p>`),
     ...(content.testimonial

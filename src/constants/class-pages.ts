@@ -6,8 +6,9 @@
  *
  * Facts only (design/PRIYANSHI-FACTS.md). Never: cure, treat, heal (the class name "Spine Healing"
  * aside), guarantee, "safe for", prevent, the video tool's name or the former studio's name.
- * Contact-only pages never say "Book" or "free". Intensity labels and the new classes' durations
- * (classes.ts) are placeholders until Priyanshi checks them.
+ * Origins are neutral and well known (no founder named where none is clear); focus lists say what a
+ * class works on, never what it fixes. Contact-only pages never say "Book" or "free". Intensity labels
+ * and the new classes' durations (classes.ts) are placeholders until Priyanshi checks them.
  */
 import type { ClassName } from './class-finder';
 import { FINDER_BACK_NOTICE, FINDER_PREGNANCY_NOTICE } from './class-finder';
@@ -31,6 +32,10 @@ export interface ClassPhoto {
 export interface ClassPageContent {
   whoFor: string;
   about: string;
+  /** "Where it comes from": one neutral, well-known sentence (25 words at most); hedged, never a health claim. */
+  origin: string;
+  /** "What it focuses on": 2 to 4 short body areas or qualities, shown as one line ("Hips · Spine"). */
+  focus: ReadonlyArray<string>;
   /** The Format row of the details list. */
   format: string;
   /** PRD §5 level, for the 4 timetabled classes only. */
@@ -121,7 +126,9 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
   Hatha: {
     whoFor: 'Anyone starting out, and anyone who wants to come back to the basics. No experience needed.',
     about:
-      'Hatha is the classical root of the practice: foundational postures, precise alignment and the link between breath and movement. The pace is steady, so there is time to settle into each posture before the next.',
+      'Foundational postures, precise alignment and the link between breath and movement. The pace is steady, so there is time to settle into each posture before the next.',
+    origin: 'Traditional physical yoga from India, described in texts such as the 15th-century Hatha Yoga Pradipika.',
+    focus: ['Whole body', 'Alignment', 'Breath'],
     format: 'In person or live online',
     level: 'All levels',
     intensity: 'Gentle–Moderate',
@@ -134,6 +141,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone who wants strength and flexibility in one class. All levels are welcome.',
     about:
       'Strength work woven with deep, intentional stretching. Small, controlled movements build heat and tone, then long holds open everything back up.',
+    origin: 'A modern blend of ballet-barre exercises with yoga and Pilates.',
+    focus: ['Legs', 'Glutes', 'Core', 'Flexibility'],
     format: 'In person or live online',
     level: 'All levels',
     intensity: 'Moderate',
@@ -146,6 +155,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone curious about backbends and chest openers, with the yoga wheel there for support. All levels are welcome.',
     about:
       "Priyanshi's signature class. The yoga wheel supports your spine through backbends and chest openers that feel impossible without it, then suddenly don't.",
+    origin: 'A modern practice built around the yoga wheel, a round prop that became popular in the 2010s.',
+    focus: ['Chest', 'Shoulders', 'Backbends'],
     format: 'In person or live online',
     level: 'All levels',
     intensity: 'Moderate–Strong',
@@ -158,6 +169,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone who would like a calmer, slower practice. Beginner friendly.',
     about:
       "A moving meditation through the body's energy centres, pairing breath, sound and sequence. Grounding, clearing and deeply restful.",
+    origin: 'A modern flow organised around the chakras, the energy centres described in Indian tantric traditions.',
+    focus: ['Breath', 'Sound', 'Gentle flow'],
     format: 'In person or live online',
     level: 'Beginner friendly',
     intensity: 'Gentle',
@@ -170,6 +183,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone with a few classes behind them who enjoys moving and would like a stronger, flowing practice.',
     about:
       'A breath-led flow from pose to pose. Each movement follows the breath, so the class builds strength and focus as it moves along.',
+    origin: "A modern flowing style that grew out of Ashtanga's way of linking each movement to the breath.",
+    focus: ['Strength', 'Breath', 'Focus'],
     format: 'In person or live online',
     level: null,
     intensity: 'Moderate–Strong',
@@ -182,6 +197,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'People who practise regularly and like structure: a strong, steady practice that follows the same order each time.',
     about:
       'Ashtanga follows a set sequence of postures with a steady breath. Because the sequence stays the same, you can feel your practice grow from one class to the next.',
+    origin: 'The set sequence taught by K. Pattabhi Jois in Mysore, India, in the 20th century.',
+    focus: ['Strength', 'Stamina', 'Steady breath'],
     format: 'In person or live online',
     level: null,
     intensity: 'Strong',
@@ -194,6 +211,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone looking for gentle back care and release, at a pace that suits them.',
     about:
       'Slow, gentle work for back care and release. You move at your own pace through calm, unhurried sequences, with time to breathe and let tension go.',
+    origin: 'A modern, gentle style that centres the practice on the back and posture.',
+    focus: ['Back', 'Posture', 'Gentle mobility'],
     format: 'In person or live online',
     level: null,
     intensity: 'Gentle',
@@ -206,6 +225,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone who would like to move more easily day to day, whatever their experience.',
     about:
       'Gentle movement for your joints and everyday ease. Slow, mindful movements take each joint through its natural range, with the breath leading the way.',
+    origin: 'A modern, gentle style that brings mobility work for the joints into a yoga practice.',
+    focus: ['Joints', 'Hips', 'Shoulders'],
     format: 'In person or live online',
     level: null,
     intensity: 'Gentle',
@@ -218,6 +239,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone who would like to slow down and unwind, including people who already practise a stronger style.',
     about:
       'Long, quiet holds, mostly seated or lying down, that give your body time to slow down and let go. A calm, still practice.',
+    origin: 'A slow style shaped in the West from the late 1970s by Paulie Zink, Paul Grilley and Sarah Powers, drawing on Taoist ideas.',
+    focus: ['Hips', 'Spine', 'Stillness'],
     format: 'In person or live online',
     level: null,
     intensity: 'Gentle',
@@ -230,6 +253,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Mums-to-be, and mums after birth, who would like gentle yoga at their own pace.',
     about:
       'Gentle classes for before and after birth, with a teacher trained in prenatal yoga. Breath, gentle movement and rest, at a pace that suits you on the day.',
+    origin: 'Yoga adapted for pregnancy and for the months after birth.',
+    focus: ['Breath', 'Gentle movement', 'Rest'],
     format: 'In person or live online',
     level: null,
     intensity: 'Gentle',
@@ -242,6 +267,8 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     whoFor: 'Anyone who would like to try yoga in the aerial hammock, one to one with Priyanshi.',
     about:
       'Aerial yoga uses a soft hammock hung from the ceiling, so you can explore postures in a new way. With Priyanshi it is private sessions only, arranged with you on request.',
+    origin: 'A modern practice in a soft fabric hammock, developed in the 1990s and 2000s.',
+    focus: ['Core strength', 'Flexibility', 'Balance'],
     format: 'One-to-one',
     level: null,
     intensity: 'Moderate',
@@ -251,6 +278,29 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     testimonial: null,
   },
 };
+
+export interface ClassDetailRow {
+  /** data-testid suffix: class-<key>. */
+  key: 'duration' | 'intensity' | 'level' | 'format' | 'focus' | 'origin';
+  label: string;
+  value: string;
+  /** Spans both columns (the focus line and the origin sentence). */
+  wide: boolean;
+}
+
+/** The details list, shared by ClassPage and the static HTML so the two always match. */
+export function classDetailRows(cls: PracticeClass, content: ClassPageContent): ClassDetailRow[] {
+  const duration = classDuration(cls);
+  const row = (key: ClassDetailRow['key'], label: string, value: string, wide = false): ClassDetailRow => ({ key, label, value, wide });
+  return [
+    ...(duration ? [row('duration', 'Duration', duration)] : []),
+    row('intensity', 'Intensity', content.intensity),
+    ...(content.level ? [row('level', 'Level', content.level)] : []),
+    row('format', 'Format', content.format),
+    row('focus', 'What it focuses on', content.focus.join(' · '), true),
+    row('origin', 'Where it comes from', content.origin, true),
+  ];
+}
 
 /** "60 min" from the card line ("Alignment and breath · 60 min"); null for Aerial, which has no length. */
 export function classDuration(cls: PracticeClass): string | null {

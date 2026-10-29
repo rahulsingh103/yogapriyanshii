@@ -144,6 +144,13 @@ test.describe('rendered class pages', () => {
       await expect(bring).toHaveText(staticBring);
       await expect(bring).toHaveText([...expected]);
       if (cls.name === 'Aerial Yoga') await expect(page.getByTestId('class-before')).not.toContainText(/own mat/i);
+      // "What it focuses on" and "Where it comes from": same text as the static HTML and the data.
+      const c = content(cls.name);
+      for (const [key, value] of [['focus', c.focus.join(' · ')], ['origin', c.origin]]) {
+        const staticText = decode(attr(html, new RegExp(`data-testid="class-${key}"[^>]*>([^<]*)<`)) ?? '');
+        expect(staticText, `${cls.slug} static ${key}`).toBe(value);
+        await expect(page.getByTestId(`class-${key}`)).toHaveText(value);
+      }
       const duration = cls.line.match(/· (\d+ min)$/)?.[1];
       if (duration) await expect(page.getByTestId('class-duration')).toHaveText(duration);
       else await expect(page.getByTestId('class-duration')).toHaveCount(0);
@@ -152,6 +159,34 @@ test.describe('rendered class pages', () => {
       // A direct load doesn't move focus (P14).
       await expect(page.getByRole('heading', { level: 1 })).not.toBeFocused();
     }
+  });
+
+  test('origin and focus stay short, specific and free of health claims', () => {
+    const origins = new Set<string>();
+    for (const cls of PRACTICE_CLASSES) {
+      const { origin, focus } = content(cls.name);
+      const words = origin.trim().split(/\s+/).length;
+      expect(origin.trim().length, `${cls.slug} origin`).toBeGreaterThan(0);
+      expect(words, `${cls.slug} origin is one short sentence`).toBeLessThanOrEqual(30);
+      // One full stop, at the end (an initial such as "K." doesn't count).
+      expect(origin.match(/\w{2,}[.!?](\s|$)/g)?.length ?? 0, `${cls.slug} origin is one sentence`).toBe(1);
+      expect(origin, `${cls.slug} origin ends the sentence`).toMatch(/\.$/);
+      expect(focus.length, `${cls.slug} focus`).toBeGreaterThanOrEqual(2);
+      expect(focus.length, `${cls.slug} focus`).toBeLessThanOrEqual(4);
+      for (const item of focus) {
+        expect(item.trim().length, `${cls.slug} focus item`).toBeGreaterThan(0);
+        expect(item.split(/\s+/).length, `${cls.slug} focus "${item}" is a short label`).toBeLessThanOrEqual(3);
+        expect(item, `${cls.slug} focus`).not.toContain('·');
+      }
+      const text = `${origin} ${focus.join(' ')}`;
+      expect(text, `${cls.slug} wording`).not.toMatch(WORDING_GUARD);
+      expect(text, `${cls.slug} wording`).not.toMatch(/\b(fix(es)?|reliev(e|es|ing)|therap(y|eutic)|medical|pain|injur(y|ies))\b/i);
+      expect(text, `${cls.slug} facts`).not.toMatch(FACTS_GUARD);
+      origins.add(origin);
+    }
+    expect(origins.size).toBe(11);
+    // The Wheel is never presented as back care.
+    expect(content('Wheel').focus.join(' ')).not.toMatch(/\bback\b/i);
   });
 
   test('a class page served in dev has no failed requests', async ({ page }) => {

@@ -5,7 +5,7 @@ import { ArrowLeft } from '@/components/animate-ui/icons/arrow-left';
 import { WHATSAPP_ENABLED, whatsappUrl } from '@/constants/contact';
 import {
   classBeforeList,
-  classDuration,
+  classDetailRows,
   classPage,
   classPageKind,
   classPageLine,
@@ -65,14 +65,8 @@ export function ClassPage({ slug, focusHeading, onReady, onBook, onContact, onAl
 
   const { cls, content } = page;
   const kind = classPageKind(cls);
-  const duration = classDuration(cls);
   const benefit = cls.line.split(' · ')[0];
-  const rows: Array<[string, string]> = [
-    ...(duration ? [['Duration', duration] as [string, string]] : []),
-    ['Intensity', content.intensity],
-    ...(content.level ? [['Level', content.level] as [string, string]] : []),
-    ['Format', content.format],
-  ];
+  const rows = classDetailRows(cls, content);
   const photo = content.photo;
 
   const onPrimary = () => {
@@ -153,13 +147,13 @@ export function ClassPage({ slug, focusHeading, onReady, onBook, onContact, onAl
               <p className={BODY}>{content.about}</p>
             </section>
 
-            {/* The About block's hairline <dl> pattern: label, then value. */}
+            {/* The About block's hairline <dl> pattern: label, then value. Focus and origin span both columns. */}
             <dl data-testid="class-details" className="grid grid-cols-2 gap-x-4 gap-y-6 pt-6 border-t border-line">
-              {rows.map(([label, value]) => (
-                <div key={label} className="flex flex-col gap-1 min-w-0">
-                  <dt className="text-sm leading-[1.5] text-ink-soft">{label}</dt>
-                  <dd data-testid={`class-${label.toLowerCase()}`} className="text-base leading-[1.5] text-ink">
-                    {value}
+              {rows.map((row) => (
+                <div key={row.key} className={cn('flex flex-col gap-1 min-w-0', row.wide && 'col-span-2')}>
+                  <dt className="text-sm leading-[1.5] text-ink-soft">{row.label}</dt>
+                  <dd data-testid={`class-${row.key}`} className={cn('text-base leading-[1.5] text-ink', row.wide && 'max-w-[46ch]')}>
+                    {row.value}
                   </dd>
                 </div>
               ))}
