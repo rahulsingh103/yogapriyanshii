@@ -57,7 +57,7 @@ export function MandalaBackground() {
         const petal = c * 0.11 * bloom * (1 + i * 0.12);
         const odd = i % 2 === 1;
         ctx.strokeStyle = odd ? colours.accent : colours.ink;
-        ctx.globalAlpha = odd ? 0.42 : 0.16;
+        ctx.globalAlpha = odd ? 0.17 : 0.07;
         ctx.lineWidth = dpr * (odd ? 1 : 0.8);
         ctx.beginPath();
         for (let k = 0; k < n; k++) {
@@ -79,7 +79,7 @@ export function MandalaBackground() {
         ctx.beginPath();
         ctx.arc(0, 0, R, 0, Math.PI * 2);
         ctx.strokeStyle = colours.ink;
-        ctx.globalAlpha = 0.08;
+        ctx.globalAlpha = 0.04;
         ctx.stroke();
       });
 

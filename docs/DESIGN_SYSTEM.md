@@ -378,7 +378,7 @@ import { MotionConfig } from 'motion/react';
 ### The mandala (signature effect)
 - One `<canvas>` in a fixed, full-screen background layer (`position: fixed; inset: 0; z-index: -1; pointer-events: none`).
 - Centred, size `min(115vmin, 980px)`.
-- Five rings of petals, with 12 / 16 / 24 / 32 / 48 petals. Alternate rings are drawn in `accent` at 42% and `ink` at 16%, with hairline circles between them.
+- Five rings of petals, with 12 / 16 / 24 / 32 / 48 petals. Alternate rings are drawn in `accent` at 17% and `ink` at 7%, with hairline circles (4%) between them. Kept this faint so the lines never compete with text (owner request, 2026-11-01; was 42% / 16%).
 - **Scroll progress `p` (0 → 1) over the page drives it:**
   - rotation `p × 135°`;
   - bloom (scale) `0.62 + p × 0.45`.
