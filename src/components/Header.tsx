@@ -6,6 +6,7 @@ import { Menu } from '@/components/animate-ui/icons/menu';
 import { X } from '@/components/animate-ui/icons/x';
 import { cn } from '@/lib/utils';
 import { isPlainClick } from '@/hooks/use-route';
+import { LogoMark } from './LogoMark';
 
 interface HeaderProps {
   onOpenBooking: () => void;
@@ -157,7 +158,8 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
           )}
         />
         <div className="max-w-[1040px] mx-auto px-5 h-[72px] flex items-center justify-between gap-4">
-          <a ref={logoRef} href={isHome ? '#home' : '/'} onClick={goHome('#home')} className="inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
+          <a ref={logoRef} href={isHome ? '#home' : '/'} onClick={goHome('#home')} className="inline-flex items-center gap-2.5 min-h-11 font-display text-2xl leading-none text-ink">
+            <LogoMark className="size-9 shrink-0" />
             YogaPriyanshi
           </a>
 

@@ -4,6 +4,7 @@ import { INSTAGRAM_URL } from '@/constants/contact';
 import { PUBLISHED_ARTICLES } from '@/content/articles';
 import { GUIDES_PATH } from '@/lib/route';
 import { isPlainClick } from '@/hooks/use-route';
+import { LogoMark } from './LogoMark';
 
 interface FooterProps {
   onOpenCancel: () => void;
@@ -37,7 +38,8 @@ export function Footer({ onOpenCancel, onOpenAdmin, isHome = true, onNavigateHom
       <div className="max-w-[1040px] mx-auto px-5 py-16 flex flex-col gap-12">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-8">
           <div className="flex flex-col gap-3">
-            <a href={isHome ? '#home' : '/'} onClick={goHome} className="self-start inline-flex items-center min-h-11 font-display text-2xl leading-none text-ink">
+            <a href={isHome ? '#home' : '/'} onClick={goHome} className="self-start inline-flex items-center gap-3 min-h-11 font-display text-2xl leading-none text-ink">
+              <LogoMark className="size-10 shrink-0" />
               YogaPriyanshi
             </a>
             <p className="text-sm leading-[1.5] text-ink-soft">Dubai, UAE · In person &amp; online</p>
