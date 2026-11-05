@@ -31,7 +31,7 @@ export const PRACTICE_CLASSES: PracticeClass[] = [
   { name: 'Vinyasa', slug: 'vinyasa', line: 'Breath-led flow · 60 min', contactInterest: 'Vinyasa Yoga', image: 'vinyasa', alt: 'Yoga teacher in a low lunge on a mat, one arm reaching up' },
   { name: 'Ashtanga', slug: 'ashtanga', line: 'A set sequence, steady breath · 60 min', contactInterest: 'Ashtanga Yoga', image: 'ashtanga', alt: 'Yoga teacher seated on a mat in a twist, one knee drawn up' },
   { name: 'Spine Healing', slug: 'spine-healing', line: 'Back care and release · 60 min', contactInterest: 'Spine Healing', image: 'spine-healing', alt: 'Yoga teacher on all fours in a gentle cat stretch' },
-  { name: 'Mobility Yoga', slug: 'mobility-yoga', line: 'Joints and everyday ease · 60 min', contactInterest: 'Mobility Yoga', image: 'mobility', alt: 'Yoga teacher seated in a hip mobility stretch' },
+  { name: 'Mobility Yoga', slug: 'mobility-yoga', line: 'Joints and everyday ease · 60 min', contactInterest: 'Mobility Yoga', image: 'mobility', alt: 'Yoga teacher seated on a mat with a strap around one foot, a cork block beside her' },
   { name: 'Yin Yoga', slug: 'yin-yoga', line: 'Long, quiet holds · 75 min', contactInterest: 'Yin Yoga', image: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },
   { name: 'Prenatal & Postnatal', slug: 'prenatal-postnatal', line: 'Before and after birth · 60 min', contactInterest: 'Prenatal & Postnatal', image: 'prenatal-postnatal', alt: 'Pregnant woman seated cross-legged beside a bolster, hand on her belly' },
   // Aerial is private sessions only, never a group class on the schedule.
