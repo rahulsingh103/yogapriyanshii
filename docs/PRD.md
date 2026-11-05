@@ -23,7 +23,7 @@
 | Guides (articles) | 🟡 (Batch 4b, 2026-10-26) Built but hidden. The pipeline is ready: Markdown articles in `src/content/articles/` become `/guides/<slug>` pages (prerendered, in the sitemap) with a `/guides` index and a footer "Guides" link, all of which appear only once an article is published. Four drafts (your first class, which style, a stiff back, prenatal basics) wait outside the repo for Priyanshi's review; none is published, so `/guides` is a 404 today. Publishing needs her written OK and checked sources. |
 | Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
-**Still to fill in:** real photos for the class cards (AI placeholders today; Aerial is still a real photo of Priyanshi, until its replacement arrives), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
+**Still to fill in:** real photos for the class cards (AI placeholders today), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
 
 ---
 

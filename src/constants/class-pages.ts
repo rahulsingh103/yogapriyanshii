@@ -85,10 +85,7 @@ export function classPhotoSizes(photo: ClassPhoto) {
 
 const PRACTICE = '/media/images/practice';
 
-/**
- * A class page shows its carousel card's photo (classes.ts). AI placeholders until the shoot; only
- * Aerial is still a real photo of Priyanshi, until its AI replacement arrives.
- */
+/** A class page shows its carousel card's photo (classes.ts): AI placeholders until the shoot. */
 const cardPhoto = (name: ClassName): ClassPhoto => {
   const practice = PRACTICE_CLASSES.find((c) => c.name === name);
   if (!practice) throw new Error(`Unknown class: ${name}`);
