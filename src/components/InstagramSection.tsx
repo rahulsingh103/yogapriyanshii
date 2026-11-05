@@ -5,13 +5,13 @@ import { ui } from '@/lib/ui';
 import { useOverflowsX } from '@/hooks/use-overflows';
 import { Reveal } from './Reveal';
 
-/** Real photos of Priyanshi at the Burj Khalifa park (449px tiles until the photo shoot). */
-const PHOTOS: ReadonlyArray<{ slug: string; width: number; height: number; alt: string }> = [
-  { slug: 'flying-split', width: 449, height: 525, alt: 'Priyanshi in a flying split arm balance on the lawn below the Burj Khalifa' },
-  { slug: 'forearm-split', width: 443, height: 525, alt: 'Priyanshi in a forearm stand with her legs split, the Burj Khalifa behind her' },
-  { slug: 'king-pigeon', width: 443, height: 530, alt: 'Priyanshi in a king pigeon backbend on a mat in a Dubai park' },
-  { slug: 'plow-variation', width: 449, height: 529, alt: 'Priyanshi in a shoulder stand variation with one leg raised, in a Dubai park' },
-  { slug: 'seated-backbend', width: 443, height: 529, alt: 'Priyanshi in a seated backbend holding her raised foot, the Burj Khalifa behind her' },
+/** AI placeholders in the class-card style, until the photo shoot (owner decision 2026-11-04). */
+const PHOTOS: ReadonlyArray<{ slug: string; alt: string }> = [
+  { slug: 'teacher', alt: 'Yoga teacher seated cross-legged on a mat, smiling, one arm raised' },
+  { slug: 'full-wheel', alt: 'Yoga teacher in a full wheel backbend on a mat' },
+  { slug: 'chakra-flow', alt: 'Yoga teacher seated cross-legged in meditation' },
+  { slug: 'barre', alt: 'Yoga teacher at a ballet barre, rising onto her toes' },
+  { slug: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },
 ];
 
 /**
@@ -24,21 +24,21 @@ export function InstagramSection() {
     <section id="instagram" aria-labelledby="instagram-title" className="py-20 lg:py-32">
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
         <h2 id="instagram-title" className="font-display font-normal text-h2 text-ink">
-          See Priyanshi in action
+          Follow along on Instagram
         </h2>
         <ul
           ref={trackRef}
           role="list"
           tabIndex={overflows ? 0 : undefined}
-          aria-label="Photos from Instagram"
+          aria-label="Yoga poses"
           className="snap-track grid grid-flow-col auto-cols-[min(44%,200px)] gap-4 overflow-x-auto snap-x snap-mandatory pb-3 rounded-[18px] md:grid-flow-row md:grid-cols-5 md:auto-cols-auto md:overflow-visible md:pb-0"
         >
           {PHOTOS.map((photo) => (
             <li key={photo.slug} className="snap-start min-w-0">
               <img
-                src={`/media/images/real/${photo.slug}-480.webp`}
-                width={photo.width}
-                height={photo.height}
+                src={`/media/images/practice/${photo.slug}-480.webp`}
+                width={480}
+                height={596}
                 loading="lazy"
                 decoding="async"
                 alt={photo.alt}

@@ -17,7 +17,7 @@
 **Principles:**
 1. **One idea per section.** A headline, at most one short line, and one action.
 2. **Air over decoration.** Space separates things, not borders or boxes.
-3. **Real photos of Priyanshi** carry the emotion. No stock photos or AI images.
+3. **A real photo of Priyanshi** carries the About section. Other photos are AI placeholders in one style until her shoot (owner decision 2026-11-04). No stock photos.
 4. **Motion is slow and soft:** fades, gentle lifts, the mandala. Never bouncy or fast.
 
 ---
@@ -151,14 +151,14 @@ All components have default, hover, focus-visible, active and disabled states. F
 - **What a tap does:**
   - The 4 bookable classes (Hatha, Barre, Wheel, Chakra Flow) open the booking with the soonest session of that style preselected.
   - The 7 new classes (Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga) aren't on the timetable, so they open the contact pop-up with that class preset as the interest. Aerial Yoga is private sessions only: its line is "Private sessions only · on request" (no duration) and its interest is "Private Aerial Yoga".
-- A card whose source photo is small (Vinyasa today) ships only `<slug>-480.webp` (`smallImageOnly`), with no `srcset`.
+- A card whose source photo is small ships only `<slug>-480.webp` (`smallImageOnly`), with no `srcset`.
 - **"Learn more"** (Batch 4a): each card sits in a wrapper (`snap-start flex flex-col gap-1`, not positioned, `data-card-slug`) that stretches to the row's height; the card button is unchanged inside it (plus `flex-1`). Under the card, a text link "Learn more" (`/classes/<slug>`, accessible name "Learn more about <Name>", 14px semibold `ink`, underline in `line-strong`, `min-h-11 px-4` so it lines up with the card text and has a 44px hit area, no press scale, `draggable={false}`). A plain click opens the class page in the app; a modifier click keeps the browser's new tab. The track's drag click-suppression covers it, so a drag that starts on it never navigates.
 
 ### Class page (`/classes/<slug>`, Batch 4a)
 - One class per page, inside the same shell (header, footer, WhatsApp button and every modal). Container 1040px, `px-5 pt-24 pb-24 lg:pt-32 lg:pb-32` (on the spacing scale), `gap-8 lg:gap-12` between the back link and the grid.
 - Order: the back link "All classes" (arrow-left icon, 14px semibold `ink-soft`, `min-h-11`), then the h1 class name (Italiana `text-h2`, `tabIndex={-1}` with the class finder's quiet focus underline) with the card's benefit line under it (16px `ink-soft`), the photo, then the body.
 - Layout: stacked on phones (title, photo, body), `gap-y-12` so the title block stands apart from the body; from `lg` two columns, `grid-cols-[400px_minmax(0,1fr)] gap-x-16`: the photo on the left spanning both rows and sticky (`lg:sticky lg:top-32 lg:self-start`, no motion), title and body on the right.
-- Photo: a real photo of Priyanshi (mapping in `class-pages.ts`, replaced after the shoot), 4:5, `rounded-[18px]`, `object-position` per photo, specific alt text, `fetchpriority="high"` (it is the page's main image). The static HTML uses the same source, `sizes` and width cap (`classPhotoSizes()` / `classPhotoMaxClass()` in `class-pages.ts`). Width capped so a 480w source is never shown much past 1.5×: `max-w-[320px]` for 480-only photos, `max-w-[400px]` with `srcset` where an 800w version exists.
+- Photo: the class's own card photo (`cardPhoto` in `class-pages.ts`, AI placeholders until the shoot), 4:5, `rounded-[18px]`, `object-position` per photo, specific alt text, `fetchpriority="high"` (it is the page's main image). The static HTML uses the same source, `sizes` and width cap (`classPhotoSizes()` / `classPhotoMaxClass()` in `class-pages.ts`). Width capped so a 480w source is never shown much past 1.5×: `max-w-[320px]` for 480-only photos, `max-w-[400px]` with `srcset` where an 800w version exists.
 - Body (`gap-12`): "Who it's for" and "About the class" (`h2` in `text-h4`, 16px `ink-soft` body, 46ch); a hairline `<dl>` in the About trust-number style (2 columns, `gap-x-4 gap-y-6`: 14px `ink-soft` label above a 16px `ink` value) with Duration (none for Aerial), Intensity, Level (the 4 timetabled classes only) and Format, then two full-width rows (`col-span-2`, value capped at 46ch): "What it focuses on" (2 to 4 short body areas or qualities on one line, joined with " · ") and "Where it comes from" (one neutral sentence, 25 words at most, hedged; no founder named where none is clear). They are rows, not new `h2` sections, so the page stays short; focus says what the class works on, never what it fixes. React and the static HTML build the list from one helper (`classDetailRows()` in `class-pages.ts`); "What to bring" (6 items, 5 for private Aerial, which drops the own-mat line; 6px `accent` dots, the section's one accent); notices in `ui.notice`; the class's review (if any) as a glass card like Testimonials.
 - Actions (`id="class-actions"`, under a hairline): the line ("In person in Dubai or live online. Your first class is free." / the owner's "Not on the timetable yet…" line / "Private, one-to-one sessions, arranged with Priyanshi."), then `ui.primary` ("Book a free class" for the 4 timetabled classes, otherwise "Ask about this class" or "Ask about private Aerial") and, while WhatsApp is on, `ui.secondary` "Ask Priyanshi on WhatsApp". Labels never wrap (`whitespace-nowrap`) and the row is `flex-wrap`: full width and stacked on phones, side by side from 640px, and a pill that doesn't fit drops to its own line (no text overflows from 320 to 1440px). The floating WhatsApp button hides while the actions are on screen.
 - Focus: in-app navigation scrolls to the top and focuses the h1; a direct load moves no focus. Back to home restores the carousel at the card used and focuses its "Learn more".
@@ -186,7 +186,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Prev and next icon buttons sit at the top right (hidden on touch-only screens is fine); keyboard focusable, scrollable with the arrow keys.
 - **Motion:** touch keeps the native swipe and scroll-snap. The arrows and arrow keys glide on a critically damped spring to the exact next snap point (instant with reduced motion). With a mouse (`pointer: fine`, `cursor-grab`), the track can be dragged: 10px threshold, then 1:1; rubber-band past either end; on release the momentum is projected and it glides (slight bounce, with the release velocity) to the nearest snap. A real drag never opens a class; a plain click or tap still does. Any glide stops on a new press, grab, wheel or touch.
 - The 11 classes, in this order: Hatha, Barre, Wheel, Chakra Flow, Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga, Prenatal & Postnatal, Aerial Yoga. The durations of the new classes are placeholders until Priyanshi confirms them.
-- Photos: Vinyasa (crow), Ashtanga (Burj forearm stand) and Aerial (the original window photo, with a light grade: blues about 25% less saturated and slightly warmer, the silk keeps its blue) are real; the other 8 are AI placeholders until the photo shoot. The class pages use real photos only.
+- Photos: AI placeholders until the photo shoot. Aerial (the original window photo, with a light grade: blues about 25% less saturated and slightly warmer, the silk keeps its blue) is still real, until its replacement arrives. Each class page shows its card's photo.
 
 ### Header / navigation
 - Logo on the left: the YP mark (`LogoMark`, 36px) beside the wordmark "YogaPriyanshi" (Italiana 24px). The mark (chosen 2026-11-03) is a raised P and a lowered Y whose right arm flows into the P's stem, in `on-ink` on an `ink` rounded tile, matching the primary button; the same tile is the favicon (`public/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`). Master files live outside the repo in `design/logo-final/`. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
@@ -281,8 +281,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 - "Practise safely": a compact note, not a card: an `h3` (`text-h4`) and three 14px bullets. It never suggests that Priyanshi gives medical clearance.
 - While `WHATSAPP_ENABLED`: one line "Not sure where to start?" and the text link "Book a free 15-minute call" (WhatsApp glyph, underline, no press scale). Its accessible name never matches the floating button's.
 
-### Instagram ("See Priyanshi in action")
-- After the FAQ, before "Your first class is free". Five real Burj Khalifa photos (`real/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
+### Instagram ("Follow along on Instagram")
+- After the FAQ, before "Your first class is free". Five AI placeholder photos in the class-card style (`practice/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
 - One secondary pill "Follow @yogapriyanshi" (Instagram icon) to the profile. No WhatsApp link, no embed and no third-party script.
 
 ---
@@ -321,7 +321,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 7. Schedule: this week's classes with spots left (existing live schedule, restyled).
 8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
 9. Questions, answered: the FAQ, 10 questions that open in place.
-10. See Priyanshi in action: five Instagram photos and a Follow link.
+10. Follow along on Instagram: five photos and a Follow link.
 11. Your first class is free: "Classes every day except Friday · in person or online" / [Pick a time]
 12. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
@@ -429,7 +429,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 **Do:**
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
-- Use Priyanshi's real photos and videos, compressed (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
+- Use compressed photos and videos (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
 - Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (138 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
@@ -437,7 +437,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - No new fonts, no bold Italiana, no text under 12px.
 - No hex values or `!important` in components, and no theme switcher.
 - No extra effects: no particles, cursor trails, parallax on every image, bouncing, typewriter text or auto-playing carousels.
-- No stock or AI photos, and no emoji as icons.
+- No stock photos, and no emoji as icons.
 - No fake data: no sample numbers, no fake reviews, no "success" when the server failed.
 - No long paragraphs on the homepage.
 

@@ -18,18 +18,18 @@ export interface PracticeClass {
   alt: string;
 }
 
-// The first 8 photos are AI-generated placeholders (pose references for Priyanshi's own shoot); Vinyasa,
-// Ashtanga and Aerial are real photos of Priyanshi. Replace the files to swap them.
+// The photos are AI-generated placeholders (pose references for Priyanshi's own shoot), except Aerial,
+// which is a real photo of her until its replacement arrives. Replace the files to swap them.
 /** The 11 classes of the "Choose your practice" carousel, in DESIGN_SYSTEM §4 order. */
 export const PRACTICE_CLASSES: PracticeClass[] = [
   { name: 'Hatha', slug: 'hatha', line: 'Alignment and breath · 60 min', style: 'hatha', image: 'hatha', alt: 'Yoga teacher in a low crescent lunge with arms raised' },
   { name: 'Barre', slug: 'barre', line: 'Strength and stretch · 60 min', style: 'barre', image: 'barre', alt: 'Yoga teacher at a ballet barre, rising onto her toes' },
-  { name: 'Wheel', slug: 'wheel', line: 'Signature backbends · 75 min', style: 'wheel', image: 'wheel', alt: 'Yoga teacher in a full wheel backbend' },
+  { name: 'Wheel', slug: 'wheel', line: 'Signature backbends · 75 min', style: 'wheel', image: 'wheel', alt: 'Yoga teacher arching back over a yoga wheel on a mat' },
   { name: 'Chakra Flow', slug: 'chakra-flow', line: 'Moving meditation · 60 min', style: 'chakra', image: 'chakra-flow', alt: 'Yoga teacher seated cross-legged in meditation' },
   // The classes below are front-end content only (not in the DB yet).
   // Their durations are placeholders until Priyanshi confirms them.
-  { name: 'Vinyasa', slug: 'vinyasa', line: 'Breath-led flow · 60 min', contactInterest: 'Vinyasa Yoga', image: 'vinyasa', smallImageOnly: true, alt: 'Priyanshi balancing in crow pose on a mat on a lawn' },
-  { name: 'Ashtanga', slug: 'ashtanga', line: 'A set sequence, steady breath · 60 min', contactInterest: 'Ashtanga Yoga', image: 'ashtanga', alt: 'Priyanshi in a forearm stand with her legs split, on a mat on a lawn' },
+  { name: 'Vinyasa', slug: 'vinyasa', line: 'Breath-led flow · 60 min', contactInterest: 'Vinyasa Yoga', image: 'vinyasa', alt: 'Yoga teacher in a low lunge on a mat, one arm reaching up' },
+  { name: 'Ashtanga', slug: 'ashtanga', line: 'A set sequence, steady breath · 60 min', contactInterest: 'Ashtanga Yoga', image: 'ashtanga', alt: 'Yoga teacher seated on a mat in a twist, one knee drawn up' },
   { name: 'Spine Healing', slug: 'spine-healing', line: 'Back care and release · 60 min', contactInterest: 'Spine Healing', image: 'spine-healing', alt: 'Yoga teacher on all fours in a gentle cat stretch' },
   { name: 'Mobility Yoga', slug: 'mobility-yoga', line: 'Joints and everyday ease · 60 min', contactInterest: 'Mobility Yoga', image: 'mobility', alt: 'Yoga teacher seated in a hip mobility stretch' },
   { name: 'Yin Yoga', slug: 'yin-yoga', line: 'Long, quiet holds · 75 min', contactInterest: 'Yin Yoga', image: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },

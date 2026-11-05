@@ -83,35 +83,25 @@ export function classPhotoSizes(photo: ClassPhoto) {
   return `(min-width: 1024px) ${photo.maxWidth}px, min(calc(100vw - 40px), ${photo.maxWidth}px)`;
 }
 
-const REAL = '/media/images/real';
+const PRACTICE = '/media/images/practice';
 
-// Real photos of Priyanshi on every page until the shoot (owner decision 2026-10-26, plan P16).
-const PHOTOS = {
-  seatedBackbend: { src: `${REAL}/seated-backbend-480.webp`, width: 443, height: 529, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi in a seated backbend holding her raised foot, the Burj Khalifa behind her' },
-  flyingSplit: { src: `${REAL}/flying-split-480.webp`, width: 449, height: 525, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi in a flying split arm balance on the lawn below the Burj Khalifa' },
-  kingPigeon: { src: `${REAL}/king-pigeon-480.webp`, width: 443, height: 530, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi in a king pigeon backbend on a mat in a Dubai park' },
-  forearmSplit: { src: `${REAL}/forearm-split-480.webp`, width: 443, height: 525, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi in a forearm stand with her legs split, the Burj Khalifa behind her' },
-  crow: { src: `${REAL}/crow-480.webp`, width: 449, height: 530, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi balancing in crow pose on a mat on a lawn' },
-  plow: { src: `${REAL}/plow-variation-480.webp`, width: 449, height: 529, position: '50% 50%', maxWidth: 320, alt: 'Priyanshi in a shoulder stand variation with one leg raised, in a Dubai park' },
-  burj1: {
-    src: `${REAL}/burj-forearm-stand-1-800.webp`,
-    srcSet: `${REAL}/burj-forearm-stand-1-480.webp 480w, ${REAL}/burj-forearm-stand-1-800.webp 800w, ${REAL}/burj-forearm-stand-1-1200.webp 1200w`,
-    width: 800, height: 1067, position: '50% 70%', maxWidth: 400,
-    alt: 'Priyanshi in a forearm stand on a mat on the lawn below the Burj Khalifa, Dubai',
-  },
-  burj2: {
-    src: `${REAL}/burj-forearm-stand-2-800.webp`,
-    srcSet: `${REAL}/burj-forearm-stand-2-480.webp 480w, ${REAL}/burj-forearm-stand-2-800.webp 800w`,
-    width: 800, height: 1422, position: '50% 72%', maxWidth: 400,
-    alt: 'Priyanshi in a forearm stand with one knee bent, the Burj Khalifa and the UAE flag behind her',
-  },
-  aerial: {
-    src: '/media/images/practice/aerial-800.webp',
-    srcSet: '/media/images/practice/aerial-480.webp 480w, /media/images/practice/aerial-800.webp 800w',
-    width: 800, height: 993, position: '50% 50%', maxWidth: 400,
-    alt: 'Priyanshi seated in a blue aerial hammock by a window, arms raised',
-  },
-} satisfies Record<string, ClassPhoto>;
+/**
+ * A class page shows its carousel card's photo (classes.ts). AI placeholders until the shoot; only
+ * Aerial is still a real photo of Priyanshi, until its AI replacement arrives.
+ */
+const cardPhoto = (name: ClassName): ClassPhoto => {
+  const practice = PRACTICE_CLASSES.find((c) => c.name === name);
+  if (!practice) throw new Error(`Unknown class: ${name}`);
+  return {
+    src: `${PRACTICE}/${practice.image}-800.webp`,
+    srcSet: `${PRACTICE}/${practice.image}-480.webp 480w, ${PRACTICE}/${practice.image}-800.webp 800w`,
+    width: 800,
+    height: 993,
+    position: '50% 50%',
+    maxWidth: 400,
+    alt: practice.alt,
+  };
+};
 
 const review = (className: string): Testimonial => {
   const found = TESTIMONIALS.find((t) => t.className === className);
@@ -134,7 +124,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle–Moderate',
     notices: [],
     ...meta('Hatha', 'Hatha yoga with Priyanshi in Dubai: foundational postures, precise alignment and breath. In person or live online. Your first class is free.'),
-    photo: PHOTOS.seatedBackbend,
+    photo: cardPhoto('Hatha'),
     testimonial: null,
   },
   Barre: {
@@ -148,7 +138,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Moderate',
     notices: [],
     ...meta('Barre', 'Barre yoga with Priyanshi in Dubai: small, controlled strength work and deep stretching. In person or live online. Your first class is free.'),
-    photo: PHOTOS.flyingSplit,
+    photo: cardPhoto('Barre'),
     testimonial: review('Barre Yoga'),
   },
   Wheel: {
@@ -162,7 +152,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Moderate–Strong',
     notices: [FINDER_BACK_NOTICE],
     ...meta('Wheel', "Wheel yoga, Priyanshi's signature class in Dubai: backbends and chest openers with the yoga wheel. In person or live online. Your first class is free."),
-    photo: PHOTOS.kingPigeon,
+    photo: cardPhoto('Wheel'),
     testimonial: null,
   },
   'Chakra Flow': {
@@ -176,7 +166,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle',
     notices: [],
     ...meta('Chakra Flow', 'Chakra Flow with Priyanshi in Dubai: a moving meditation pairing breath, sound and sequence. In person or live online. Your first class is free.'),
-    photo: PHOTOS.forearmSplit,
+    photo: cardPhoto('Chakra Flow'),
     testimonial: null,
   },
   Vinyasa: {
@@ -190,7 +180,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Moderate–Strong',
     notices: [],
     ...meta('Vinyasa', 'Vinyasa yoga with Priyanshi in Dubai: a breath-led flow from pose to pose that builds strength and focus. In person or live online, on request.'),
-    photo: PHOTOS.crow,
+    photo: cardPhoto('Vinyasa'),
     testimonial: null,
   },
   Ashtanga: {
@@ -204,7 +194,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Strong',
     notices: [],
     ...meta('Ashtanga', 'Ashtanga yoga with Priyanshi in Dubai: a set sequence with a steady breath, so you can feel your practice grow. In person or online, on request.'),
-    photo: PHOTOS.burj2,
+    photo: cardPhoto('Ashtanga'),
     testimonial: null,
   },
   'Spine Healing': {
@@ -218,7 +208,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle',
     notices: [FINDER_BACK_NOTICE],
     ...meta('Spine Healing', 'Spine Healing with Priyanshi in Dubai: slow, gentle yoga for back care and release, at your own pace. In person or live online, on request.'),
-    photo: PHOTOS.plow,
+    photo: cardPhoto('Spine Healing'),
     testimonial: review('Spine Healing'),
   },
   'Mobility Yoga': {
@@ -232,7 +222,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle',
     notices: [],
     ...meta('Mobility Yoga', 'Mobility yoga with Priyanshi in Dubai: gentle, mindful movement for your joints and everyday ease. In person or live online, on request.'),
-    photo: PHOTOS.forearmSplit,
+    photo: cardPhoto('Mobility Yoga'),
     testimonial: null,
   },
   'Yin Yoga': {
@@ -246,7 +236,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle',
     notices: [],
     ...meta('Yin Yoga', 'Yin yoga with Priyanshi in Dubai: long, quiet holds that give your body time to slow down and let go. In person or live online, on request.'),
-    photo: PHOTOS.seatedBackbend,
+    photo: cardPhoto('Yin Yoga'),
     testimonial: null,
   },
   'Prenatal & Postnatal': {
@@ -260,7 +250,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Gentle',
     notices: [FINDER_PREGNANCY_NOTICE],
     ...meta('Prenatal & Postnatal', 'Prenatal and postnatal yoga in Dubai with Priyanshi, a teacher trained in prenatal yoga. Gentle classes, in person or live online, on request.'),
-    photo: PHOTOS.burj1,
+    photo: cardPhoto('Prenatal & Postnatal'),
     testimonial: null,
   },
   'Aerial Yoga': {
@@ -274,7 +264,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     intensity: 'Moderate',
     notices: [],
     ...meta('Aerial Yoga', 'Private aerial yoga with Priyanshi in Dubai: one-to-one sessions in the aerial hammock, arranged with you on request.'),
-    photo: PHOTOS.aerial,
+    photo: cardPhoto('Aerial Yoga'),
     testimonial: null,
   },
 };

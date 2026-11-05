@@ -22,7 +22,7 @@ test('landing page renders every section with working images', async ({ page }, 
     ['schedule', 'Weekly schedule'],
     ['pricing', 'Pricing'],
     ['faq', 'Questions, answered'],
-    ['instagram', 'See Priyanshi in action'],
+    ['instagram', 'Follow along on Instagram'],
     ['contact', 'Get in touch'],
   ] as const) {
     const section = page.locator(`#${id}`);
