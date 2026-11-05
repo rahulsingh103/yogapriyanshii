@@ -95,7 +95,7 @@ website/
 ├── server.ts            dev/test entry: createApp() + Vite (applyRoute on every page) or the built files
 ├── e2e/                 Playwright tests (fixtures/article.md: synthetic lorem for the article view)
 ├── public/media/        site photos and videos: images/practice (class cards), images/real (real photos of
-│                        Priyanshi: the About photo)
+│                        Priyanshi: the About photo and the Instagram tiles)
 ├── docs/                these 8 docs
 └── AGENTS.md            rules for AI coding agents
 ```

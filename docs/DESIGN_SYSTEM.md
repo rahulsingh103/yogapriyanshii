@@ -17,7 +17,7 @@
 **Principles:**
 1. **One idea per section.** A headline, at most one short line, and one action.
 2. **Air over decoration.** Space separates things, not borders or boxes.
-3. **A real photo of Priyanshi** carries the About section. Other photos are AI placeholders in one style until her shoot (owner decision 2026-11-04). No stock photos.
+3. **Real photos of Priyanshi** carry the About and Instagram sections. Class photos are AI placeholders in one style until her shoot (owner decision 2026-11-05). No stock photos.
 4. **Motion is slow and soft:** fades, gentle lifts, the mandala. Never bouncy or fast.
 
 ---
@@ -281,8 +281,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 - "Practise safely": a compact note, not a card: an `h3` (`text-h4`) and three 14px bullets. It never suggests that Priyanshi gives medical clearance.
 - While `WHATSAPP_ENABLED`: one line "Not sure where to start?" and the text link "Book a free 15-minute call" (WhatsApp glyph, underline, no press scale). Its accessible name never matches the floating button's.
 
-### Instagram ("Follow along on Instagram")
-- After the FAQ, before "Your first class is free". Five AI placeholder photos in the class-card style (`practice/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
+### Instagram ("See Priyanshi in action")
+- After the FAQ, before "Your first class is free". Five real Burj Khalifa photos (`real/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
 - One secondary pill "Follow @yogapriyanshi" (Instagram icon) to the profile. No WhatsApp link, no embed and no third-party script.
 
 ---
@@ -321,7 +321,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 7. Schedule: this week's classes with spots left (existing live schedule, restyled).
 8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
 9. Questions, answered: the FAQ, 10 questions that open in place.
-10. Follow along on Instagram: five photos and a Follow link.
+10. See Priyanshi in action: five Instagram photos and a Follow link.
 11. Your first class is free: "Classes every day · in person or online" / [Pick a time]
 12. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
