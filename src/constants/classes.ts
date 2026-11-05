@@ -19,19 +19,18 @@ export interface PracticeClass {
 }
 
 // The photos are AI-generated placeholders (pose references for Priyanshi's own shoot). Replace the files to swap them.
-/** The 11 classes of the "Choose your practice" carousel, in DESIGN_SYSTEM §4 order. */
+/** The 10 classes of the "Choose your practice" carousel, in DESIGN_SYSTEM §4 order. */
 export const PRACTICE_CLASSES: PracticeClass[] = [
   { name: 'Hatha', slug: 'hatha', line: 'Alignment and breath · 60 min', style: 'hatha', image: 'hatha', alt: 'Yoga teacher in a low crescent lunge with arms raised' },
   { name: 'Barre', slug: 'barre', line: 'Strength and stretch · 60 min', style: 'barre', image: 'barre', alt: 'Yoga teacher at a ballet barre, rising onto her toes' },
-  { name: 'Wheel', slug: 'wheel', line: 'Signature backbends · 75 min', style: 'wheel', image: 'wheel', alt: 'Yoga teacher arching back over a yoga wheel on a mat' },
   { name: 'Chakra Flow', slug: 'chakra-flow', line: 'Moving meditation · 60 min', style: 'chakra', image: 'chakra-flow', alt: 'Yoga teacher seated cross-legged in meditation' },
-  // The classes below are front-end content only (not in the DB yet).
-  // Their durations are placeholders until Priyanshi confirms them.
-  { name: 'Vinyasa', slug: 'vinyasa', line: 'Breath-led flow · 60 min', contactInterest: 'Vinyasa Yoga', image: 'vinyasa', alt: 'Yoga teacher in a low lunge on a mat, one arm reaching up' },
+  // The durations of the classes below are placeholders until Priyanshi confirms them.
+  { name: 'Vinyasa', slug: 'vinyasa', line: 'Breath-led flow · 60 min', style: 'vinyasa', image: 'vinyasa', alt: 'Yoga teacher in a low lunge on a mat, one arm reaching up' },
+  // From here on, front-end content only (not in the DB), except Yin Yoga, which is on the timetable.
   { name: 'Ashtanga', slug: 'ashtanga', line: 'A set sequence, steady breath · 60 min', contactInterest: 'Ashtanga Yoga', image: 'ashtanga', alt: 'Yoga teacher seated on a mat in a twist, one knee drawn up' },
   { name: 'Spine Healing', slug: 'spine-healing', line: 'Back care and release · 60 min', contactInterest: 'Spine Healing', image: 'spine-healing', alt: 'Yoga teacher arching back over a yoga wheel on a mat, feet on the floor' },
   { name: 'Mobility Yoga', slug: 'mobility-yoga', line: 'Joints and everyday ease · 60 min', contactInterest: 'Mobility Yoga', image: 'mobility', alt: 'Yoga teacher seated on a mat with a strap around one foot, a cork block beside her' },
-  { name: 'Yin Yoga', slug: 'yin-yoga', line: 'Long, quiet holds · 75 min', contactInterest: 'Yin Yoga', image: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },
+  { name: 'Yin Yoga', slug: 'yin-yoga', line: 'Long, quiet holds · 75 min', style: 'yin', image: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },
   { name: 'Prenatal & Postnatal', slug: 'prenatal-postnatal', line: 'Before and after birth · 60 min', contactInterest: 'Prenatal & Postnatal', image: 'prenatal-postnatal', alt: 'Pregnant woman seated cross-legged beside a bolster, hand on her belly' },
   // Aerial is private sessions only, never a group class on the schedule.
   { name: 'Aerial Yoga', slug: 'aerial-yoga', line: 'Private sessions only · on request', contactInterest: 'Private Aerial Yoga', image: 'aerial', alt: 'Yoga teacher hanging upside down in a green aerial silk, soles of her feet together' },

@@ -5,6 +5,8 @@ import { getDb, withWriteTx } from './db.js';
 const DUBAI_OFFSET_MS = 4 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const SCHEDULE_DAYS = 56;
+/** Off the timetable and closed to new bookings. Its row and old sessions stay: existing bookings still JOIN through them. */
+export const RETIRED_CLASS_ID = 'wheel';
 const ENSURE_EVERY_MS = 10 * 60 * 1000;
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -15,7 +17,7 @@ export interface SessionView {
   id: string;
   classId: string;
   className: string;
-  style: 'hatha' | 'barre' | 'wheel' | 'chakra';
+  style: 'hatha' | 'barre' | 'chakra' | 'vinyasa' | 'yin' | 'wheel';
   level: string;
   duration: number;
   startTimeUtc: string;
@@ -69,7 +71,7 @@ export function dubaiMonth(ms: number): { key: string; label: string; startUtc: 
   };
 }
 
-function sessionId(classId: string, startUtcMs: number): string {
+export function sessionId(classId: string, startUtcMs: number): string {
   return `sess-${classId}-${startUtcMs}`;
 }
 
@@ -80,9 +82,11 @@ function slotUtcMs(dayStartUtc: number, startTime: string): number {
 
 async function loadTemplate(): Promise<TemplateRow[]> {
   const db = await getDb();
-  const rs = await db.execute(
-    'SELECT weekday, start_time, class_id, capacity FROM schedule_template ORDER BY weekday, start_time LIMIT 50'
-  );
+  // The filter covers the time before migration 005 runs, when the Wheel row is still there.
+  const rs = await db.execute({
+    sql: 'SELECT weekday, start_time, class_id, capacity FROM schedule_template WHERE class_id <> ? ORDER BY weekday, start_time LIMIT 50',
+    args: [RETIRED_CLASS_ID],
+  });
   return rs.rows.map((r) => ({
     weekday: Number(r.weekday),
     startTime: String(r.start_time),
@@ -135,7 +139,8 @@ export function toSessionView(r: Row, now = Date.now()): SessionView {
     id: String(r.id),
     classId: String(r.class_id),
     className: String(r.class_name),
-    style: String(r.style) as SessionView['style'],
+    // classes.style is legacy (docs/DATABASE.md): the class id is the style.
+    style: String(r.class_id) as SessionView['style'],
     level: String(r.level),
     duration: Number(r.duration_min),
     startTimeUtc: startIso,
@@ -155,7 +160,7 @@ function restDay(dayStartUtc: number): SessionView {
   return {
     id: `sess-rest-${local}`,
     classId: 'rest',
-    className: 'Rest Day',
+    className: 'No class',
     style: 'hatha',
     level: '—',
     duration: 0,
@@ -170,7 +175,7 @@ function restDay(dayStartUtc: number): SessionView {
   };
 }
 
-/** Exactly one entry per Dubai day for 56 days, starting today; days without a class are rest placeholders. */
+/** Exactly one entry per Dubai day for 56 days, starting today; a day without a class gets an empty placeholder. */
 export async function listSchedule(now = Date.now()): Promise<SessionView[]> {
   await ensureSessions(now);
   const template = await loadTemplate();
@@ -179,9 +184,9 @@ export async function listSchedule(now = Date.now()): Promise<SessionView[]> {
   const db = await getDb();
   const rs = await db.execute({
     sql:
-      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.style, c.level, c.duration_min ' +
-      'FROM sessions s JOIN classes c ON c.id = s.class_id WHERE s.start_utc >= ? AND s.start_utc < ? ORDER BY s.start_utc LIMIT 60',
-    args: [new Date(today).toISOString(), new Date(end).toISOString()],
+      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.level, c.duration_min ' +
+      'FROM sessions s JOIN classes c ON c.id = s.class_id WHERE s.start_utc >= ? AND s.start_utc < ? AND s.class_id <> ? ORDER BY s.start_utc LIMIT 60',
+    args: [new Date(today).toISOString(), new Date(end).toISOString(), RETIRED_CLASS_ID],
   });
   const byId = new Map(rs.rows.map((r) => [String(r.id), r]));
 
@@ -195,35 +200,71 @@ export async function listSchedule(now = Date.now()): Promise<SessionView[]> {
   return out;
 }
 
-/** The next `limit` upcoming sessions (admin dashboard). */
+/** The next `limit` upcoming sessions (admin dashboard). A retired class shows only while someone is booked on it. */
 export async function upcomingSessions(limit: number, now = Date.now()): Promise<SessionView[]> {
   await ensureSessions(now);
   const db = await getDb();
   const rs = await db.execute({
     sql:
-      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.style, c.level, c.duration_min ' +
-      "FROM sessions s JOIN classes c ON c.id = s.class_id WHERE s.start_utc > ? AND s.status = 'scheduled' ORDER BY s.start_utc LIMIT ?",
-    args: [new Date(now).toISOString(), Math.min(limit, 50)],
+      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.level, c.duration_min ' +
+      "FROM sessions s JOIN classes c ON c.id = s.class_id WHERE s.start_utc > ? AND s.status = 'scheduled' AND (s.class_id <> ? OR s.booked_count > 0) ORDER BY s.start_utc LIMIT ?",
+    args: [new Date(now).toISOString(), RETIRED_CLASS_ID, Math.min(limit, 50)],
   });
   return rs.rows.map((r) => toSessionView(r, now));
 }
 
-/** Test-only (APP_ENV=test): a one-off wheel session starting `minutesFromNow` from now. Not shown in the schedule. */
+/** Test-only (APP_ENV=test): a one-off Hatha session starting `minutesFromNow` from now. Not shown in the schedule. */
 export async function createAdhocSession(minutesFromNow: number): Promise<SessionView> {
   const start = Math.floor((Date.now() + minutesFromNow * 60 * 1000) / 60000) * 60000 + 7 * 1000;
-  const id = sessionId('wheel', start);
+  const id = sessionId('hatha', start);
   await withWriteTx((tx) =>
     tx.execute({
-      sql: "INSERT OR IGNORE INTO sessions (id, class_id, start_utc, capacity) VALUES (?, 'wheel', ?, 10)",
+      sql: "INSERT OR IGNORE INTO sessions (id, class_id, start_utc, capacity) VALUES (?, 'hatha', ?, 10)",
       args: [id, new Date(start).toISOString()],
     })
   );
   const db = await getDb();
   const rs = await db.execute({
     sql:
-      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.style, c.level, c.duration_min ' +
+      'SELECT s.id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, c.name AS class_name, c.level, c.duration_min ' +
       'FROM sessions s JOIN classes c ON c.id = s.class_id WHERE s.id = ? LIMIT 1',
     args: [id],
   });
   return toSessionView(rs.rows[0]);
+}
+
+/**
+ * Test-only (APP_ENV=test): empty Wheel sessions on the 8 Thursdays (18:00 Dubai) of the schedule window,
+ * like the ones left on the live database. Returns how many already existed at those slots.
+ */
+export async function createLegacyWheelOrphans(now = Date.now()): Promise<{ created: number; alreadyExisted: number }> {
+  const today = dubaiDayStartUtc(now);
+  const slots: number[] = [];
+  for (let offset = 0; offset < SCHEDULE_DAYS; offset++) {
+    const day = today + offset * DAY_MS;
+    if (weekdayOf(day) === 4) slots.push(slotUtcMs(day, '18:00'));
+  }
+  return withWriteTx(async (tx) => {
+    let created = 0;
+    for (const start of slots) {
+      const rs = await tx.execute({
+        sql: 'INSERT OR IGNORE INTO sessions (id, class_id, start_utc, capacity) VALUES (?, ?, ?, 10)',
+        args: [sessionId(RETIRED_CLASS_ID, start), RETIRED_CLASS_ID, new Date(start).toISOString()],
+      });
+      created += rs.rowsAffected;
+    }
+    return { created, alreadyExisted: slots.length - created };
+  });
+}
+
+/** Test-only (APP_ENV=test): puts the template in its shape before migration 005, or back in its shape after it. */
+export async function setUnmigratedTemplate(on: boolean): Promise<void> {
+  await withWriteTx((tx) =>
+    tx.batch([
+      'DELETE FROM schedule_template WHERE weekday IN (4, 5)',
+      on
+        ? "INSERT INTO schedule_template (weekday, start_time, class_id, capacity) VALUES (4, '18:00', 'wheel', 10)"
+        : "INSERT INTO schedule_template (weekday, start_time, class_id, capacity) VALUES (4, '18:00', 'vinyasa', 12), (5, '07:00', 'yin', 12)",
+    ])
+  );
 }

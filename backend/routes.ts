@@ -2,13 +2,13 @@ import express from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import { getConfig } from './config.js';
 import { getDb } from './db.js';
-import { cancelBooking, createBooking, getBookingByToken } from './bookings.js';
+import { cancelBooking, createBooking, createLegacyWheelBooking, getBookingByToken } from './bookings.js';
 import { submitContact } from './contact.js';
 import { login, logout, requireAdmin, resetAdminLockout, saveSettings, stats } from './admin.js';
 import { listMembers, parseMembersQuery, updateMember } from './membership.js';
-import { createAdhocSession, listSchedule } from './schedule.js';
+import { RETIRED_CLASS_ID, createAdhocSession, createLegacyWheelOrphans, listSchedule, setUnmigratedTemplate } from './schedule.js';
 import { testOutbox } from './email.js';
-import { bad } from './validate.js';
+import { bad, normalizeEmail } from './validate.js';
 
 type Handler = (req: Request, res: Response) => Promise<unknown>;
 
@@ -45,9 +45,10 @@ export function buildRouter(): express.Router {
     '/api/classes',
     wrap(async (_req, res) => {
       const db = await getDb();
-      const rs = await db.execute(
-        'SELECT id, name, level, duration_min, description, style FROM classes ORDER BY sort_order LIMIT 20'
-      );
+      const rs = await db.execute({
+        sql: 'SELECT id, name, level, duration_min, description FROM classes WHERE id <> ? ORDER BY sort_order LIMIT 20',
+        args: [RETIRED_CLASS_ID],
+      });
       res.json({
         classes: rs.rows.map((c) => ({
           id: String(c.id),
@@ -55,7 +56,8 @@ export function buildRouter(): express.Router {
           level: String(c.level),
           duration: Number(c.duration_min),
           description: String(c.description),
-          style: String(c.style),
+          // classes.style is legacy (docs/DATABASE.md): the class id is the style.
+          style: String(c.id),
         })),
       });
     })
@@ -173,6 +175,32 @@ export function buildRouter(): express.Router {
         const minutes = Number(bodyOf(req).minutesFromNow);
         if (!Number.isFinite(minutes) || minutes < 1 || minutes > 24 * 60) throw bad('minutesFromNow must be 1–1440.');
         res.status(201).json({ session: await createAdhocSession(minutes) });
+      })
+    );
+    // A booking on the retired class, as live may hold: the API no longer takes new ones.
+    r.post(
+      '/api/test/legacy-wheel-booking',
+      wrap(async (req, res) => {
+        const email = normalizeEmail(typeof bodyOf(req).email === 'string' ? (bodyOf(req).email as string) : '');
+        if (!email) throw bad('email is required.');
+        res.status(201).json(await createLegacyWheelBooking(email));
+      })
+    );
+    // Empty retired-class sessions at future Thursdays, as live holds, for the schedule's LIMIT.
+    r.post(
+      '/api/test/legacy-wheel-orphans',
+      wrap(async (_req, res) => {
+        res.status(201).json(await createLegacyWheelOrphans());
+      })
+    );
+    // The timetable before migration 005 ({ on: true }) and after it ({ on: false }).
+    r.post(
+      '/api/test/unmigrated-template',
+      wrap(async (req, res) => {
+        const { on } = bodyOf(req);
+        if (typeof on !== 'boolean') throw bad('on must be true or false.');
+        await setUnmigratedTemplate(on);
+        res.json({ success: true });
       })
     );
   }

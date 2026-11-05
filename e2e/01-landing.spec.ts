@@ -95,7 +95,7 @@ test('schedule week tabs, session selection and "Book This Class"', async ({ pag
   const schedule = page.locator('#schedule');
   await schedule.scrollIntoViewIfNeeded();
   await expect(schedule.getByText('Retrieving live studio availability...')).toHaveCount(0);
-  await expect(schedule.getByText('Rest Day')).toBeVisible();
+  await expect(schedule.getByText('Rest Day')).toHaveCount(0);
   await shot('this-week');
 
   await schedule.getByRole('button', { name: 'Next Week' }).click();

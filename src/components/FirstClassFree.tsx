@@ -19,7 +19,7 @@ export function FirstClassFree({ onPickTime }: FirstClassFreeProps) {
           Your first class is <em className="italic text-accent-text">free</em>
         </h2>
         <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
-          Classes every day except Friday · in person or online
+          Classes every day · in person or online
         </p>
         <AnimateIcon animateOnHover asChild>
           <button type="button" onClick={onPickTime} className={ui.primary}>

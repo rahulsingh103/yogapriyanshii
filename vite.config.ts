@@ -32,7 +32,7 @@ function faqStructuredData(): Plugin {
 }
 
 /**
- * Build only: from the finished home HTML (hashed asset URLs included) it emits the 11 prerendered class
+ * Build only: from the finished home HTML (hashed asset URLs included) it emits the 10 prerendered class
  * pages (classes/<slug>/index.html), 404.html, the published guides (guides/<slug>/index.html and
  * guides/index.html, none yet), sitemap.xml and robots.txt, with the same pure transform
  * the dev server uses (src/lib/route-html.ts). It fails the build rather than ship a wrong page.

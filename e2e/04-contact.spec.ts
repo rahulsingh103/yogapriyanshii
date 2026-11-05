@@ -37,8 +37,8 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
 
   await contact.getByPlaceholder('e.g. Sarah Jenkins').fill('Contact Tester');
   await contact.getByPlaceholder('sarah@example.com').fill(email);
-  await contact.getByLabel('Area of Interest').selectOption('Wheel Yoga');
-  await contact.getByPlaceholder(/Tell Priyanshi/).fill('Is the Wheel class OK for beginners?');
+  await contact.getByLabel('Area of Interest').selectOption('Barre Yoga');
+  await contact.getByPlaceholder(/Tell Priyanshi/).fill('Is the Barre class OK for beginners?');
   await shot('filled-form');
   await contact.getByRole('button', { name: 'Send Message' }).click();
   await expect(contact.getByText('Message Sent')).toBeVisible();
@@ -49,7 +49,7 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   const stats = await (await page.request.get('/api/admin/stats', { headers: { Authorization: `Bearer ${token}` } })).json();
   const msg = stats.recentMessages.find((m: any) => m.email === email);
   expect(msg).toBeTruthy();
-  expect(msg.interest).toBe('Wheel Yoga');
+  expect(msg.interest).toBe('Barre Yoga');
   expect(msg.phone).toBeNull();
 
   // the studio was alerted, with replies going straight to the student
@@ -57,7 +57,7 @@ test('contact form sends a message that reaches the admin inbox', async ({ page 
   const alert = emails.find((e: any) => e.kind === 'contact_alert' && e.replyTo === email);
   expect(alert, 'contact alert email').toBeTruthy();
   expect(alert.recipient).toBe('nbsingh2050@gmail.com');
-  expect(alert.body).toContain('Is the Wheel class OK for beginners?');
+  expect(alert.body).toContain('Is the Barre class OK for beginners?');
   expect(alert.body).not.toContain('Phone:');
 
   await contact.getByRole('button', { name: 'Send Another Message' }).click();

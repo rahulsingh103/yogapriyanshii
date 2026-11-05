@@ -1,5 +1,5 @@
 /**
- * The copy for the 11 class pages (/classes/<slug>). Plain data and pure functions only, like faq.ts:
+ * The copy for the 10 class pages (/classes/<slug>). Plain data and pure functions only, like faq.ts:
  * relative imports, no `@/` paths and no `import.meta.env`, because vite.config.ts (the prerender)
  * and src/lib/route-html.ts read it too. Only the lazy ClassPage chunk imports it on the client, so
  * none of this text is in the homepage bundle.
@@ -38,7 +38,7 @@ export interface ClassPageContent {
   focus: ReadonlyArray<string>;
   /** The Format row of the details list. */
   format: string;
-  /** PRD §5 level, for the 4 timetabled classes only. */
+  /** PRD §5 level, for the 5 timetabled classes only. */
   level: string | null;
   intensity: string;
   notices: ReadonlyArray<string>;
@@ -138,20 +138,6 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     photo: cardPhoto('Barre'),
     testimonial: review('Barre Yoga'),
   },
-  Wheel: {
-    whoFor: 'Anyone curious about backbends and chest openers, with the yoga wheel there for support. All levels are welcome.',
-    about:
-      "Priyanshi's signature class. The yoga wheel supports your spine through backbends and chest openers that feel impossible without it, then suddenly don't.",
-    origin: 'A modern practice built around the yoga wheel, a round prop that became popular in the 2010s.',
-    focus: ['Chest', 'Shoulders', 'Backbends'],
-    format: 'In person or live online',
-    level: 'All levels',
-    intensity: 'Moderate–Strong',
-    notices: [FINDER_BACK_NOTICE],
-    ...meta('Wheel', "Wheel yoga, Priyanshi's signature class in Dubai: backbends and chest openers with the yoga wheel. In person or live online. Your first class is free."),
-    photo: cardPhoto('Wheel'),
-    testimonial: null,
-  },
   'Chakra Flow': {
     whoFor: 'Anyone who would like a calmer, slower practice. Beginner friendly.',
     about:
@@ -173,10 +159,10 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     origin: "A modern flowing style that grew out of Ashtanga's way of linking each movement to the breath.",
     focus: ['Strength', 'Breath', 'Focus'],
     format: 'In person or live online',
-    level: null,
+    level: 'Some experience',
     intensity: 'Moderate–Strong',
     notices: [],
-    ...meta('Vinyasa', 'Vinyasa yoga with Priyanshi in Dubai: a breath-led flow from pose to pose that builds strength and focus. In person or live online, on request.'),
+    ...meta('Vinyasa', 'Vinyasa yoga with Priyanshi in Dubai: a breath-led flow that builds strength and focus. In person or live online. Your first class is free.'),
     photo: cardPhoto('Vinyasa'),
     testimonial: null,
   },
@@ -197,14 +183,14 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
   'Spine Healing': {
     whoFor: 'Anyone looking for gentle back care and release, at a pace that suits them.',
     about:
-      'Slow, gentle work for back care and release. You move at your own pace through calm, unhurried sequences, with time to breathe and let tension go.',
+      'Slow, gentle work for back care and release. You move at your own pace through calm, unhurried sequences, with time to breathe and let tension go. The yoga wheel, a round prop, is part of this class.',
     origin: 'A modern, gentle style that centres the practice on the back and posture.',
     focus: ['Back', 'Posture', 'Gentle mobility'],
     format: 'In person or live online',
     level: null,
     intensity: 'Gentle',
     notices: [FINDER_BACK_NOTICE],
-    ...meta('Spine Healing', 'Spine Healing with Priyanshi in Dubai: slow, gentle yoga for back care and release, at your own pace. In person or live online, on request.'),
+    ...meta('Spine Healing', 'Spine Healing with Priyanshi in Dubai: slow, gentle work with the yoga wheel, for back care and release. In person or live online, on request.'),
     photo: cardPhoto('Spine Healing'),
     testimonial: review('Spine Healing'),
   },
@@ -229,10 +215,10 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     origin: 'A slow style shaped in the West from the late 1970s by Paulie Zink, Paul Grilley and Sarah Powers, drawing on Taoist ideas.',
     focus: ['Hips', 'Spine', 'Stillness'],
     format: 'In person or live online',
-    level: null,
+    level: 'All levels',
     intensity: 'Gentle',
     notices: [],
-    ...meta('Yin Yoga', 'Yin yoga with Priyanshi in Dubai: long, quiet holds that give your body time to slow down and let go. In person or live online, on request.'),
+    ...meta('Yin Yoga', 'Yin yoga with Priyanshi in Dubai: long, quiet holds that give your body time to slow down and let go. In person or live online. Your first class is free.'),
     photo: cardPhoto('Yin Yoga'),
     testimonial: null,
   },

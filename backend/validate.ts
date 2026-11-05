@@ -23,8 +23,9 @@ export const CONTACT_INTERESTS = [
   'General enquiry',
   'Hatha Yoga',
   'Barre Yoga',
-  'Wheel Yoga',
   'Chakra Yoga Flow',
+  'Yin Yoga',
+  'Vinyasa Yoga',
   'Private session',
   // The monthly membership (Pricing card): also stores a membership_requests row (backend/membership.ts).
   'Monthly membership',
@@ -32,9 +33,7 @@ export const CONTACT_INTERESTS = [
   // Classes not on the timetable yet: their carousel cards open the contact form with these preset.
   'Spine Healing',
   'Mobility Yoga',
-  'Yin Yoga',
   'Prenatal & Postnatal',
-  'Vinyasa Yoga',
   'Ashtanga Yoga',
   // Aerial is private sessions only, on request.
   'Private Aerial Yoga',

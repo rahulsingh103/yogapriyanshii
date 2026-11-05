@@ -23,7 +23,6 @@ export interface FinderAnswers {
 export type ClassName =
   | 'Hatha'
   | 'Barre'
-  | 'Wheel'
   | 'Chakra Flow'
   | 'Vinyasa'
   | 'Ashtanga'
@@ -76,11 +75,10 @@ export const FINDER_QUESTIONS: ReadonlyArray<FinderQuestion> = [
 export const FINDER_REASONS: Record<ClassName, string> = {
   Hatha: 'Clear, steady postures and the link between breath and movement. No experience needed.',
   Barre: 'Strength work and deep stretching in one class, with small, controlled movements.',
-  Wheel: "Priyanshi's signature class. The yoga wheel supports your spine through backbends and chest openers.",
   'Chakra Flow': 'A moving meditation that pairs breath and sequence. Beginner friendly and deeply restful.',
   Vinyasa: 'A breath-led flow from pose to pose that builds strength and focus.',
   Ashtanga: 'A set sequence with a steady breath, so you can feel your practice grow.',
-  'Spine Healing': 'Gentle work for back care and release, at a pace that suits you.',
+  'Spine Healing': 'Gentle work for back care and release, at a pace that suits you. The yoga wheel is part of the class.',
   'Mobility Yoga': 'Gentle movement for your joints and everyday ease.',
   'Yin Yoga': 'Long, quiet holds that give your body time to slow down and let go.',
   'Prenatal & Postnatal': 'Classes for before and after birth, with a teacher trained in prenatal yoga.',
@@ -105,17 +103,17 @@ type Pick = readonly [ClassName, ClassName | null];
 /** [main, alternative] for in person and online. The Record types make the compiler check every combination. */
 const GROUP_TABLE: Record<Goal, Record<Experience, Pick>> = {
   relax: { new: ['Chakra Flow', 'Yin Yoga'], some: ['Yin Yoga', 'Chakra Flow'], regular: ['Yin Yoga', 'Chakra Flow'] },
-  flexibility: { new: ['Hatha', 'Mobility Yoga'], some: ['Barre', 'Yin Yoga'], regular: ['Wheel', 'Yin Yoga'] },
+  flexibility: { new: ['Hatha', 'Mobility Yoga'], some: ['Barre', 'Yin Yoga'], regular: ['Barre', 'Yin Yoga'] },
   strength: { new: ['Barre', 'Hatha'], some: ['Vinyasa', 'Barre'], regular: ['Ashtanga', 'Vinyasa'] },
   back: { new: ['Spine Healing', 'Mobility Yoga'], some: ['Spine Healing', 'Hatha'], regular: ['Spine Healing', 'Mobility Yoga'] },
   pregnancy: { new: ['Prenatal & Postnatal', null], some: ['Prenatal & Postnatal', null], regular: ['Prenatal & Postnatal', null] },
-  unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Wheel'] },
+  unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Barre'] },
 };
 
 /** Private answers use the group table except here. Aerial is private sessions only, so it appears nowhere else. */
 const PRIVATE_OVERRIDES: Partial<Record<Goal, Partial<Record<Experience, Pick>>>> = {
   strength: { some: ['Aerial Yoga', 'Vinyasa'], regular: ['Aerial Yoga', 'Ashtanga'] },
-  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Wheel'] },
+  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Yin Yoga'] },
 };
 
 export function recommend({ goal, experience, format }: FinderAnswers): { main: ClassName; alt: ClassName | null } {

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import type { Row, Transaction } from '@libsql/client';
 import { getDb, withWriteTx } from './db.js';
-import { formatDubaiWhen, toSessionView, type SessionView } from './schedule.js';
+import { RETIRED_CLASS_ID, formatDubaiWhen, sessionId as makeSessionId, toSessionView, type SessionView } from './schedule.js';
 import { getSettings } from './settings.js';
 import { newBookingToken, normalizeBookingToken } from './tokens.js';
 import {
@@ -61,7 +61,7 @@ const BOOKING_SELECT =
   'SELECT b.id, b.token, b.session_id, b.plan_key, b.mode, b.status, b.credit_status, b.booked_at, b.cancelled_at, ' +
   'b.customer_id, b.order_id, cu.email, cu.full_name, o.amount_aed, o.payment_method, o.payment_status, ' +
   's.id AS s_id, s.class_id, s.start_utc, s.capacity, s.booked_count, s.status AS session_status, ' +
-  'c.name AS class_name, c.style, c.level, c.duration_min ' +
+  'c.name AS class_name, c.level, c.duration_min ' +
   'FROM bookings b JOIN customers cu ON cu.id = b.customer_id JOIN sessions s ON s.id = b.session_id ' +
   'JOIN classes c ON c.id = s.class_id LEFT JOIN orders o ON o.id = b.order_id';
 
@@ -96,7 +96,6 @@ function sessionFromBookingRow(r: Row): SessionView {
     booked_count: r.booked_count,
     session_status: r.session_status,
     class_name: r.class_name,
-    style: r.style,
     level: r.level,
     duration_min: r.duration_min,
   } as unknown as Row);
@@ -145,7 +144,7 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
     paymentMethod = oneOf(body.paymentMethod ?? 'studio', PAYMENT_METHODS);
     if (!paymentMethod) throw bad('Paid classes are paid in person for now. Please choose "Pay in Person".');
   }
-  if (isRestDayId(sessionId)) throw bad('Friday is a studio rest day. No classes are scheduled.');
+  if (isRestDayId(sessionId)) throw bad('No classes are scheduled on this day.');
   if (!isSessionId(sessionId)) throw new HttpError(404, 'Selected class session was not found.');
 
   const settings = await getSettings();
@@ -155,13 +154,15 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
   const bookingId = crypto.randomUUID();
 
   await withWriteTx(async (tx) => {
-    // 2. Session exists and hasn't started
+    // 2. Session exists, isn't a retired class and hasn't started
     const srs = await tx.execute({
-      sql: "SELECT id, start_utc, status FROM sessions WHERE id = ? LIMIT 1",
+      sql: "SELECT id, class_id, start_utc, status FROM sessions WHERE id = ? LIMIT 1",
       args: [sessionId],
     });
     const s = srs.rows[0];
-    if (!s || String(s.status) !== 'scheduled') throw new HttpError(404, 'Selected class session was not found.');
+    if (!s || String(s.status) !== 'scheduled' || String(s.class_id) === RETIRED_CLASS_ID) {
+      throw new HttpError(404, 'Selected class session was not found.');
+    }
     if (new Date(String(s.start_utc)).getTime() <= now) {
       throw bad('Cannot book a session that has already started or passed.');
     }
@@ -364,4 +365,38 @@ export async function cancelBooking(rawToken: unknown): Promise<{
         : 'Late cancellation (less than 6 hours notice): your seat has been released, but under studio policy the class credit is used.';
 
   return { success: true, booking, noticeHours: outcome.noticeHours, message };
+}
+
+let legacyWheelBookings = 0;
+
+/**
+ * Test-only (APP_ENV=test): a Wheel booking like the ones already on the live database, made directly
+ * because the API refuses new ones. The session is 8 to 9 hours ahead, off any timetable slot, so
+ * cancelling it always refunds.
+ */
+export async function createLegacyWheelBooking(email: string): Promise<{ token: string; sessionId: string }> {
+  const now = Date.now();
+  legacyWheelBookings += 1;
+  const start = Math.floor(now / 60000) * 60000 + (8 * 60 + (legacyWheelBookings % 60)) * 60000 + 7 * 1000;
+  const id = makeSessionId(RETIRED_CLASS_ID, start);
+  const token = newBookingToken();
+  const nowIso = new Date(now).toISOString();
+  await withWriteTx(async (tx) => {
+    await tx.execute({
+      sql: 'INSERT INTO sessions (id, class_id, start_utc, capacity, booked_count) VALUES (?, ?, ?, 10, 1)',
+      args: [id, RETIRED_CLASS_ID, new Date(start).toISOString()],
+    });
+    const customerId = crypto.randomUUID();
+    await tx.execute({
+      sql: 'INSERT INTO customers (id, email, full_name, used_free_class, created_at) VALUES (?, ?, ?, 1, ?)',
+      args: [customerId, email, 'Legacy Wheel Student', nowIso],
+    });
+    await tx.execute({
+      sql:
+        'INSERT INTO bookings (id, token, customer_id, session_id, order_id, plan_key, mode, status, credit_status, booked_at) ' +
+        "VALUES (?, ?, ?, ?, NULL, 'free', 'in_person', 'confirmed', 'used', ?)",
+      args: [crypto.randomUUID(), token, customerId, id, nowIso],
+    });
+  });
+  return { token, sessionId: id };
 }

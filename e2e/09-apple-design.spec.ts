@@ -343,12 +343,12 @@ test.describe('desktop carousel', () => {
     await expect(bookingModal(page)).toHaveCount(0);
   });
 
-  test('with 11 cards, the arrows glide snap by snap to the last card', async ({ page }) => {
+  test('with 10 cards, the arrows glide snap by snap to the last card', async ({ page }) => {
     await openHome(page);
     const classes = page.locator('#classes');
     await classes.scrollIntoViewIfNeeded();
     const track = classes.getByRole('group', { name: /Classes/ });
-    await expect(classes.getByTestId('practice-card')).toHaveCount(11);
+    await expect(classes.getByTestId('practice-card')).toHaveCount(10);
     const max = await track.evaluate((el) => el.scrollWidth - el.clientWidth);
     const next = classes.getByRole('button', { name: 'Next classes' });
     let s = await rest(page, track);

@@ -8,7 +8,7 @@ import { Reveal } from './Reveal';
 /** AI placeholders in the class-card style, until the photo shoot (owner decision 2026-11-04). */
 const PHOTOS: ReadonlyArray<{ slug: string; alt: string }> = [
   { slug: 'teacher', alt: 'Yoga teacher seated cross-legged on a mat, smiling, one arm raised' },
-  { slug: 'full-wheel', alt: 'Yoga teacher in a full wheel backbend on a mat' },
+  { slug: 'vinyasa', alt: 'Yoga teacher in a low lunge on a mat, one arm reaching up' },
   { slug: 'chakra-flow', alt: 'Yoga teacher seated cross-legged in meditation' },
   { slug: 'barre', alt: 'Yoga teacher at a ballet barre, rising onto her toes' },
   { slug: 'yin', alt: 'Yoga teacher resting in a seated forward fold' },

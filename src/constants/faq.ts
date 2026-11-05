@@ -22,13 +22,13 @@ export const FAQ_ITEMS: ReadonlyArray<FaqItem> = [
     id: 'beginners',
     question: 'I have never done yoga. Can I join?',
     answer:
-      'Yes. Hatha, Barre and Wheel are open to all levels, and Chakra Yoga Flow is beginner friendly. No experience is needed.',
+      'Yes. Hatha, Barre and Yin Yoga are open to all levels, and Chakra Yoga Flow is beginner friendly. No experience is needed.',
   },
   {
     id: 'classes',
     question: 'Which classes do you teach?',
     answer:
-      'Hatha, Barre, Wheel and Chakra Flow are on the weekly schedule. Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are not on the timetable yet; send Priyanshi a message to ask about them. Aerial yoga is private sessions only, on request.',
+      'Hatha, Barre, Chakra Flow, Vinyasa and Yin Yoga are on the weekly schedule. Ashtanga, Spine Healing, Mobility Yoga and Prenatal & Postnatal are not on the timetable yet; send Priyanshi a message to ask about them. Aerial yoga is private sessions only, on request.',
   },
   {
     id: 'where',
@@ -46,7 +46,7 @@ export const FAQ_ITEMS: ReadonlyArray<FaqItem> = [
     id: 'when',
     question: 'When are classes?',
     answer:
-      'Every day except Friday, which is a rest day. All times are Dubai time (GMT+4), and the schedule shows live spots for the next three weeks.',
+      'Every day. All times are Dubai time (GMT+4), and the schedule shows live spots for the next three weeks.',
   },
   {
     id: 'pricing',

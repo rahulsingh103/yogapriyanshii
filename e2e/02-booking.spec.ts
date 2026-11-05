@@ -158,9 +158,9 @@ test('booking API enforces capacity, double-booking and validation rules', async
   expect(missing.status()).toBe(400);
 
   const { sessions } = await (await request.get('/api/schedule')).json();
-  const rest = sessions.find((s: any) => s.isRestDay);
+  // The timetable has a class every day, so an empty day's id is fixed here.
   const restRes = await request.post('/api/bookings', {
-    data: { sessionId: rest.id, fullName: 'X', email: uniqueEmail('rest'), mode: 'in_person', planKey: 'single' },
+    data: { sessionId: 'sess-rest-2030-01-04', fullName: 'X', email: uniqueEmail('rest'), mode: 'in_person', planKey: 'single' },
   });
   expect(restRes.status()).toBe(400);
 

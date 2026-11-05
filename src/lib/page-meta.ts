@@ -24,7 +24,7 @@ export interface PageMeta {
 export const HOME_META: PageMeta = {
   title: 'YogaPriyanshi · Yoga in Dubai',
   description:
-    'Yoga with Priyanshi in Dubai: Hatha, Barre, Wheel and Chakra Flow classes, in person or online. Your first class is free.',
+    'Yoga with Priyanshi in Dubai: Hatha, Barre, Chakra Flow, Vinyasa and Yin classes, in person or online. Your first class is free.',
   path: '/',
   twitterDescription: 'Yoga with Priyanshi in Dubai, in person or online. Your first class is free.',
 };

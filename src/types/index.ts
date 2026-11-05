@@ -1,4 +1,6 @@
-export type ClassStyle = 'hatha' | 'barre' | 'wheel' | 'chakra';
+export type ClassStyle = 'hatha' | 'barre' | 'chakra' | 'vinyasa' | 'yin';
+/** A session's style can also be 'wheel': the retired class, on bookings made before it left the timetable. */
+export type SessionStyle = ClassStyle | 'wheel';
 
 export interface YogaClass {
   id: string;
@@ -14,7 +16,7 @@ export interface ClassSession {
   id: string;
   classId: string;
   className: string;
-  style: ClassStyle;
+  style: SessionStyle;
   level: string;
   duration: number;
   startTimeUtc: string; // ISO 8601

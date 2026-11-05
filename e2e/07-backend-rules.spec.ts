@@ -26,9 +26,7 @@ test('schedule has one entry per Dubai day for 8 weeks', async ({ request }) => 
   expect(sessions).toHaveLength(56);
   expect(new Set(sessions.map((s) => s.id)).size).toBe(56);
   expect(new Set(sessions.map((s) => s.dateDubai)).size).toBe(56);
-  const rest = sessions.filter((s) => s.isRestDay);
-  expect(rest).toHaveLength(8);
-  expect(rest.every((s) => s.dateDubai.startsWith('Friday'))).toBe(true);
+  expect(sessions.filter((s) => s.isRestDay)).toHaveLength(0);
 });
 
 test('the last seat goes to exactly one of several simultaneous bookings', async ({ request }) => {

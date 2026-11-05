@@ -5,7 +5,6 @@ const FEATURE = 'redesign';
 const CLASS_ORDER = [
   'Hatha',
   'Barre',
-  'Wheel',
   'Chakra Flow',
   'Vinyasa',
   'Ashtanga',
@@ -16,7 +15,7 @@ const CLASS_ORDER = [
   'Aerial Yoga',
 ];
 
-test('the carousel has the 11 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
+test('the carousel has the 10 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const classes = page.locator('#classes');
@@ -24,7 +23,7 @@ test('the carousel has the 11 classes in order, labelled arrows and a keyboard-s
   await expect(classes.getByRole('heading', { level: 2 })).toHaveText('Choose your practice');
 
   const cards = classes.getByTestId('practice-card');
-  await expect(cards).toHaveCount(11);
+  await expect(cards).toHaveCount(10);
   await expect(cards.locator('h3')).toHaveText(CLASS_ORDER);
   await shot('carousel');
 
@@ -64,17 +63,17 @@ test('the Hatha card opens booking with the soonest Hatha session preselected', 
   await shot('hatha-preselected');
 });
 
-test('the Yin Yoga card opens the contact pop-up with Yin Yoga as the interest', async ({ page }, info) => {
+test('the Mobility Yoga card opens the contact pop-up with Mobility Yoga as the interest', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const classes = page.locator('#classes');
   await classes.scrollIntoViewIfNeeded();
-  await classes.getByRole('button', { name: /^Yin Yoga/ }).click();
+  await classes.getByRole('button', { name: /^Mobility Yoga/ }).click();
   const dialog = page.getByRole('dialog', { name: 'Send a message' });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Yin Yoga');
+  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Mobility Yoga');
   await expect(bookingModal(page)).toHaveCount(0);
-  await shot('contact-yin');
+  await shot('contact-mobility');
 
   // reopening from the Contact section goes back to the general interest
   await page.keyboard.press('Escape');

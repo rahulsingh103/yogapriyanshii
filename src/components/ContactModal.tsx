@@ -23,7 +23,6 @@ const INTERESTS: ReadonlyArray<readonly [string, string]> = [
   ['General enquiry', 'General enquiry'],
   ['Hatha Yoga', 'Hatha Yoga'],
   ['Barre Yoga', 'Barre Yoga'],
-  ['Wheel Yoga', 'Wheel Yoga (Signature)'],
   ['Chakra Yoga Flow', 'Chakra Yoga Flow'],
   ['Spine Healing', 'Spine Healing'],
   ['Mobility Yoga', 'Mobility Yoga'],

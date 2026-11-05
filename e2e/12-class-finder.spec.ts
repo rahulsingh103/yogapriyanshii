@@ -23,17 +23,17 @@ type Format = keyof typeof FORMAT;
 // The spec's own copy of the mapping (src/constants/class-finder.ts), so a change there must be deliberate.
 const GROUP: Record<Goal, Record<Experience, [string, string | null]>> = {
   relax: { new: ['Chakra Flow', 'Yin Yoga'], some: ['Yin Yoga', 'Chakra Flow'], regular: ['Yin Yoga', 'Chakra Flow'] },
-  flexibility: { new: ['Hatha', 'Mobility Yoga'], some: ['Barre', 'Yin Yoga'], regular: ['Wheel', 'Yin Yoga'] },
+  flexibility: { new: ['Hatha', 'Mobility Yoga'], some: ['Barre', 'Yin Yoga'], regular: ['Barre', 'Yin Yoga'] },
   strength: { new: ['Barre', 'Hatha'], some: ['Vinyasa', 'Barre'], regular: ['Ashtanga', 'Vinyasa'] },
   back: { new: ['Spine Healing', 'Mobility Yoga'], some: ['Spine Healing', 'Hatha'], regular: ['Spine Healing', 'Mobility Yoga'] },
   pregnancy: { new: ['Prenatal & Postnatal', null], some: ['Prenatal & Postnatal', null], regular: ['Prenatal & Postnatal', null] },
-  unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Wheel'] },
+  unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Barre'] },
 };
 const PRIVATE: Partial<Record<Goal, Partial<Record<Experience, [string, string]>>>> = {
   strength: { some: ['Aerial Yoga', 'Vinyasa'], regular: ['Aerial Yoga', 'Ashtanga'] },
-  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Wheel'] },
+  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Yin Yoga'] },
 };
-const BOOKABLE = ['Hatha', 'Barre', 'Wheel', 'Chakra Flow'];
+const BOOKABLE = ['Hatha', 'Barre', 'Chakra Flow', 'Vinyasa', 'Yin Yoga'];
 
 function expected(goal: Goal, exp: Experience, format: Format) {
   const [main, alt] = (format === 'private' && PRIVATE[goal]?.[exp]) || GROUP[goal][exp];
@@ -189,7 +189,7 @@ for (const goal of Object.keys(GOAL) as Goal[]) {
         await expectResult(finder, goal, exp, format);
         // Aerial appears only for private.
         if (format !== 'private') await expect(finder.getByText(/Aerial/)).toHaveCount(0);
-        if (goal === 'back') await expect(finder.getByText(/Wheel/)).toHaveCount(0);
+        await expect(finder.getByText(/\bWheel\b/)).toHaveCount(0);
         await startAgain(finder);
       }
     }
@@ -250,19 +250,28 @@ test('WhatsApp: the prefill names the answers and the class, and the floating bu
     "Hi Priyanshi, I found you on yogapriyanshi.com and used the class finder. I'm looking for calm and less stress, I'm fairly new, with a few classes behind me, and I'd like to practise live online. It suggested Yin Yoga. Is that a good fit for me?"
   );
   expect(href).not.toMatch(/@|YP-/);
-  // The duration only, then the contact-only line.
+  // The duration only, then the free line: Yin is on the timetable.
   await expect(finder.getByText('75 min', { exact: true })).toBeVisible();
   await expect(finder.getByText('Long, quiet holds · 75 min')).toHaveCount(0);
+  await expect(finder.getByText('Your first class is free.')).toBeVisible();
+  await expect(finder.getByRole('button', { name: 'Book this class' })).toBeVisible();
+  await expect(finder.getByText('Not on the timetable. Send a message and Priyanshi will find a time with you.')).toHaveCount(0);
+  await startAgain(finder);
+
+  // Online Spine Healing is contact-only, then the alternative.
+  await answerAll(finder, 'back', 'some', 'online');
+  await expect(resultName(finder)).toHaveText('Spine Healing');
   await expect(
     finder.getByText('Not on the timetable. Send a message and Priyanshi will find a time with you.')
   ).toBeVisible();
-  await finder.getByRole('button', { name: 'Show Chakra Flow instead' }).click();
-  await expect(resultName(finder)).toHaveText('Chakra Flow');
+  await expect(finder.getByRole('button', { name: 'Ask about this class' })).toBeVisible();
+  await finder.getByRole('button', { name: 'Show Hatha instead' }).click();
+  await expect(resultName(finder)).toHaveText('Hatha');
   await expect(resultName(finder)).toBeFocused();
   ({ text } = await prefillOf(link));
-  expect(text).toContain('It suggested Chakra Flow.');
-  // Swapped: the main class is now the alternative, and the primary follows (Chakra Flow is bookable).
-  await expect(finder.getByRole('button', { name: 'Show Yin Yoga instead' })).toBeVisible();
+  expect(text).toContain('It suggested Hatha.');
+  // Swapped: the main class is now the alternative, and the primary follows (Hatha is bookable).
+  await expect(finder.getByRole('button', { name: 'Show Spine Healing instead' })).toBeVisible();
   await expect(finder.getByRole('button', { name: 'Book this class' })).toBeVisible();
 
   // Its name never matches the floating button's.
@@ -303,9 +312,24 @@ test('book and contact routes open the right sheet with the right class', async 
   await page.keyboard.press('Escape');
   await expect(booking).toHaveCount(0);
 
+  // The two classes that took over Thursday and Friday.
+  const fromFinder: Array<[Goal, Experience, string, string]> = [
+    ['unsure', 'regular', 'Vinyasa', (await soonest(request, 'vinyasa')).id],
+    ['relax', 'some', 'Yin Yoga', (await soonest(request, 'yin')).id],
+  ];
+  for (const [goal, exp, name, sessionId] of fromFinder) {
+    await heroLink(page).click();
+    await answerAll(finder, goal, exp, 'in_person');
+    await expect(resultName(finder)).toHaveText(name);
+    await finder.getByRole('button', { name: 'Book this class' }).click();
+    await expect(booking.locator('select')).toHaveValue(sessionId);
+    await page.keyboard.press('Escape');
+    await expect(booking).toHaveCount(0);
+  }
+
   const contact = page.getByRole('dialog', { name: 'Send a message' });
   const routes: Array<[Goal, Experience, Format, string, string]> = [
-    ['relax', 'some', 'in_person', 'Ask about this class', 'Yin Yoga'],
+    ['back', 'new', 'in_person', 'Ask about this class', 'Spine Healing'],
     ['relax', 'new', 'private', 'Ask about a private session', 'Private session'],
     ['strength', 'regular', 'private', 'Ask about private Aerial', 'Private Aerial Yoga'],
     ['pregnancy', 'new', 'private', 'Ask about this class', 'Prenatal & Postnatal'],

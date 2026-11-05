@@ -138,10 +138,9 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       key={session.id}
                       className="min-h-[176px] p-4 rounded-[18px] border border-dashed border-line flex flex-col gap-1"
                     >
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">Friday</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">{session.dateDubai.split(', ')[0]}</p>
                       <p className="text-xs text-ink-soft">{session.dateDubai.split(', ')[1]}</p>
-                      <p className="mt-auto font-display text-h4 text-ink-soft">Rest Day</p>
-                      <p className="text-xs text-ink-soft">No scheduled classes</p>
+                      <p className="mt-auto font-display text-h4 text-ink-soft">No class</p>
                     </div>
                   );
                 }
@@ -175,7 +174,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
                       {session.className}
                     </span>
                     <span className={cn('text-xs', isSelected ? 'text-on-ink/75' : 'text-ink-soft')}>
-                      <span className="whitespace-nowrap">{session.level}</span> · <span className="whitespace-nowrap">{session.duration}m</span>
+                      <span className="whitespace-nowrap">{session.level} ·</span> <span className="whitespace-nowrap">{session.duration}m</span>
                     </span>
 
                     <span className="pt-2 text-xs font-semibold tabular-nums">

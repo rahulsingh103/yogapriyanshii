@@ -8,7 +8,7 @@
 
 | Area | Status |
 |---|---|
-| Public site | ✅ Built as one page in the "Mandala Bloom" design ([DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §5 order): hero, "Choose your practice" carousel (11 classes), about (credentials and trust numbers), "What students say" (3 verified reviews), quote, "How it works" (3 steps, a safety note, a free 15-minute call link), live schedule, pricing, FAQ, "See Priyanshi in action" (5 Instagram photos), "Your first class is free", contact. |
+| Public site | ✅ Built as one page in the "Mandala Bloom" design ([DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) §5 order): hero, "Choose your practice" carousel (10 classes), about (credentials and trust numbers), "What students say" (3 verified reviews), quote, "How it works" (3 steps, a safety note, a free 15-minute call link), live schedule, pricing, FAQ, "See Priyanshi in action" (5 Instagram photos), "Your first class is free", contact. |
 | Free-class booking, rules, cancellation | ✅ Built and tested. The live site and the tests now run the same API (`backend/`). |
 | Persistent database | ✅ Wired to Turso `yogapriyanshi-live` (production only; previews have none). Goes live once the env vars are set and `npm run db:migrate:live` has run. See [DATABASE.md](DATABASE.md). |
 | Email alerts | ✅ Wired to Resend: student confirmations, plus booking, cancellation and contact alerts. Alerts go to the `notify_email` setting (**a test inbox during testing**, then Priyanshi's email at launch, changed in the admin settings). Students get mail from `EMAIL_FROM`, with replies going to the `studio_email` setting. |
@@ -16,10 +16,10 @@
 | Payments | ⚠️ No online payment yet. Paid classes and packs are **reserved and paid at the studio** (the server accepts only `studio` as the payment method). Paid packs don't yet redeem credits on later bookings. Stripe Checkout comes later (§7.7). |
 | FAQ | ✅ "Questions, answered" after Pricing: 10 fact-only answers (`src/constants/faq.ts`), with matching FAQPage JSON-LD in the HTML. Answers never mention WhatsApp, Zoom, props, priority booking, recordings or shared packs (students bring their own mat, so "mat" is allowed). |
 | WhatsApp | ✅ Green floating button (one tap opens a chat with Priyanshi), plus links in Contact, in How it works ("Book a free 15-minute call", with its own prefill) and on the booking confirmation. Number: +971 50 895 5421 (`src/constants/contact.ts`). |
-| New classes | Vinyasa, Ashtanga, Spine Healing, Mobility Yoga, Yin Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
+| New classes | Ashtanga, Spine Healing, Mobility Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
 | Class finder | ✅ "Find your class": a three-question pop-up (goal, experience, format) opened from a "Not sure? Take the 30-second quiz" text link under the hero button and above the class cards. It suggests one class (plus an alternative, except for pregnancy) from a fixed table (`src/constants/class-finder.ts`). "Book this class" appears only for the 4 bookable classes in a group format and opens booking at the soonest session of that style (live online preselects "Online Live Stream"); every other result opens the contact pop-up with the matching interest. While WhatsApp is enabled it also offers "Ask Priyanshi on WhatsApp" with a prefill naming the answers and the class. Frontend only: no backend, data or analytics. |
 | Monthly membership | ✅ A card in Pricing: "Monthly membership", AED 2,999 a month, with three perks (12 classes a month; recordings included, details shared when you join; in person in Dubai or live online). No priority booking and no shareable packs. "Join the membership" opens the contact pop-up preset to "Monthly membership" (FR-15b); the request is saved, alerts Priyanshi, and then offers "Continue on WhatsApp" with the person's name and the plan typed in. Priyanshi tracks requests in the admin Members tab (New → Contacted → Active with a start date). No payment or credits: she arranges those with the member. Needs migration 004 on the live database before release. |
-| Class pages | ✅ (Batch 4a, 2026-10-26) One page per class at `/classes/<slug>` (11), opened from each carousel card's "Learn more" (no reload) or directly. Each page is prerendered at build time with its own title, description, canonical and Open Graph tags, and readable without JavaScript. It shows who it's for, about, duration (none for Aerial), intensity, level (the 4 timetabled classes), format, what to bring, any notice, a matching review, and one honest action: "Book a free class" for Hatha, Barre, Wheel and Chakra Flow; "Ask about this class" for the 6 classes not on the timetable (with the line "Not on the timetable yet. Send a message and Priyanshi will find a time with you. In person in Dubai or live online."); "Ask about private Aerial" for Aerial. Unknown paths are real 404s (noindex). `sitemap.xml` and `robots.txt` are generated. The photos are real photos of Priyanshi until the shoot; the intensity labels and the new classes' durations wait for her check. Articles ("Guides") are not public yet (4b). |
+| Class pages | ✅ (Batch 4a, 2026-10-26) One page per class at `/classes/<slug>` (10), opened from each carousel card's "Learn more" (no reload) or directly. Each page is prerendered at build time with its own title, description, canonical and Open Graph tags, and readable without JavaScript. It shows who it's for, about, duration (none for Aerial), intensity, level (the 5 timetabled classes), format, what to bring, any notice, a matching review, and one honest action: "Book a free class" for Hatha, Barre, Chakra Flow, Vinyasa and Yin Yoga; "Ask about this class" for the 4 classes not on the timetable (with the line "Not on the timetable yet. Send a message and Priyanshi will find a time with you. In person in Dubai or live online."); "Ask about private Aerial" for Aerial. Unknown paths are real 404s (noindex). `sitemap.xml` and `robots.txt` are generated. The photos are real photos of Priyanshi until the shoot; the intensity labels and the new classes' durations wait for her check. Articles ("Guides") are not public yet (4b). |
 | Guides (articles) | 🟡 (Batch 4b, 2026-10-26) Built but hidden. The pipeline is ready: Markdown articles in `src/content/articles/` become `/guides/<slug>` pages (prerendered, in the sitemap) with a `/guides` index and a footer "Guides" link, all of which appear only once an article is published. Four drafts (your first class, which style, a stiff back, prenatal basics) wait outside the repo for Priyanshi's review; none is published, so `/guides` is a 404 today. Publishing needs her written OK and checked sources. |
 | Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
@@ -74,16 +74,17 @@
 **Email shown on site:** priyanshi@yogapriyanshi.com · **Phone:** placeholder `+971 50 000 0000` (to be replaced)
 **Instagram:** @yogapriyanshi. Don't link ClassPass or FindYoga: those pages name her former studio, which the site never names (it's described as "one of the UAE's largest yoga studios").
 **Credibility (About, corrected 2026-10-19 to match her resume):** teaching since 2019 (7 years) · Yoga Alliance registered, 300-hour training in Rishikesh · Bachelor's in Yogic Science (Dev Sanskriti Vishwavidyalaya) · up to 500 people led on International Yoga Day · trained in prenatal yoga. The source of truth is the private fact sheet (`design/PRIYANSHI-FACTS.md` in the workspace).
-**Hero:** title "YogaPriyanshi", tagline **"Connect with your body."**, style list "Hatha · Barre · Wheel · Chakra Flow", CTAs "Begin your journey" (→ Join) and "View classes".
+**Hero:** title "YogaPriyanshi", tagline **"Connect with your body."**, style list "Hatha · Barre · Chakra Flow · Vinyasa · Yin", CTAs "Begin your journey" (→ Join) and "View classes".
 **Timezone:** all times shown in UAE time (GMT+4). **Studio hours:** Mon–Sun 6:30 AM – 8:00 PM. All classes available online and in person.
 
-### Classes (4 signature styles)
+### Classes (5 timetabled styles)
 | Class | Level | Duration | Description |
 |---|---|---|---|
 | Hatha Yoga | All levels | 60 min | The classical root of the practice — foundational postures, precise alignment, and the relationship between breath and movement. No experience necessary. |
 | Barre Yoga | All levels | 60 min | Strength work woven with deep, intentional stretching. Small controlled movements build heat and tone, then long holds open everything back up. |
-| Wheel Yoga | All levels | 75 min | Priyanshi's signature class. The yoga wheel supports the spine through backbends and chest openers that feel impossible without it — then suddenly don't. |
 | Chakra Yoga Flow | Beginner friendly | 60 min | A moving meditation through the body's energy centres, pairing breath, sound, and sequence. Grounding, clearing, and deeply restorative. |
+| Vinyasa Yoga | Some experience | 60 min | A breath-led flow from pose to pose. Each movement follows the breath, so the class builds strength and focus as it moves along. |
+| Yin Yoga | All levels | 75 min | Long, quiet holds, mostly seated or lying down, that give your body time to slow down and let go. A calm, still practice. |
 
 ### Weekly schedule (recurring, Dubai time)
 | Day | Time | Class | Capacity |
@@ -91,8 +92,8 @@
 | Monday | 7:00 AM | Barre Yoga | 12 |
 | Tuesday | 6:00 PM | Hatha Yoga | 12 |
 | Wednesday | 7:00 AM | Barre Yoga | 12 |
-| Thursday | 6:00 PM | Wheel Yoga | 10 |
-| Friday | — | Rest day | — |
+| Thursday | 6:00 PM | Vinyasa Yoga | 12 |
+| Friday | 7:00 AM | Yin Yoga | 12 |
 | Saturday | 9:00 AM | Chakra Yoga Flow | 15 |
 | Sunday | 10:00 AM | Hatha Yoga | 12 |
 
@@ -116,20 +117,20 @@ Warm, short, confident, second-person ("Start with a free class — no card, no 
 ## 6. Site Map & Page Requirements
 
 ### 6.1 Home
-Hero (see §5), credibility strip, "Four paths" section introducing the 4 classes, a student-testimonials section (can be toggled on/off), a short "A minute with Priyanshi" intro, an "From the studio" Instagram-style photo strip linking to her Instagram, a closing CTA to book. Footer on every page with nav + Join link.
+Hero (see §5), credibility strip, "Five paths" section introducing the 5 classes, a student-testimonials section (can be toggled on/off), a short "A minute with Priyanshi" intro, an "From the studio" Instagram-style photo strip linking to her Instagram, a closing CTA to book. Footer on every page with nav + Join link.
 
 **As built (2026-10-25), the class finder:** the underlined line "Not sure? Take the 30-second quiz", under the hero's "Book a free class" and above the carousel, opens the **Find your class** pop-up. Three questions, one per step (What would you like yoga to give you? · How much yoga have you done? · How would you like to practise?), then one suggested class with a short reason, its length (none for Aerial), the format note and one honest action:
-- a bookable class (Hatha, Barre, Wheel, Chakra Flow) in person or online: "Book this class", plus "Your first class is free.";
-- a class not on the timetable: "Ask about this class" (contact pop-up with that class as the interest);
+- a bookable class (Hatha, Barre, Chakra Flow, Vinyasa, Yin Yoga) in person or online: "Book this class", plus "Your first class is free.";
+- a class not on the timetable (Ashtanga, Spine Healing, Mobility Yoga, Prenatal & Postnatal): "Ask about this class" (contact pop-up with that class as the interest);
 - private: "Ask about a private session" (interest "Private session"), Aerial "Ask about private Aerial" ("Private Aerial Yoga"), Prenatal "Ask about this class" ("Prenatal & Postnatal").
-Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to tell Priyanshi before the first class; Aerial is suggested only for private; back care never suggests Wheel. No medical or clearance wording.
+Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to tell Priyanshi before the first class; Aerial is suggested only for private. No medical or clearance wording.
 
 ### 6.1a Class pages (as built 2026-10-26)
-- **URLs:** `/classes/hatha`, `/classes/barre`, `/classes/wheel`, `/classes/chakra-flow`, `/classes/vinyasa`, `/classes/ashtanga`, `/classes/spine-healing`, `/classes/mobility-yoga`, `/classes/yin-yoga`, `/classes/prenatal-postnatal`, `/classes/aerial-yoga`. A trailing slash works; any other path, including a different letter case, is a 404 page ("Page not found", with links home and to the classes).
+- **URLs:** `/classes/hatha`, `/classes/barre`, `/classes/chakra-flow`, `/classes/vinyasa`, `/classes/ashtanga`, `/classes/spine-healing`, `/classes/mobility-yoga`, `/classes/yin-yoga`, `/classes/prenatal-postnatal`, `/classes/aerial-yoga`. A trailing slash works; any other path, including a different letter case, is a 404 page ("Page not found", with links home and to the classes). The retired `/classes/wheel` is a 404 locally; on Vercel, `vercel.json` redirects it (308, with or without a trailing slash) to `/classes/spine-healing`.
 - **Content** (`src/constants/class-pages.ts`, facts only): the back link "All classes", the class name, the class card's photo, "Who it's for", "About the class", Duration · Intensity · Level · Format, "What to bring" (6 items from the owner's before-class answers), a back or pregnancy notice where it applies, the Barre and Spine Healing reviews on their pages, then the action line and buttons. While WhatsApp is on, "Ask Priyanshi on WhatsApp" prefills "Hi Priyanshi, I found you on yogapriyanshi.com and I'd like to know more about your <Name> class."
-- **Honest actions:** "Book" and "free" appear only on the 4 timetabled classes. No cure, treat, heal (the class name aside), guarantee, "safe for" or prevent wording, no doctor line, and never the video tool or the former studio.
+- **Honest actions:** "Book" and "free" appear only on the 5 timetabled classes. No cure, treat, heal (the class name aside), guarantee, "safe for" or prevent wording, no doctor line, and never the video tool or the former studio.
 - **Navigation:** Back (or "All classes") returns to the carousel at the same card with its "Learn more" focused. From a class page, the header and footer links go home and then to the section.
-- **SEO:** title "<Name> in Dubai · YogaPriyanshi", a unique description (155 characters at most), canonical `https://www.yogapriyanshi.com/classes/<slug>`, the shared OG image. `sitemap.xml` lists home and the 11 classes.
+- **SEO:** title "<Name> in Dubai · YogaPriyanshi", a unique description (155 characters at most), canonical `https://www.yogapriyanshi.com/classes/<slug>`, the shared OG image. `sitemap.xml` lists home and the 10 classes.
 
 ### 6.1b Guides (built 2026-10-26, hidden until Priyanshi approves an article)
 - **URLs:** `/guides/<slug>` for each published article and `/guides` (the index, newest first). Both exist only once at least one article is published; until then they are 404s, the footer has no "Guides" link and the sitemap has no guides.
@@ -141,19 +142,19 @@ Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to
 "Hello, I'm Priyanshi" hero; her story ("A path that began…"); philosophy/approach; CTA to book. Warm first-person tone.
 
 ### 6.3 Classes & Pricing
-Four class cards (name, level, duration, description, typical slot, **Book →** which leads to the Schedule). Below, a dark "Choose your practice" pricing section with the plans from §5 (cards, perks, tags, "Get Started"). Footer strip: private session price, shareable packs, free cancellation.
+Five class cards (name, level, duration, description, typical slot, **Book →** which leads to the Schedule). Below, a dark "Choose your practice" pricing section with the plans from §5 (cards, perks, tags, "Get Started"). Footer strip: private session price, shareable packs, free cancellation.
 
 **As built (2026-10-25):** Pricing is the four plan rows (free, single, 10-pack, 20-pack) plus, beside them from desktop width and below them on phones, the **monthly membership** card: "Monthly membership", "AED 2,999 a month", the perks "12 classes a month", "Recordings included (details shared when you join)" and "In person in Dubai or live online", and the button "Join the membership" (FR-15b). No tags, no "Most popular", no per-class price and no priority booking or shareable packs. The copy lives in `src/constants/membership.ts`.
 
 ### 6.4 Schedule
-- Pulls **real upcoming sessions** (not hard-coded). One card per weekday showing the **soonest upcoming** occurrence; Friday shows "Rest".
+- Pulls **real upcoming sessions** (not hard-coded). One card per weekday showing the **soonest upcoming** occurrence. Every day has a class; a day with none on the template (a fallback) shows "No class".
 - Each shows time, class, level, duration, and **spots left**. If full → show "Fully booked"/"Full" and disable booking.
 - Clicking a day reveals a detail panel with a **Book This Class** button; a "Full week" list below also has **Book →**.
 - Loading and error states are friendly (no blank page).
 - One "good to know" line (free cancellation up to 6 hours before) next to the "Cancel / Manage Reservation" button.
 
 ### 6.5 Contact
-The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Wheel / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Monthly membership / Class Packs & Corporate), message. With "Monthly membership" selected (preset by "Join the membership", or picked from the list) the pop-up is in **membership mode**: title "Join the membership", an optional "In person or online" choice, and the message becomes the optional "Preferred days and times" (FR-15b). A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
+The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Monthly membership / Class Packs & Corporate), message. With "Monthly membership" selected (preset by "Join the membership", or picked from the list) the pop-up is in **membership mode**: title "Join the membership", an optional "In person or online" choice, and the message becomes the optional "Preferred days and times" (FR-15b). A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
 
 ### 6.5a FAQ and WhatsApp
 - **FAQ** ("Questions, answered"), after Pricing: free class, beginners, classes, where, what to bring or wear, when, pricing, private sessions, payment, cancellation. Facts only, in line with §5 and §7 as built (no shared packs, priority booking or recordings yet). Recordings are part of the monthly membership, but they appear on the membership card only: the FAQ and its JSON-LD stay unchanged and never mention them. Payment: in person at the session, or for online classes with the details Priyanshi sends after booking (no method named).
@@ -258,6 +259,5 @@ Same email books free class twice · same session booked twice · last seat race
 ## 13. Open Questions
 1. Real phone number and final contact email?
 2. Custom domain (`yogapriyanshi.com`?) — owned/registered yet? (Needed for sending email to any customer.)
-3. Should Friday be bookable for private sessions only?
-4. ~~Final testimonial content~~ Resolved 2026-10-19: three verified ClassPass reviews, unnamed.
-5. Should "In-person" vs "Online" affect capacity limits separately?
+3. ~~Final testimonial content~~ Resolved 2026-10-19: three verified ClassPass reviews, unnamed.
+4. Should "In-person" vs "Online" affect capacity limits separately?

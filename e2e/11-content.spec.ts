@@ -165,6 +165,7 @@ test('Instagram: five lazy photos, a Follow link only, and no layout shift', asy
     await expect(photo).toHaveAttribute('width', /\d+/);
     await expect(photo).toHaveAttribute('height', /\d+/);
     expect((await photo.getAttribute('alt'))!.length).toBeGreaterThan(10);
+    expect(await photo.getAttribute('src')).not.toContain('wheel');
   }
 
   await insta.scrollIntoViewIfNeeded();

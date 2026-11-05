@@ -85,7 +85,7 @@ async function cardInTrack(page: Page, slug: string) {
 }
 
 test.describe('served HTML', () => {
-  test('all 11 class pages are prerendered with their own head and content', async ({ request }) => {
+  test('all 10 class pages are prerendered with their own head and content', async ({ request }) => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
     for (const cls of PRACTICE_CLASSES) {
@@ -113,11 +113,11 @@ test.describe('served HTML', () => {
       // The static body carries no WhatsApp link (P4).
       const root = html.slice(html.indexOf('<div id="root">'));
       expect(root).not.toContain('wa.me');
-      // "Spine Healing" is the class's name, the one allowed use.
-      expect(decode(root).replace(/Spine Healing/g, '')).not.toMatch(WORDING_GUARD);
+      // "Spine Healing" is the class's name, the one allowed use (with its slug in the photo URLs).
+      expect(decode(root).replace(/Spine Healing|\/media\/images\/practice\/spine-healing-\d+\.webp/g, '')).not.toMatch(WORDING_GUARD);
     }
-    expect(titles.size).toBe(11);
-    expect(descriptions.size).toBe(11);
+    expect(titles.size).toBe(10);
+    expect(descriptions.size).toBe(10);
 
     const slash = await request.get('/classes/hatha/');
     expect(slash.status()).toBe(200);
@@ -184,9 +184,7 @@ test.describe('rendered class pages', () => {
       expect(text, `${cls.slug} facts`).not.toMatch(FACTS_GUARD);
       origins.add(origin);
     }
-    expect(origins.size).toBe(11);
-    // The Wheel is never presented as back care.
-    expect(content('Wheel').focus.join(' ')).not.toMatch(/\bback\b/i);
+    expect(origins.size).toBe(10);
   });
 
   test('a class page served in dev has no failed requests', async ({ page }) => {
@@ -253,13 +251,13 @@ test.describe('honest actions', () => {
 });
 
 test.describe('carousel', () => {
-  test('11 "Learn more" links open the class pages in the app, and the cards still open booking', async ({ page, request }) => {
+  test('10 "Learn more" links open the class pages in the app, and the cards still open booking', async ({ page, request }) => {
     await page.goto('/');
     await settled(page);
     const classes = page.locator('#classes');
     await classes.scrollIntoViewIfNeeded();
     const links = classes.getByRole('link', { name: /^Learn more about / });
-    await expect(links).toHaveCount(11);
+    await expect(links).toHaveCount(10);
     for (const [i, cls] of PRACTICE_CLASSES.entries()) {
       await expect(links.nth(i)).toHaveAccessibleName(`Learn more about ${cls.name}`);
       await expect(links.nth(i)).toHaveAttribute('href', `/classes/${cls.slug}`);
@@ -331,7 +329,7 @@ test.describe('back navigation', () => {
   });
 
   test('arriving directly, "All classes" lands on / with the classes in view', async ({ page }) => {
-    await openClass(page, 'wheel');
+    await openClass(page, 'chakra-flow');
     await page.getByRole('link', { name: 'All classes' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Connect/);
@@ -353,9 +351,29 @@ test.describe('back navigation', () => {
   });
 });
 
+test.describe('the retired Wheel class', () => {
+  test('vercel.json sends both old URLs to Spine Healing', () => {
+    const { redirects } = JSON.parse(fs.readFileSync('vercel.json', 'utf-8'));
+    for (const source of ['/classes/wheel', '/classes/wheel/']) {
+      expect(redirects).toContainEqual({ source, destination: '/classes/spine-healing', permanent: true });
+    }
+  });
+
+  test('the Spine Healing page mentions the yoga wheel, within the wording rules', async ({ request }) => {
+    const c = content('Spine Healing');
+    expect(c.about).toContain('The yoga wheel, a round prop, is part of this class.');
+    expect(c.metaDescription).toContain('yoga wheel');
+    expect(c.metaDescription.length).toBeLessThanOrEqual(155);
+    const html = await (await request.get('/classes/spine-healing')).text();
+    const root = decode(html.slice(html.indexOf('<div id="root">')));
+    expect(root).toContain('yoga wheel');
+    expect(root.replace(/Spine Healing|\/media\/images\/practice\/spine-healing-\d+\.webp/g, '')).not.toMatch(WORDING_GUARD);
+  });
+});
+
 test.describe('404', () => {
   test('unknown and mixed-case slugs are real 404s with a way home', async ({ page, request }) => {
-    for (const p of ['/classes/nope', '/classes/Hatha']) {
+    for (const p of ['/classes/nope', '/classes/Hatha', '/classes/wheel']) {
       const res = await request.get(p);
       expect(res.status(), p).toBe(404);
       const html = await res.text();
@@ -785,6 +803,17 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
     expect(h1(notFound)).toBe('Page not found');
     expect(notFound).not.toMatch(/(href|src)="\.\//);
 
+    // The retired class left nothing behind: no page, no link, no photo.
+    expect(fs.existsSync(path.join(out, 'classes', 'wheel'))).toBe(false);
+    for (const f of files) {
+      const text = fs.readFileSync(f, 'utf-8');
+      for (const s of ['/classes/wheel', 'practice/wheel-', 'full-wheel', 'yoga_wheel_session']) {
+        expect(text.includes(s), `${s} in ${path.relative(out, f)}`).toBe(false);
+      }
+    }
+    const everyFile = (fs.readdirSync(out, { recursive: true }) as string[]).map((f) => f.replace(/\\/g, '/'));
+    expect(everyFile.filter((f) => /practice\/(full-)?wheel-|yoga_wheel_session/.test(f))).toEqual([]);
+
     const sitemap = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf-8');
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(locs).toEqual([`${SITE}/`, ...PRACTICE_CLASSES.map((c) => `${SITE}/classes/${c.slug}`)]);
@@ -822,8 +851,8 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
       .find((f) => fs.readFileSync(path.join(out, 'assets', f), 'utf-8').includes(CLASS_PAGE_ON_REQUEST_LINE))!;
     expect(lineChunk).toBeTruthy();
     expect(homeFiles.some((u) => u.endsWith(`/${lineChunk}`))).toBe(false);
-    const vinyasa = fs.readFileSync(path.join(out, 'classes', 'vinyasa', 'index.html'), 'utf-8');
-    expect(vinyasa).toContain(`href="/assets/${lineChunk}"`);
+    const ashtanga = fs.readFileSync(path.join(out, 'classes', 'ashtanga', 'index.html'), 'utf-8');
+    expect(ashtanga).toContain(`href="/assets/${lineChunk}"`);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

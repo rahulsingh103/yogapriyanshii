@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/classes/wheel",
+      "destination": "/classes/spine-healing",
+      "permanent": true
+    },
+    {
+      "source": "/classes/wheel/",
+      "destination": "/classes/spine-healing",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
