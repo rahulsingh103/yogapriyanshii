@@ -41,7 +41,7 @@ const top = async (el: Locator) => (await el.boundingBox())!.y;
 /** Opens the phone booking sheet from the hero and waits until it has fully risen. */
 async function openPhoneSheet(page: Page, height: number) {
   await openHome(page);
-  await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   const dialog = page.getByRole('dialog', { name: 'Select practice' });
   await expect(dialog.locator('select option').first()).toBeAttached();
   await expect.poll(async () => Math.round((await dialog.boundingBox())!.y + (await dialog.boundingBox())!.height)).toBe(height);
@@ -51,7 +51,7 @@ async function openPhoneSheet(page: Page, height: number) {
 test('buttons and class cards give way the moment they are pressed', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  const cta = page.locator('#home').getByRole('button', { name: 'Book a free class' });
+  const cta = page.locator('#home').getByRole('button', { name: 'Book a trial class' });
   const scale = (el: Locator) => el.evaluate((node) => getComputedStyle(node).scale);
   await cta.hover();
   await page.mouse.down();
@@ -103,7 +103,7 @@ test.describe('phone sheet', () => {
       };
       requestAnimationFrame(tick);
     });
-    await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+    await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
     await expect(page.getByRole('dialog', { name: 'Select practice' })).toBeVisible();
     await page.waitForTimeout(800);
     const bottoms: number[] = await page.evaluate(() => (window as any).__sheetBottoms);
@@ -439,7 +439,7 @@ test('reduced transparency turns every glass surface solid', async ({ page }, in
   expect(await style(card)).toMatchObject({ bg: 'rgb(250, 251, 248)', blur: 'none' });
   await shot('solid');
 
-  await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   await expect(bookingModal(page)).toBeVisible();
   expect((await style(page.locator('.material-scrim'))).blur).toBe('none');
 });

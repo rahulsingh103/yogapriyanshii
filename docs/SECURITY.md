@@ -5,7 +5,7 @@ These are the security policies for this codebase. This repo is **public**, so k
 ## Rules every change must follow
 
 1. **Auth on every non-public route.** Public routes (classes, schedule, booking, contact) are rate-limited. Booking tokens are long and random.
-2. **All decisions are made on the server.** Login, permissions, price, payment status, capacity and the free-class rule are never trusted from the browser.
+2. **All decisions are made on the server.** Login, permissions, price, payment status, capacity and the trial-class rule are never trusted from the browser.
 3. **Parameterized SQL only.** Any SQL built by joining strings is a blocking review failure.
 4. **Paginate every list.** No endpoint returns an unbounded list.
 5. **No secrets in the repo.** Keys come from environment variables only:

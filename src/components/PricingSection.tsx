@@ -17,10 +17,10 @@ interface PricingSectionProps {
 
 /** The four plans; prices and terms match the server (backend) and the booking modal. */
 const PLANS: ReadonlyArray<{ key: PlanKey; name: string; line: string; price: string }> = [
-  { key: 'free', name: 'First class', line: 'Any style, one per person', price: 'Free' },
-  { key: 'single', name: 'Single class', line: 'One drop-in, no expiry', price: 'AED 350' },
-  { key: 'pack10', name: '10-class pack', line: 'AED 300 a class · 3 months', price: 'AED 3,000' },
-  { key: 'pack20', name: '20-class pack', line: 'Includes a private session · 6 months', price: 'AED 5,600' },
+  { key: 'free', name: 'Trial class', line: 'Any style, one per person', price: 'AED 90' },
+  { key: 'single', name: 'Single class', line: 'One drop-in, no expiry', price: 'AED 300' },
+  { key: 'pack10', name: '10-class pack', line: 'AED 280 a class · 3 months', price: 'AED 2,800' },
+  { key: 'pack20', name: '20-class pack', line: 'AED 260 a class · 6 months · Includes a private session', price: 'AED 5,200' },
 ];
 
 /**
@@ -49,7 +49,7 @@ export function PricingSection({ onOpenBooking, onJoinMembership }: PricingSecti
                         {plan.line.split(' · ').map((part, i) => (
                           <React.Fragment key={part}>
                             {i > 0 && <span className="hidden sm:inline"> · </span>}
-                            <span className="block sm:inline whitespace-nowrap">{part}</span>
+                            <span className="block sm:inline sm:whitespace-nowrap">{part}</span>
                           </React.Fragment>
                         ))}
                       </span>

@@ -62,9 +62,14 @@ test('stats are real numbers and settings are validated and used for alerts', as
   const token = (await login.json()).token as string;
   const auth = { Authorization: `Bearer ${token}` };
 
+  // a trial booking has an order at AED 90, but it isn't revenue until it is paid
+  const trial = await apiBook(request, { email: uniqueEmail('trial-revenue') });
+  expect(trial.res.status()).toBe(201);
+
   const stats = await (await request.get('/api/admin/stats', { headers: auth })).json();
   // nothing is paid until real payments exist, so revenue is honestly zero
   expect(stats.totalRevenueAed).toBe(0);
+  expect(stats.bookings.find((b: any) => b.bookingToken === trial.body.booking.bookingToken)?.amountAed).toBe(90);
   expect(stats.earnings6Months).toHaveLength(6);
   for (const m of stats.earnings6Months) {
     expect(m.month).toMatch(/^[A-Z][a-z]{2}$/);

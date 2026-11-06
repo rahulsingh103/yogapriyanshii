@@ -20,7 +20,7 @@ const PROSE = 'text-base leading-[1.6] text-ink-soft max-w-[64ch]';
 /** The Sources list: a step quieter than the article (DESIGN_SYSTEM "Article page"). */
 const SOURCES = 'text-sm leading-[1.5] text-ink-soft max-w-[64ch]';
 /** The closing line of a bookable article; an on-request one (`action: ask`) uses the class pages' line. */
-const BOOK_LINE = 'Your first class with Priyanshi is free, in person in Dubai or live online.';
+const BOOK_LINE = 'Your first class with Priyanshi is a trial at AED 90, in person in Dubai or live online.';
 
 export interface ArticleViewProps {
   article: Article;
@@ -159,7 +159,7 @@ export function ArticleView({ article, banner, back, headingRef, onBook, onAsk, 
               </button>
             ) : (
               <button type="button" onClick={onBook} className={cn(ui.primary, 'w-full sm:w-auto whitespace-nowrap')}>
-                Book a free class
+                Book a trial class
               </button>
             )}
             <button type="button" onClick={onOpenQuiz} className={cn(ui.secondary, 'w-full sm:w-auto whitespace-nowrap')}>

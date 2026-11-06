@@ -9,10 +9,9 @@ async function schedule(request: APIRequestContext) {
   return (await (await request.get('/api/schedule')).json()).sessions as any[];
 }
 
-async function book(request: APIRequestContext, sessionId: string, email: string, planKey = 'free') {
-  const paymentMethod = planKey === 'free' ? undefined : 'studio';
+async function book(request: APIRequestContext, sessionId: string, email: string, planKey = 'free', mode = 'in_person') {
   const res = await request.post('/api/bookings', {
-    data: { sessionId, fullName: 'Rules Student', email, mode: 'in_person', planKey, paymentMethod },
+    data: { sessionId, fullName: 'Rules Student', email, mode, planKey, paymentMethod: 'studio' },
   });
   return { res, body: await res.json() };
 }
@@ -143,7 +142,7 @@ test('tokens are normalised: lowercase, spaces and I/L/O look-alikes still match
   expect((await res.json()).booking.bookingToken).toBe(token);
 });
 
-test('early cancel of a free class gives it back, but not for the same session', async ({ page }, info) => {
+test('early cancel of a trial class gives it back, but not for the same session', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   const request = page.request;
   const email = uniqueEmail('k-early');
@@ -154,7 +153,9 @@ test('early cancel of a free class gives it back, but not for the same session',
   expect(booked.res.status()).toBe(201);
   const cancel = await request.post('/api/bookings/cancel', { data: { bookingToken: booked.body.booking.bookingToken } });
   expect(cancel.status()).toBe(200);
-  expect((await cancel.json()).booking.creditStatus).toBe('refunded');
+  const cancelBody = await cancel.json();
+  expect(cancelBody.booking.creditStatus).toBe('refunded');
+  expect(cancelBody.message).toContain('AED 90 trial class');
 
   // same session again: refused, with the studio contact from settings
   const again = await book(request, first.id, email);
@@ -165,14 +166,14 @@ test('early cancel of a free class gives it back, but not for the same session',
 
   // the booking form says the same and offers the other sessions instead
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Free Class' }).click();
+  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
   const modal = bookingModal(page);
   await expect(modal.locator(`select option[value="${first.id}"]`)).toBeAttached();
   await modal.locator('select').selectOption(first.id);
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Rules Student');
   await modal.getByPlaceholder('layla@example.com').fill(email);
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
   await expect(modal.getByText('contact the YogaPriyanshi studio directly at nbsingh2050@gmail.com')).toBeVisible();
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
   // announced and focused, with the studio address as a mail link
@@ -184,13 +185,14 @@ test('early cancel of a free class gives it back, but not for the same session',
   await expect(modal.locator(`select option[value="${first.id}"]`)).toHaveCount(0);
   await shot('rebook-refused-other-sessions-offered');
 
-  // a different session: the free class is available again
+  // a different session: the trial class is available again
   const other = await book(request, second.id, email);
   expect(other.res.status()).toBe(201);
-  expect(other.body.booking.paymentStatus).toBe('free');
+  expect(other.body.booking.paymentStatus).toBe('pending_at_studio');
+  expect(other.body.booking.amountAed).toBe(90);
 });
 
-test('late cancel of a free class keeps it used', async ({ request }) => {
+test('late cancel of a trial class keeps it used', async ({ request }) => {
   const email = uniqueEmail('k-late');
   const soon = await request.post('/api/test/session-soon', { data: { minutesFromNow: 90 } });
   expect(soon.status()).toBe(201);
@@ -203,9 +205,48 @@ test('late cancel of a free class keeps it used', async ({ request }) => {
   const cancelBody = await cancel.json();
   expect(cancelBody.booking.creditStatus).toBe('burned');
   expect(cancelBody.noticeHours).toBeLessThan(6);
+  expect(cancelBody.message).toContain('your trial class counts as used');
 
   const next = await firstAvailableSession(request);
   const again = await book(request, next.id, email);
   expect(again.res.status()).toBe(400);
-  expect(again.body.error).toContain('already used its free first class');
+  expect(again.body.error).toContain('already used its trial class');
+});
+
+test('the payment line in both emails follows the format, and never says "in person" online', async ({ request }) => {
+  const paymentLine = (body: string) => body.split('\n').find((l) => l.startsWith('• Payment:'))!;
+  const session = await firstAvailableSession(request);
+
+  const online = uniqueEmail('pay-online');
+  expect((await book(request, session.id, online, 'free', 'online')).res.status()).toBe(201);
+  const inPerson = uniqueEmail('pay-person');
+  expect((await book(request, session.id, inPerson, 'pack10')).res.status()).toBe(201);
+
+  const emails = await outbox(request);
+  const line = (kind: string, email: string) =>
+    paymentLine(emails.find((e) => e.kind === kind && (e.recipient === email || e.replyTo === email)).body);
+
+  const student = line('booking_confirmation', online);
+  expect(student).toBe('• Payment: AED 90. Priyanshi will send you the payment details.');
+  expect(student).not.toMatch(/in person/i);
+  const studio = line('booking_alert', online);
+  expect(studio).toBe('• Payment: AED 90. Online: send the student the payment details.');
+  expect(studio).not.toMatch(/in person/i);
+
+  expect(line('booking_confirmation', inPerson)).toBe('• Payment: AED 2,800, to pay in person at your session');
+  expect(line('booking_alert', inPerson)).toBe('• Payment: AED 2,800, to pay in person at your session');
+
+  const confirmation = emails.find((e) => e.kind === 'booking_confirmation' && e.recipient === online);
+  expect(confirmation.body).toContain('• Plan: Trial class');
+  expect(confirmation.body).not.toMatch(/complimentary/i);
+  expect(confirmation.body).toContain('Cancellations are free up to 6 hours');
+});
+
+test('a cancelled trial tells Priyanshi they can book it again', async ({ request }) => {
+  const session = await firstAvailableSession(request, 7);
+  const email = uniqueEmail('pay-cancel');
+  const { body } = await book(request, session.id, email);
+  expect((await request.post('/api/bookings/cancel', { data: { bookingToken: body.booking.bookingToken } })).status()).toBe(200);
+  const alert = (await outbox(request)).find((e) => e.kind === 'cancellation_alert' && e.replyTo === email);
+  expect(alert.body).toContain('Cancelled with 6+ hours notice: they can book the trial class again.');
 });

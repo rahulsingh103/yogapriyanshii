@@ -46,7 +46,7 @@ export function StickyBookBar({ onOpenBooking }: StickyBookBarProps) {
             onClick={onOpenBooking}
             className="press w-full inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
           >
-            Book a free class
+            Book a trial class
           </button>
         </m.aside>
       )}

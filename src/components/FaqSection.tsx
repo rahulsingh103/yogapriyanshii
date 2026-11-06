@@ -33,7 +33,7 @@ export function FaqSection() {
           {FAQ_ITEMS.map((item) => {
             const open = openIds.has(item.id);
             const buttonId = `faq-q-${item.id}`;
-            // No role="region": with up to 9 answers open it would crowd the landmarks. The id is kept
+            // No role="region": with up to 7 answers open it would crowd the landmarks. The id is kept
             // for the button's aria-controls.
             const panelId = `faq-a-${item.id}`;
             return (

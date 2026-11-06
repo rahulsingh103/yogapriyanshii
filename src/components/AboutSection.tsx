@@ -2,7 +2,7 @@ import { Reveal } from './Reveal';
 
 /** Trust numbers (design/PRIYANSHI-FACTS.md, owner answer 9): the value, then what it means. */
 const TRUST_NUMBERS: ReadonlyArray<{ value: string; label: string }> = [
-  { value: '7 years', label: 'Teaching since 2019' },
+  { value: '10+ years', label: 'Teaching yoga' },
   { value: '300 hours', label: 'Yoga Alliance registered training' },
   { value: "Bachelor's", label: 'In Yogic Science' },
   { value: 'Up to 500', label: 'People led on International Yoga Day' },
@@ -28,7 +28,7 @@ export function AboutSection() {
             Hi, I&apos;m Priyanshi.
           </h2>
           <p className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
-            Seven years of teaching, one simple aim: that you leave lighter than you came.
+            Over ten years of teaching, one simple aim: that you leave lighter than you came.
           </p>
           <p data-testid="about-credentials" className="text-base leading-[1.6] text-ink-soft max-w-[46ch]">
             I trained in Rishikesh and at Dev Sanskriti Vishwavidyalaya. I&apos;ve taught group classes at one of

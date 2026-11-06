@@ -4,12 +4,12 @@ import { WhatsAppGlyph } from './WhatsAppGlyph';
 
 const STEPS: ReadonlyArray<{ title: string; body: string }> = [
   {
-    title: 'Book your free first class',
-    body: 'Choose a class and a time on the schedule, in person in Dubai or live online. No card needed.',
+    title: 'Book your class',
+    body: 'Pick a class and a time, in person in Dubai or live online.',
   },
   {
-    title: 'Hear from Priyanshi',
-    body: 'She messages you to confirm the details. For an online class, she sends you the class link.',
+    title: 'Priyanshi reaches out',
+    body: "She confirms the details and sends the class link if you're online. Pay in person, or online with the details she sends.",
   },
   {
     title: 'Practise',

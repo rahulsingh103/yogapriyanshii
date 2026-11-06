@@ -65,6 +65,7 @@ export async function apiBook(request: APIRequestContext, overrides: Record<stri
       email: uniqueEmail('api'),
       mode: 'in_person',
       planKey: 'free',
+      paymentMethod: 'studio',
       ...overrides,
     },
   });

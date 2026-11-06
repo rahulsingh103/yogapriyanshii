@@ -24,7 +24,7 @@ These are the conventions in this codebase. Match them.
 
 - All API code lives in `backend/`; `server.ts` and `api/index.ts` only mount `createApp()`. Relative imports use `.js` suffixes (Node ESM on Vercel).
 - Routes are in `backend/routes.ts`. Validate input first (`backend/validate.ts`), then throw `HttpError(status, '<human message>')`; the error handler turns it into `{ error }`.
-- Put the business rules in one function per rule (capacity, free class, cancellation window) so they're testable and shared.
+- Put the business rules in one function per rule (capacity, trial class, cancellation window) so they're testable and shared.
 - Database access is parameterized only (see [DATABASE.md](DATABASE.md)).
 - Log events, not people: `booking_created id=…`, never names or emails.
 

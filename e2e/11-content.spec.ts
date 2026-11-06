@@ -66,7 +66,7 @@ test('About: credentials paragraph and the four trust numbers', async ({ page },
   await expect(credentials).toContainText("one of the UAE's largest yoga studios");
   await expect(credentials).toContainText('prenatal yoga');
   // The paragraph doesn't repeat what the trust numbers already say.
-  await expect(credentials).not.toContainText(/300 hours|Bachelor's|Yoga Alliance|7 years|seven years|500/i);
+  await expect(credentials).not.toContainText(/300 hours|Bachelor's|Yoga Alliance|7 years|seven years|10\+ years|ten years|500/i);
   const words = (await credentials.textContent())!.trim().split(/\s+/).length;
   expect(words, 'credentials paragraph word count').toBeLessThanOrEqual(40);
 
@@ -74,7 +74,7 @@ test('About: credentials paragraph and the four trust numbers', async ({ page },
     divs.map((d) => [d.querySelector('dd')!.textContent!.trim(), d.querySelector('dt')!.textContent!.trim()])
   );
   expect(pairs).toEqual([
-    ['7 years', 'Teaching since 2019'],
+    ['10+ years', 'Teaching yoga'],
     ['300 hours', 'Yoga Alliance registered training'],
     ["Bachelor's", 'In Yogic Science'],
     ['Up to 500', 'People led on International Yoga Day'],
@@ -121,7 +121,7 @@ test('How it works: three steps, the safety note and the free 15-minute call lin
   await openHome(page);
   const how = page.locator('#how-it-works');
   await how.scrollIntoViewIfNeeded();
-  await expect(how.locator('ol > li h3')).toHaveText(['Book your free first class', 'Hear from Priyanshi', 'Practise']);
+  await expect(how.locator('ol > li h3')).toHaveText(['Book your class', 'Priyanshi reaches out', 'Practise']);
   await expect(how).toContainText('in person in Dubai');
   await expect(how).not.toContainText('across Dubai');
 
@@ -212,8 +212,15 @@ test('Schedule and FAQ carry the corrected copy', async ({ page }) => {
   await expect(faq.locator('#faq-a-bring')).toContainText('bring your own mat');
   await faq.getByRole('button', { name: 'How do I pay?' }).click();
   await expect(faq.locator('#faq-a-payment')).toContainText('Priyanshi sends you the payment details');
-  await faq.getByRole('button', { name: 'Which classes do you teach?' }).click();
-  await expect(faq.locator('#faq-a-classes')).toContainText('Aerial yoga is private sessions only, on request.');
+});
+
+test('no leftover free-class or old-years wording on the home page or in its HTML', async ({ page, request }) => {
+  const banned = /free (first )?class|first class is free|complimentary|AED 0\b|no card (needed|required)|\bon us\b|limited time|since 2019/i;
+  expect(await (await request.get('/')).text()).not.toMatch(banned);
+  await openHome(page);
+  expect(await page.locator('body').innerText()).not.toMatch(banned);
+  await expect(page.locator('#first-class')).toContainText('AED 90');
+  await expect(page.locator('#about')).toContainText('Over ten years of teaching');
 });
 
 test.describe('at 375px', () => {

@@ -12,7 +12,7 @@ const ADMIN_PASSWORD_HASH = `scrypt$${salt.toString('base64')}$${key.toString('b
 export default defineConfig({
   testDir: './e2e',
   // One server and one throwaway database file per run, so specs run in order: the admin
-  // lockout in 05 and the free-class state would otherwise leak between parallel workers.
+  // lockout in 05 and the trial-class state would otherwise leak between parallel workers.
   fullyParallel: false,
   workers: 1,
   timeout: 60_000,

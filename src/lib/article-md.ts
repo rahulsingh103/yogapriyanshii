@@ -37,7 +37,7 @@ export type Block =
 
 export type ArticleStatus = 'draft' | 'published';
 
-/** What the page's actions offer: a free class (default) or, for an on-request class, a message. */
+/** What the page's actions offer: a trial class (default) or, for an on-request class, a message. */
 export type ArticleAction = 'book' | 'ask';
 
 export interface ArticleMeta {

@@ -51,8 +51,8 @@ async function legacyBooking(request: APIRequestContext) {
   return { email, token, sessionId };
 }
 
-const freeBooking = (request: APIRequestContext, sessionId: string, email: string) =>
-  request.post('/api/bookings', { data: { sessionId, fullName: 'E2E Student', email, mode: 'in_person', planKey: 'free' } });
+const trialBooking = (request: APIRequestContext, sessionId: string, email: string) =>
+  request.post('/api/bookings', { data: { sessionId, fullName: 'E2E Student', email, mode: 'in_person', planKey: 'free', paymentMethod: 'studio' } });
 
 const manageModal = (page: Page) => page.locator('div.fixed.inset-0').filter({ hasText: 'Manage Reservation' });
 
@@ -125,7 +125,7 @@ test.describe('booking the new classes', () => {
 
       await page.goto(`/classes/${slug}`);
       await expect(page.locator('#preloader')).toHaveCount(0);
-      await page.locator('#class-actions').getByRole('button', { name: 'Book a free class' }).click();
+      await page.locator('#class-actions').getByRole('button', { name: 'Book a trial class' }).click();
       await expect(modal.locator('select')).toHaveValue(soonestOwn.id);
     });
   }
@@ -135,7 +135,7 @@ test.describe('booking the new classes', () => {
     const email = uniqueEmail('vinyasa');
     await request.post('/api/test/outbox/clear');
 
-    const res = await freeBooking(request, session.id, email);
+    const res = await trialBooking(request, session.id, email);
     expect(res.status()).toBe(201);
     const { booking } = await res.json();
     expect(booking.sessionTitle).toBe('Vinyasa Yoga');
@@ -161,25 +161,27 @@ test.describe('booking the new classes', () => {
 });
 
 test.describe('a Wheel booking made before the class was retired', () => {
-  test('lookup and admin keep the label, and a new booking is refused without using a seat or the free class', async ({ request }) => {
+  test('lookup and admin keep the label, and a new booking is refused without using a seat or the trial class', async ({ request }) => {
     const { token, sessionId } = await legacyBooking(request);
 
     const found = await lookup(request, token);
     expect(found.booking.sessionTitle).toBe('Wheel Yoga');
     expect(found.booking.status).toBe('confirmed');
+    // Booked before the trial: it stays AED 0.
+    expect(found.booking).toMatchObject({ planKey: 'free', amountAed: 0, paymentStatus: 'free', paymentMethod: 'complimentary' });
     expect(found.session).toMatchObject({ classId: 'wheel', style: 'wheel', bookedCount: 1 });
     expect((await adminSessions(request)).find((s) => s.id === sessionId)).toMatchObject({ className: 'Wheel Yoga', bookedCount: 1 });
 
     const newcomer = uniqueEmail('refused');
-    const refused = await freeBooking(request, sessionId, newcomer);
+    const refused = await trialBooking(request, sessionId, newcomer);
     expect(refused.status()).toBe(404);
     expect((await lookup(request, token)).session.bookedCount).toBe(1);
 
-    // The refused attempt left the newcomer's free class unused.
+    // The refused attempt left the newcomer's trial class unused.
     const real = await soonest(request, 'hatha');
-    const first = await freeBooking(request, real.id, newcomer);
+    const first = await trialBooking(request, real.id, newcomer);
     expect(first.status()).toBe(201);
-    expect((await first.json()).booking.paymentStatus).toBe('free');
+    expect((await first.json()).booking).toMatchObject({ amountAed: 90, paymentStatus: 'pending_at_studio' });
   });
 
   test('Manage Booking works at 375px and on desktop', async ({ page }, info) => {
@@ -197,14 +199,15 @@ test.describe('a Wheel booking made before the class was retired', () => {
     modal = await findReservation(page, token);
     await expect(modal.getByText('Wheel Yoga')).toBeVisible();
     await expect(modal.getByText('Eligible for Free Cancellation')).toBeVisible();
+    await expect(modal.getByText(/Your seat will be released and you can book your trial class for a different session\./)).toBeVisible();
     await shot('desktop');
     await modal.getByRole('button', { name: 'Confirm Cancellation' }).click();
     await expect(modal.getByText('Reservation Cancelled')).toBeVisible();
-    await expect(modal.getByText('Refunded', { exact: true })).toBeVisible();
+    await expect(modal.getByText('Trial available again', { exact: true })).toBeVisible();
     await shot('cancelled');
   });
 
-  test('cancelling refunds, releases the seat, returns the free class, alerts by name and leaves admin', async ({ request }) => {
+  test('cancelling refunds, releases the seat, returns the trial class, alerts by name and leaves admin', async ({ request }) => {
     const { email, token, sessionId } = await legacyBooking(request);
     await request.post('/api/test/outbox/clear');
 
@@ -213,6 +216,7 @@ test.describe('a Wheel booking made before the class was retired', () => {
     const body = await cancel.json();
     expect(body.booking.creditStatus).toBe('refunded');
     expect(body.booking.status).toBe('cancelled');
+    expect(body.booking).toMatchObject({ amountAed: 0, paymentStatus: 'free', paymentMethod: 'complimentary' });
 
     const after = await lookup(request, token);
     expect(after.booking.creditStatus).toBe('refunded');
@@ -224,11 +228,11 @@ test.describe('a Wheel booking made before the class was retired', () => {
 
     expect((await adminSessions(request)).find((s) => s.id === sessionId)).toBeUndefined();
 
-    // The free class came back.
+    // The trial came back, and rebooking it costs AED 90.
     const real = await soonest(request, 'barre');
-    const again = await freeBooking(request, real.id, email);
+    const again = await trialBooking(request, real.id, email);
     expect(again.status()).toBe(201);
-    expect((await again.json()).booking.paymentStatus).toBe('free');
+    expect((await again.json()).booking).toMatchObject({ amountAed: 90, paymentStatus: 'pending_at_studio' });
   });
 });
 
@@ -293,8 +297,8 @@ test.describe('public text', () => {
     await openHome(page);
     const faq = page.locator('#faq');
     await faq.scrollIntoViewIfNeeded();
-    await faq.getByRole('button', { name: 'Which classes do you teach?' }).click();
-    await expect(faq).toContainText('Vinyasa and Yin Yoga are on the weekly schedule');
+    await faq.getByRole('button', { name: 'How much do classes cost?' }).click();
+    await expect(faq).toContainText('The first class is a trial');
     expect(await page.content()).not.toMatch(WHEEL);
 
     await page.locator('#contact').getByRole('button', { name: 'Contact Priyanshi' }).click();

@@ -11,7 +11,7 @@ import { ScheduleSection } from './components/ScheduleSection';
 import { PricingSection, type PlanKey } from './components/PricingSection';
 import { FaqSection } from './components/FaqSection';
 import { InstagramSection } from './components/InstagramSection';
-import { FirstClassFree } from './components/FirstClassFree';
+import { FirstClassTrial } from './components/FirstClassTrial';
 import { ContactSection } from './components/ContactSection';
 import { ContactModal } from './components/ContactModal';
 import { ClassFinderModal } from './components/ClassFinderModal';
@@ -236,7 +236,7 @@ export default function App() {
         />
         <FaqSection />
         <InstagramSection />
-        <FirstClassFree onPickTime={() => scrollToSection('schedule')} />
+        <FirstClassTrial onPickTime={() => scrollToSection('schedule')} />
         <ContactSection onOpenContact={() => handleOpenContact()} />
         <StickyBookBar onOpenBooking={() => handleOpenBooking()} />
         <OfflineNotice />

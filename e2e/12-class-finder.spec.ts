@@ -108,15 +108,15 @@ async function soonest(request: APIRequestContext, style: string) {
   return s;
 }
 
-test('hero: an underlined quiz link under "Book a free class" opens the finder, and Escape returns focus', async ({ page }, info) => {
+test('hero: an underlined quiz link under "Book a trial class" opens the finder, and Escape returns focus', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const hero = page.locator('#home');
-  const cta = hero.getByRole('button', { name: 'Book a free class' });
+  const cta = hero.getByRole('button', { name: 'Book a trial class' });
   const link = heroLink(page);
   await expect(link).toBeVisible();
-  // "Book a free class" is still the first (and only primary) button after the h1.
-  await expect(hero.getByRole('button').first()).toHaveText(/Book a free class/);
+  // "Book a trial class" is still the first (and only primary) button after the h1.
+  await expect(hero.getByRole('button').first()).toHaveText(/Book a trial class/);
   await expect(hero.getByRole('button')).toHaveCount(2);
 
   const c = (await cta.boundingBox())!;
@@ -209,7 +209,7 @@ test('pregnancy: always Prenatal & Postnatal, no alternative, the notice, and no
       );
       const text = await finder.innerText();
       expect(text, `pregnancy/${exp}/${format}`).not.toMatch(/Aerial|Wheel|doctor|medical|clearance|cleared|safe for|cure|heal/i);
-      expect(text).not.toMatch(/free/i);
+      expect(text).not.toMatch(/free|trial/i);
       if (exp === 'new' && format === 'in_person') await shot('pregnancy-result');
       await startAgain(finder);
     }
@@ -250,10 +250,10 @@ test('WhatsApp: the prefill names the answers and the class, and the floating bu
     "Hi Priyanshi, I found you on yogapriyanshi.com and used the class finder. I'm looking for calm and less stress, I'm fairly new, with a few classes behind me, and I'd like to practise live online. It suggested Yin Yoga. Is that a good fit for me?"
   );
   expect(href).not.toMatch(/@|YP-/);
-  // The duration only, then the free line: Yin is on the timetable.
+  // The duration only, then the trial line: Yin is on the timetable.
   await expect(finder.getByText('75 min', { exact: true })).toBeVisible();
   await expect(finder.getByText('Long, quiet holds · 75 min')).toHaveCount(0);
-  await expect(finder.getByText('Your first class is free.')).toBeVisible();
+  await expect(finder.getByText('Your first class is a trial at AED 90.')).toBeVisible();
   await expect(finder.getByRole('button', { name: 'Book this class' })).toBeVisible();
   await expect(finder.getByText('Not on the timetable. Send a message and Priyanshi will find a time with you.')).toHaveCount(0);
   await startAgain(finder);
@@ -532,7 +532,7 @@ test.describe('phone', () => {
   });
 });
 
-test('facts guard: no Zoom, no former studio, and "free" only on a bookable group class', async ({ page }) => {
+test('facts guard: no Zoom, no former studio, and the trial only on a bookable group class', async ({ page }) => {
   const finder = await openFinder(page);
   for (const goal of Object.keys(GOAL) as Goal[]) {
     for (const format of Object.keys(FORMAT) as Format[]) {
@@ -541,8 +541,8 @@ test('facts guard: no Zoom, no former studio, and "free" only on a bookable grou
       const text = await finder.innerText();
       const label = `${goal}/some/${format}`;
       expect(text, label).not.toMatch(/Zoom|Lifestyle Yoga|Lifestyle|doctor|clearance|\bsafe\b|\bcure\b/i);
-      if (format !== 'private' && BOOKABLE.includes(main)) expect(text, label).toContain('Your first class is free.');
-      else expect(text, label).not.toMatch(/free/i);
+      if (format !== 'private' && BOOKABLE.includes(main)) expect(text, label).toContain('Your first class is a trial at AED 90.');
+      else expect(text, label).not.toMatch(/free|trial/i);
       await startAgain(finder);
     }
   }

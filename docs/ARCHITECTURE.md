@@ -51,7 +51,7 @@ The full schema is in [DATABASE.md](DATABASE.md). The core entities are Class, S
 ## 05 Dependency rules
 
 - The UI talks to the backend **only** through `src/services/api.ts`.
-- Business rules (prices, capacity, payment status, the free-class rule) live **on the server**. The client never decides them. See [SECURITY.md](SECURITY.md).
+- Business rules (prices, capacity, payment status, the trial-class rule) live **on the server**. The client never decides them. See [SECURITY.md](SECURITY.md).
 - Database access sits in one module, using parameterized queries only.
 - Schema changes go through versioned migration files.
 

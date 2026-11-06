@@ -123,11 +123,11 @@ test('the Pricing card shows the membership copy, and the four plan rows are unc
   // The owner ruled these out. Word-bounded, because the approved perk says "details shared".
   expect((await card.textContent()) ?? '').not.toMatch(/priority|\bshare(s|able)?\b|\bpacks?\b/i);
 
-  for (const name of [/^Book First class\b.*Free/, /^Book Single class\b.*AED 350/, /^Book 10-class pack\b/, /^Book 20-class pack\b/]) {
+  for (const name of [/^Book Trial class\b.*AED 90/, /^Book Single class\b.*AED 300/, /^Book 10-class pack\b/, /^Book 20-class pack\b/]) {
     await expect(pricing.getByRole('button', { name })).toBeVisible();
   }
   await expect(pricing.locator('li button')).toHaveCount(4);
-  await expect(pricing.locator('li button').first()).toHaveAccessibleName(/^Book First class/);
+  await expect(pricing.locator('li button').first()).toHaveAccessibleName(/^Book Trial class/);
   await expect(pricing).toContainText('or online with the details Priyanshi sends after you book');
 
   // One accent: the perk ticks.

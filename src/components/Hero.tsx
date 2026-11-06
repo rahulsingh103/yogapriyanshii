@@ -22,7 +22,7 @@ export function Hero({ onOpenBooking, onOpenClassFinder }: HeroProps) {
           </span>
         </h1>
         <p className="wf-after text-base leading-[1.6] text-ink-soft max-w-[46ch]" style={{ '--i': 4 } as CSSProperties}>
-          Yoga with Priyanshi. Your first class is on us.
+          Yoga with Priyanshi. <br className="sm:hidden" />Start with a trial class for AED 90.
         </p>
         {/* The class finder link sits just under the one primary, quieter (DESIGN_SYSTEM §5). */}
         <div className="flex flex-col items-center gap-3">
@@ -33,7 +33,7 @@ export function Hero({ onOpenBooking, onOpenClassFinder }: HeroProps) {
               style={{ '--i': 5 } as CSSProperties}
               className="wf-after press inline-flex items-center justify-center gap-2 min-h-12 px-[22px] py-[14px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
             >
-              Book a free class
+              Book a trial class
               <ArrowRight size={16} aria-hidden="true" />
             </button>
           </AnimateIcon>

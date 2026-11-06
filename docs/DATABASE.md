@@ -5,7 +5,7 @@
 ## Rules
 
 - **Parameterized queries only:** `db.execute({ sql: 'SELECT … FROM bookings WHERE token = ?', args: [token] })`. Never build SQL by joining strings with values.
-- **One booking = one transaction** (`withWriteTx` in `backend/db.ts`): check the session, claim the free class, take the seat, record the order and insert the booking all together, or nothing (PRD §9). Seats are taken with a conditional `UPDATE … SET booked_count = booked_count + 1 WHERE booked_count < capacity`, and a `CHECK (booked_count <= capacity)` backs it up, so two people racing for the last seat can't both win.
+- **One booking = one transaction** (`withWriteTx` in `backend/db.ts`): check the session, claim the trial class, take the seat, record the order and insert the booking all together, or nothing (PRD §9). Seats are taken with a conditional `UPDATE … SET booked_count = booked_count + 1 WHERE booked_count < capacity`, and a `CHECK (booked_count <= capacity)` backs it up, so two people racing for the last seat can't both win.
 - `SQLITE_BUSY` is retried 3 times, then the API answers 503. Local file databases also run their write transactions one at a time inside the process.
 - Every list query has a `LIMIT` (max 60).
 - Schema changes go through numbered migration files: `db/migrations/001_init.sql`, `002_seed.sql`, … Applied versions are recorded in `schema_migrations`. Never edit the live schema by hand. Migrations are additive.
@@ -29,7 +29,7 @@
 | `classes` | `id` PK, name, level, duration_min, description, style, sort_order | 6 rows, seeded: Hatha, Barre, Chakra, Vinyasa, Yin, and Wheel, which is retired (kept so old sessions and bookings still JOIN). `style` is legacy: read `class_id`, never `style` (see 005 below). |
 | `schedule_template` | `id` PK, class_id → classes, weekday (0 = Sun), start_time (`HH:MM` Dubai), capacity | The recurring weekly plan, seeded. UNIQUE(weekday, start_time). |
 | `sessions` | `id` PK (`sess-<class>-<utc ms>`), class_id, start_utc, capacity, booked_count, status | Created 56 days ahead from the template (`INSERT OR IGNORE`, at most every 10 minutes). UNIQUE(class_id, start_utc); `CHECK(booked_count <= capacity)`. |
-| `customers` | `id` PK, email UNIQUE, full_name, used_free_class (0/1), created_at | The first name given for an email stands: a later booking with the same email doesn't rename the customer. |
+| `customers` | `id` PK, email UNIQUE, full_name, used_free_class (0/1: the trial class is claimed), created_at | The first name given for an email stands: a later booking with the same email doesn't rename the customer. |
 | `orders` | `id` PK, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at, paid_at | `payment_status` is **set by the server only**: `pending` or `pending_at_studio` today; `paid` only after a verified payment (Phase 2). |
 | `bookings` | `id` PK, token UNIQUE, customer_id, session_id, order_id, plan_key, mode, status, credit_status, booked_at, cancelled_at | Partial unique index on (customer_id, session_id) `WHERE status = 'confirmed'`. The token is `YP-` + 16 Crockford base32 characters. |
 | `contact_messages` | `id` PK, name, email, phone, interest, message, created_at | `phone` is optional (NULL when empty), added by `003_contact_phone.sql`. |
@@ -48,7 +48,7 @@
 `005_replace_wheel_timetable.sql` takes Wheel off the timetable: it adds the `vinyasa` and `yin` classes, deletes the Thursday 18:00 Wheel template row, and adds Vinyasa (Thursday 18:00, 60 min, capacity 12) and Yin (Friday 07:00, 75 min, capacity 12). The Wheel class row and all Wheel sessions and bookings stay.
 - **Not additive:** the `DELETE` is a data change and an explicit exception to the additive rule. It uses plain `INSERT`, not `OR IGNORE`, so the batch fails and nothing changes on a slot or id conflict. The template check before migrating covers other differences.
 - **`classes.style` is legacy:** SQLite can't alter its CHECK (`hatha`, `barre`, `wheel`, `chakra`), and rebuilding `classes` isn't worth the risk with foreign keys pointing at it. New rows store the placeholder `'wheel'`, and the code stops reading the column: the API sets `style` from `class_id`. **Never write `WHERE style = …`: `'wheel'` there matches Vinyasa and Yin too.** The placeholder is `'wheel'` and not `'hatha'` so that old code can only confuse the old Wheel card, never the Hatha one.
-- **Retired class in queries:** `RETIRED_CLASS_ID` in `backend/schedule.ts` is left out of the template, the schedule and `/api/classes`; the admin list shows it only while `booked_count > 0`; `createBooking` answers 404 for it, before any free class or seat is touched. Cancel and lookup don't filter, so existing bookings keep working.
+- **Retired class in queries:** `RETIRED_CLASS_ID` in `backend/schedule.ts` is left out of the template, the schedule and `/api/classes`; the admin list shows it only while `booked_count > 0`; `createBooking` answers 404 for it, before any trial claim or seat is touched. Cancel and lookup don't filter, so existing bookings keep working.
 - **Release order (human-run, from `website/`, on the commit that contains 005):** migrate first, then deploy straight away.
   1. Read-only checks: `turso db shell yogapriyanshi-live "SELECT version FROM schema_migrations"` (if 004 is still pending, this run applies it too); `turso db shell yogapriyanshi-live "SELECT weekday, start_time, class_id, capacity FROM schedule_template ORDER BY weekday"` must show the 6 seeded rows, otherwise stop; `turso db shell yogapriyanshi-live "SELECT start_utc, booked_count FROM sessions WHERE class_id = 'wheel' AND start_utc > strftime('%Y-%m-%dT%H:%M:%fZ','now') AND booked_count > 0 ORDER BY start_utc LIMIT 60"`.
   2. `PATH="$HOME/.local/node22/bin:$PATH" npm run db:migrate:live`, then re-run the template query: 7 rows, with Thursday `vinyasa`, Friday `yin` and no `wheel`.
@@ -59,11 +59,15 @@
 
 `002_seed.sql` adds reference data only: the classes, the weekly template, the default settings and the admin row. There are no sample customers, bookings or messages.
 
-**Relationships:** a customer has many orders and many bookings. A session has many bookings. A booking optionally belongs to an order (free classes have none).
+**Relationships:** a customer has many orders and many bookings. A session has many bookings. A booking optionally belongs to an order (free classes booked before the AED 90 trial have none).
 
 ## Business rules in the data
 
-- **Free class:** claimed with `UPDATE customers SET used_free_class = 1 WHERE id = ? AND used_free_class = 0`. Cancelling it 6+ hours ahead sets it back to 0; a late cancel keeps it used.
+- **Trial class (AED 90):** claimed with `UPDATE customers SET used_free_class = 1 WHERE id = ? AND used_free_class = 0`. Cancelling it 6+ hours ahead sets it back to 0; a late cancel keeps it used.
+- **How a trial is stored:** the booking keeps `plan_key = 'free'`, the trial's internal name, because the CHECK lists can't change without rebuilding the tables. `orders.plan_key` doesn't allow `free`, so its order row says `plan_key = 'single'`, `amount_aed = 90`, credits 1/0, no expiry. Any report on trials must join `bookings`, since the order alone looks like a single class.
+- **Bookings from before the trial:** `plan_key = 'free' AND order_id IS NULL` marks a free class booked before 2026-11-05. The API keeps showing them as AED 0, `paymentStatus: free`, `paymentMethod: complimentary`. If this code is ever reverted, trials booked under it show AED 0 too, with their order rows intact.
+- **Before the first deploy with the trial:** run `SELECT COUNT(*) FROM bookings WHERE plan_key='free' AND order_id IS NOT NULL` read-only on live and expect 0.
+- **`pending_at_studio` covers online too:** every new order stores it, in person or online. The email and the booking screen choose their wording from the booking's `mode`.
 - **Rebooking a cancelled session:** if the customer has a cancelled booking for that session, a new booking is refused (400, `code: session_rebook_blocked`).
 - **Packs (known limitation):** paid packs don't yet redeem credits on later bookings. Every paid booking creates its own order, so a 10-pack's `credits_left` is recorded but never spent by a second booking. Redeeming pack credits comes with payments in Phase 2.
-- **Cancellation:** one transaction. It marks the booking cancelled only if it's still confirmed, releases the seat, and either refunds (6+ hours: the free class back, or `credits_left + 1` on the order) or burns the credit.
+- **Cancellation:** one transaction. It marks the booking cancelled only if it's still confirmed, releases the seat, and either refunds (6+ hours: the trial class back, or `credits_left + 1` on the order) or burns the credit.

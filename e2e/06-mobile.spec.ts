@@ -37,7 +37,7 @@ test('mobile layout has no horizontal scroll and menu works', async ({ page }, i
 test('mobile free booking end to end', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
   await shot('step1');
@@ -45,7 +45,7 @@ test('mobile free booking end to end', async ({ page }, info) => {
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Mobile Student');
   await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('mobile'));
   await shot('step2');
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
   await shot('confirmed');
 });
@@ -65,7 +65,7 @@ test('sticky book bar appears after the hero and opens booking', async ({ page }
   await expect(bar).toHaveCount(0);
   await page.mouse.wheel(0, -2400);
   await expect(bar).toBeVisible();
-  await bar.getByRole('button', { name: 'Book a free class' }).click();
+  await bar.getByRole('button', { name: 'Book a trial class' }).click();
   await expect(bookingModal(page).getByText('Select practice')).toBeVisible();
   await shot('booking-opened');
 });
@@ -76,12 +76,12 @@ test.describe('at 375px', () => {
   test('the booking reference fits on the confirmation card', async ({ page }, info) => {
     const shot = stepShooter(page, FEATURE, info.title);
     await openHome(page);
-    await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+    await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
     const modal = bookingModal(page);
     await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
     await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Narrow Student');
     await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('narrow'));
-    await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+    await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
     await expect(modal.getByText("You're on the mat.")).toBeVisible();
 
     const card = modal.getByTestId('booking-reference-card');

@@ -129,7 +129,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Buttons
 | Variant | Style | Use |
 |---|---|---|
-| Primary | `bg-ink text-on-ink`, pill (`rounded-full`), `px-[22px] py-[14px]`, min height 48px | The one main action per section ("Book a free class") |
+| Primary | `bg-ink text-on-ink`, pill (`rounded-full`), `px-[22px] py-[14px]`, min height 48px | The one main action per section ("Book a trial class") |
 | Secondary | Transparent, `border border-line text-ink`, pill | Second action ("View classes") |
 | Icon | 44×44 circle, `border border-line` | Carousel arrows, close, copy |
 
@@ -160,7 +160,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Layout: stacked on phones (title, photo, body), `gap-y-12` so the title block stands apart from the body; from `lg` two columns, `grid-cols-[400px_minmax(0,1fr)] gap-x-16`: the photo on the left spanning both rows and sticky (`lg:sticky lg:top-32 lg:self-start`, no motion), title and body on the right.
 - Photo: the class's own card photo (`cardPhoto` in `class-pages.ts`, AI placeholders until the shoot), 4:5, `rounded-[18px]`, `object-position` per photo, specific alt text, `fetchpriority="high"` (it is the page's main image). The static HTML uses the same source, `sizes` and width cap (`classPhotoSizes()` / `classPhotoMaxClass()` in `class-pages.ts`). Width capped so a 480w source is never shown much past 1.5×: `max-w-[320px]` for 480-only photos, `max-w-[400px]` with `srcset` where an 800w version exists.
 - Body (`gap-12`): "Who it's for" and "About the class" (`h2` in `text-h4`, 16px `ink-soft` body, 46ch); a hairline `<dl>` in the About trust-number style (2 columns, `gap-x-4 gap-y-6`: 14px `ink-soft` label above a 16px `ink` value) with Duration (none for Aerial), Intensity, Level (the 5 timetabled classes only) and Format, then two full-width rows (`col-span-2`, value capped at 46ch): "What it focuses on" (2 to 4 short body areas or qualities on one line, joined with " · ") and "Where it comes from" (one neutral sentence, 25 words at most, hedged; no founder named where none is clear). They are rows, not new `h2` sections, so the page stays short; focus says what the class works on, never what it fixes. React and the static HTML build the list from one helper (`classDetailRows()` in `class-pages.ts`); "What to bring" (6 items, 5 for private Aerial, which drops the own-mat line; 6px `accent` dots, the section's one accent); notices in `ui.notice`; the class's review (if any) as a glass card like Testimonials.
-- Actions (`id="class-actions"`, under a hairline): the line ("In person in Dubai or live online. Your first class is free." / the owner's "Not on the timetable yet…" line / "Private, one-to-one sessions, arranged with Priyanshi."), then `ui.primary` ("Book a free class" for the 5 timetabled classes, otherwise "Ask about this class" or "Ask about private Aerial") and, while WhatsApp is on, `ui.secondary` "Ask Priyanshi on WhatsApp". Labels never wrap (`whitespace-nowrap`) and the row is `flex-wrap`: full width and stacked on phones, side by side from 640px, and a pill that doesn't fit drops to its own line (no text overflows from 320 to 1440px). The floating WhatsApp button hides while the actions are on screen.
+- Actions (`id="class-actions"`, under a hairline): the line ("In person in Dubai or live online. Your first class is a trial at AED 90." / the owner's "Not on the timetable yet…" line / "Private, one-to-one sessions, arranged with Priyanshi."), then `ui.primary` ("Book a trial class" for the 5 timetabled classes, otherwise "Ask about this class" or "Ask about private Aerial") and, while WhatsApp is on, `ui.secondary` "Ask Priyanshi on WhatsApp". Labels never wrap (`whitespace-nowrap`) and the row is `flex-wrap`: full width and stacked on phones, side by side from 640px, and a pill that doesn't fit drops to its own line (no text overflows from 320 to 1440px). The floating WhatsApp button hides while the actions are on screen.
 - Focus: in-app navigation scrolls to the top and focuses the h1; a direct load moves no focus. Back to home restores the carousel at the card used and focuses its "Learn more".
 - Without JavaScript the prerendered HTML shows the same content (no buttons and no WhatsApp link).
 
@@ -169,7 +169,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Order: the back link "All guides" (the class page's back-link style), the h1 title (Italiana `text-h2`, `tabIndex={-1}`, the same quiet focus underline), the description as a 16px `ink` lede, then the body under a hairline (`pt-8 border-t border-line`, `gap-6`): `h2` in `text-h4`, paragraphs in 16px `ink-soft` at leading 1.6, bullets with the 6px `accent` dots. A bullet can start with a short label ("Label:" or `**Label.**` in the Markdown): the label is `font-medium text-ink`, the rest `ink-soft`. Article text uses the FAQ's 64ch measure (long-form reading), not the 46ch body measure.
 - Sources (the `## Sources` section): its heading one step down, in the eyebrow style (12px uppercase `ink-soft`, `tracking-[0.14em]`), and the list in `text-sm leading-[1.5] text-ink-soft` with no accent dots and no labels.
 - Links inside the text: underlined `ink` with a `line-strong` underline, open in a new tab with `noopener` and a visually hidden " (opens in a new tab)"; only https links exist (`src/lib/article-md.ts`). Inline links are exempt from the 44px rule; the back link and buttons are not.
-- Actions (`id="article-actions"`, under a hairline): one line "Your first class with Priyanshi is free, in person in Dubai or live online.", then `ui.primary` "Book a free class" (booking) and `ui.secondary` "Take the 30-second quiz" (the class finder). An article about an on-request class (front matter `action: ask` with `interest: <a contact interest>`) uses the class pages' on-request pattern instead: the owner's "Not on the timetable yet…" line and `ui.primary` "Ask about this class" (Contact with that interest), the quiz still the secondary. Same `flex-wrap`, `whitespace-nowrap` row as the class page. The floating WhatsApp button hides while the actions are on screen. The article text itself doesn't repeat the free-class or quiz line; the actions carry it.
+- Actions (`id="article-actions"`, under a hairline): one line "Your first class with Priyanshi is a trial at AED 90, in person in Dubai or live online.", then `ui.primary` "Book a trial class" (booking) and `ui.secondary` "Take the 30-second quiz" (the class finder). An article about an on-request class (front matter `action: ask` with `interest: <a contact interest>`) uses the class pages' on-request pattern instead: the owner's "Not on the timetable yet…" line and `ui.primary` "Ask about this class" (Contact with that interest), the quiz still the secondary. Same `flex-wrap`, `whitespace-nowrap` row as the class page. The floating WhatsApp button hides while the actions are on screen. The article text itself doesn't repeat the trial-class or quiz line; the actions carry it.
 - Focus and scroll: like the class page (top of the page; in-app navigation focuses the h1).
 - The dev-only draft preview uses this exact layout, with a plain `ui.notice` banner (not a live region) "Draft, not published. Not yet reviewed by Priyanshi." at the top and "Back to the homepage" as the back link.
 
@@ -189,14 +189,14 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Photos: AI placeholders until the photo shoot. Each class page shows its card's photo.
 
 ### Header / navigation
-- Logo on the left: the YP mark (`LogoMark`, 36px) beside the wordmark "YogaPriyanshi" (Italiana 24px). The mark (chosen 2026-11-03) is a raised P and a lowered Y whose right arm flows into the P's stem, in `on-ink` on an `ink` rounded tile, matching the primary button; the same tile is the favicon (`public/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`). Master files live outside the repo in `design/logo-final/`. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book free class" sits on the right. Nothing else goes in the header.
+- Logo on the left: the YP mark (`LogoMark`, 36px) beside the wordmark "YogaPriyanshi" (Italiana 24px). The mark (chosen 2026-11-03) is a raised P and a lowered Y whose right arm flows into the P's stem, in `on-ink` on an `ink` rounded tile, matching the primary button; the same tile is the favicon (`public/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`). Master files live outside the repo in `design/logo-final/`. Links (Classes, Schedule, About, Contact) are labels (12px uppercase). The primary button "Book trial class" sits on the right. Nothing else goes in the header.
 - Transparent over the hero. After 80px of scroll it becomes the **bar material** (§6): `bg-bg/85` (the same opacity as before the redesign), `backdrop-blur-[20px] backdrop-saturate-[1.8]`, the `shadow-glass-edge` top light, and a 16px scroll-edge fade below it (`from-bg/85`) instead of a hairline or shadow. 85% keeps the nav labels above 4.5:1 over the busiest content, with margin to spare (the worst pixel measured 4.61:1 even at 80%).
 - On mobile: wordmark plus a menu icon, opening a full-screen calm overlay with links in Italiana 34px. It settles in from the centre (opacity plus scale 0.98 → 1, critically damped spring) and leaves the same way.
 - "Manage booking" and "Studio admin" live in the mobile overlay and the footer, not in the header.
 
 ### Sticky book bar (mobile only)
-- Appears after the hero leaves view: a bottom bar in the bar material (`bg-bg/90`, 20px blur, `shadow-glass-edge`, a `from-bg/90` scroll-edge fade above it instead of a top border), safe-area padding, holding one primary button "Book a free class". It rises from the bottom edge and leaves the same way.
-- Hides again while "Your first class is free" (`#first-class`) or Contact (`#contact`) is on screen, since both have their own dark button.
+- Appears after the hero leaves view: a bottom bar in the bar material (`bg-bg/90`, 20px blur, `shadow-glass-edge`, a `from-bg/90` scroll-edge fade above it instead of a top border), safe-area padding, holding one primary button "Book a trial class". It rises from the bottom edge and leaves the same way.
+- Hides again while "Start with a trial class" (`#first-class`) or Contact (`#contact`) is on screen, since both have their own dark button.
 
 ### Booking modal (and Cancel / Admin / Contact modals)
 - All four, and the class finder, use one shell, `ModalSheet.tsx`: focus trap, Escape, focus returns to the opener, the page behind is `inert`, and Lenis is stopped while open. Admin may use a wider sheet (1040px).
@@ -228,8 +228,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 - **Membership success** (shown only after the server's 200): the check, "Request Sent" (focused), "Thank you. Priyanshi will be in touch within 24 hours to set up your membership.", then, while `WHATSAPP_ENABLED`, a `ui.primary` link "Continue on WhatsApp" (glyph, new tab) whose prefill is `membershipPrefill(name)`: the name as typed (trimmed, spaces collapsed) and the plan, never the email or phone. Then a `ui.secondary` "Close". Side by side from 640px, stacked and full width on phones. Every other interest keeps the "Message Sent" view unchanged.
 
 ### FAQ ("Questions, answered")
-- Between Pricing and "Your first class is free" (`#faq`). The same transparent hairline list as Pricing: each row is an `h3` holding a `<button>` (question in Italiana 24px, `text-h4`, and a 44px circle with a chevron that turns 180° when open), `press-soft`, `hover:bg-glass`.
-- The answer opens below its question (16px body, `ink-soft`, max 64ch, the measure exception in §3). It isn't a `region` landmark: with up to 10 open they would crowd the landmarks; its id stays for `aria-controls`. Several can be open at once; none is open at first. The button has `aria-expanded`, and `aria-controls` while its answer is shown.
+- Between Pricing and "Start with a trial class" (`#faq`). The same transparent hairline list as Pricing: each row is an `h3` holding a `<button>` (question in Italiana 24px, `text-h4`, and a 44px circle with a chevron that turns 180° when open), `press-soft`, `hover:bg-glass`.
+- The answer opens below its question (16px body, `ink-soft`, max 64ch, the measure exception in §3). It isn't a `region` landmark: with up to 7 open they would crowd the landmarks; its id stays for `aria-controls`. Several can be open at once; none is open at first. The button has `aria-expanded`, and `aria-controls` while its answer is shown.
 - Answers are facts only (`src/constants/faq.ts`) and never mention WhatsApp, Zoom or props. Students bring their own mat, which the "What should I bring or wear?" answer says.
 
 ### WhatsApp button
@@ -248,8 +248,8 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Class finder ("Find your class")
 - A `ModalSheet` (`closeLabel` "Close class finder"): three questions, one per step, then a result. Eyebrow "Question 1 of 3" … "Your suggestion" above the `ui.title` "Find your class" (the same on every step; on the result it is visually hidden, `sr-only`, so the eyebrow leads straight into the class name and the dialog keeps its name). The dialog is `aria-describedby` the eyebrow and the first question (ModalSheet's optional `describedBy`), so Q1 is read out on open. Answers and the result reset when the sheet closes, so a reopen never flashes the last result.
 - Each question is an `h3` (`text-h4`) over a `role="group"` of full-width answer buttons: `press-soft`, `min-h-12`, `rounded-[12px]`, `bg-surface-alt` (hover `border-line-strong`); the earlier choice is `aria-pressed` and `bg-ink text-on-ink`. A tap moves on at once (no timer), and focus moves to the new heading (`tabIndex={-1}`, described by the eyebrow; no ring on a heading, a quiet `line-strong` underline with `focus-visible` instead). Under Q2 and Q3 a quiet "Back" text button. The inline text buttons ("Back", "Start again", the "Also a good fit" class) keep a 44px hit area with `-my-3`, so they add no layout height.
-- The result: the class name (`text-h3`, focused on arrival), a one-line reason, the class length only ("60 min", none for Aerial), the format note (private: "Just you and Priyanshi. She arranges the details with you."), then "Your first class is free." (bookable class in a group format only) or "Not on the timetable. Send a message and Priyanshi will find a time with you." (contact-only). Pregnancy and back care add a gentle `ui.notice`. "Also a good fit:" and a text button swap the main and alternative classes (no alternative for pregnancy). Actions: one `ui.primary` whose label says exactly what it does ("Book this class" only for the 5 bookable classes in a group format), the `ui.secondary` "Ask Priyanshi on WhatsApp" while WhatsApp is enabled, and a quiet "Start again". The two buttons always stack (`flex flex-col gap-3`), each `w-full`, at every width.
-- Copy and the mapping live in `src/constants/class-finder.ts`. Never medical, clearance or "safe" wording; "free" never shows on a private or contact-only result.
+- The result: the class name (`text-h3`, focused on arrival), a one-line reason, the class length only ("60 min", none for Aerial), the format note (private: "Just you and Priyanshi. She arranges the details with you."), then "Your first class is a trial at AED 90." (bookable class in a group format only) or "Not on the timetable. Send a message and Priyanshi will find a time with you." (contact-only). Pregnancy and back care add a gentle `ui.notice`. "Also a good fit:" and a text button swap the main and alternative classes (no alternative for pregnancy). Actions: one `ui.primary` whose label says exactly what it does ("Book this class" only for the 5 bookable classes in a group format), the `ui.secondary` "Ask Priyanshi on WhatsApp" while WhatsApp is enabled, and a quiet "Start again". The two buttons always stack (`flex flex-col gap-3`), each `w-full`, at every width.
+- Copy and the mapping live in `src/constants/class-finder.ts`. Never medical, clearance or "safe" wording; the trial never shows on a private or contact-only result.
 
 ### Schedule
 - A segmented week switcher (This Week / Next Week / Week 3) and a refresh icon button. One glass card per day (a `<button>`, `rounded-[18px]`); the selected card is `bg-ink text-on-ink`. A day with no class on the template (a fallback; today every day has one) is a dashed "No class" card with its own weekday.
@@ -266,7 +266,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Teacher block ("Hi, I'm Priyanshi.")
 - Two columns on desktop (photo | text), stacked on mobile. The photo is the real Burj Khalifa forearm stand (`real/burj-forearm-stand-1`, 480/800/1200), 4:5, `rounded-[18px]`.
 - The heading is H2, then the one-line aim, then a first-person credentials paragraph (about 35 words, 40 at most, facts from the private fact sheet only). It doesn't repeat the trust numbers, and the former studio is described, never named. On phones the photo's `sizes` is capped at `min(100vw, 400px)`.
-- Trust numbers: a 2×2 `<dl>` under a hairline. Each cell shows the value (Italiana 28px, `text-h3`) above its label (14px, `ink-soft`); in the DOM the `dt` label comes first and `flex-col-reverse` puts the value on top. "7 years / Teaching since 2019", "300 hours / Yoga Alliance registered training", "Bachelor's / In Yogic Science", "Up to 500 / People led on International Yoga Day".
+- Trust numbers: a 2×2 `<dl>` under a hairline. Each cell shows the value (Italiana 28px, `text-h3`) above its label (14px, `ink-soft`); in the DOM the `dt` label comes first and `flex-col-reverse` puts the value on top. "10+ years / Teaching yoga", "300 hours / Yoga Alliance registered training", "Bachelor's / In Yogic Science", "Up to 500 / People led on International Yoga Day".
 
 ### Testimonials ("What students say")
 - Three verified reviews (`src/constants/testimonials.ts`), quoted exactly, as glass cards (`bg-glass`, `rounded-[18px]`, `p-5`): the quote in 16px `ink`, then the caption "Verified ClassPass review · <class> class" in quiet sentence case (`text-sm leading-[1.5] text-ink-soft`), not the uppercase label style, so "ClassPass" reads as spelled.
@@ -277,12 +277,12 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Centred, Italiana. Priyanshi's chosen line, "Yogas citta vritti nirodhah." (`text-quote`, max 24ch), its meaning below in 16px `ink-soft`, and a label-style caption "Patanjali · Yoga Sutras 1.2" (`ui.eyebrow`). No quotation-mark graphics.
 
 ### How it works
-- Three numbered steps in an `<ol>` (one column on phones, three from 640px), each under a hairline: the number in Italiana `text-h3` `accent-text` (the section's one accent), the step title in `text-h4`, one line of body. Steps: "Book your free first class", "Hear from Priyanshi", "Practise".
+- Three numbered steps in an `<ol>` (one column on phones, three from 640px), each under a hairline: the number in Italiana `text-h3` `accent-text` (the section's one accent), the step title in `text-h4`, one line of body. Steps: "Book your class", "Priyanshi reaches out", "Practise".
 - "Practise safely": a compact note, not a card: an `h3` (`text-h4`) and three 14px bullets. It never suggests that Priyanshi gives medical clearance.
 - While `WHATSAPP_ENABLED`: one line "Not sure where to start?" and the text link "Book a free 15-minute call" (WhatsApp glyph, underline, no press scale). Its accessible name never matches the floating button's.
 
 ### Instagram ("See Priyanshi in action")
-- After the FAQ, before "Your first class is free". Five real Burj Khalifa photos (`real/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
+- After the FAQ, before "Start with a trial class". Five real Burj Khalifa photos (`real/<slug>-480.webp`, lazy, with width and height so nothing shifts), 4:5, `rounded-[18px]`. Phones and small tablets: a native snap track (tiles `min(44%, 200px)`); from `md` (768px): five columns.
 - One secondary pill "Follow @yogapriyanshi" (Instagram icon) to the profile. No WhatsApp link, no embed and no third-party script.
 
 ---
@@ -312,17 +312,17 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Longer content (class details, chakra knowledge, policies) goes on its own page or behind a tap, never on the homepage. Class details now live on the class pages (`/classes/<slug>`), reached from each card's "Learn more".
 
 **Homepage order:**
-1. Hero: "Connect with your body." / "Yoga with Priyanshi. Your first class is on us." / [Book a free class], with the line "Not sure? Take the 30-second quiz" under it (an underlined text link, 16px like the subtitle, no pill or press, `wf-after` after the button; owner request 2026-10-25).
+1. Hero: "Connect with your body." / "Yoga with Priyanshi. Start with a trial class for AED 90." / [Book a trial class], with the line "Not sure? Take the 30-second quiz" under it (an underlined text link, 16px like the subtitle, no pill or press, `wf-after` after the button; owner request 2026-10-25).
 2. Choose your practice: the carousel of 10 classes, with the same "Not sure? Take the 30-second quiz" line on its own row between the heading row and the track (never in the arrow row).
 3. Hi, I'm Priyanshi.: photo, the one-line aim, a short credentials paragraph and four trust numbers.
 4. What students say: three verified reviews.
 5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
 6. How it works: three steps, the "Practise safely" note and the free 15-minute call link.
 7. Schedule: this week's classes with spots left (existing live schedule, restyled).
-8. Pricing: free first class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
-9. Questions, answered: the FAQ, 10 questions that open in place.
+8. Pricing: trial class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
+9. Questions, answered: the FAQ, 7 questions that open in place.
 10. See Priyanshi in action: five Instagram photos and a Follow link.
-11. Your first class is free: "Classes every day · in person or online" / [Pick a time]
+11. Start with a trial class: "AED 90 · Classes every day · in person or online" / [Pick a time]
 12. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
 About, How it works and the FAQ carry more than one line of text on purpose (approved with Batch 1, 2026-10-19): they answer the questions a first-time student asks before booking.
@@ -430,7 +430,7 @@ The mandala (scroll-linked, not looping), the Buddha loader (4s breathe, 10s rin
 - Use tokens for every colour, size and spacing value.
 - Keep one heading, one line and one action per section.
 - Use compressed photos and videos (WebP or AVIF; videos under 20 MB, muted, `playsinline`).
-- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (154 today) must stay green.
+- Keep all booking, cancel, contact and admin behaviour and test ids. All e2e tests (158 today) must stay green.
 - Check 375px and 1280px screenshots for every changed section.
 
 **Don't:**

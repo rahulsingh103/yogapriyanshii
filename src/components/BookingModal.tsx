@@ -26,10 +26,10 @@ interface BookingModalProps {
 }
 
 const PLANS = [
-  { key: 'free', name: 'First Class', price: 'Free', aed: 0, tag: 'Intro' },
-  { key: 'single', name: 'Single Drop-in', price: 'AED 350', aed: 350, tag: '1 Class' },
-  { key: 'pack10', name: '10 Pack', price: 'AED 3,000', aed: 3000, tag: 'AED 300/cl' },
-  { key: 'pack20', name: '20 Pack', price: 'AED 5,600', aed: 5600, tag: '+1 Private' },
+  { key: 'free', name: 'Trial Class', price: 'AED 90', tag: 'First class' },
+  { key: 'single', name: 'Single Drop-in', price: 'AED 300', tag: '1 Class' },
+  { key: 'pack10', name: '10 Pack', price: 'AED 2,800', tag: 'AED 280/cl' },
+  { key: 'pack20', name: '20 Pack', price: 'AED 5,200', tag: '+1 Private' },
 ] as const;
 
 export const BookingModal: React.FC<BookingModalProps> = ({
@@ -52,7 +52,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [phone, setPhone] = useState('');
 
   // Payment states
-  // Paid classes are settled at the studio until a real payment provider exists.
+  // Every class is settled in person or by Priyanshi's details until a real payment provider exists.
   const paymentMethod = 'studio' as const;
 
   const [loading, setLoading] = useState(false);
@@ -158,7 +158,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         email: email.trim(),
         mode,
         planKey,
-        paymentMethod: planKey === 'free' ? 'complimentary' : paymentMethod,
+        paymentMethod,
       });
 
       setConfirmedBooking(result.booking);
@@ -181,6 +181,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         setStep(1);
       } else {
         setErrorTone('error');
+        setFocusError(true);
       }
       setError(err?.message || 'Booking could not be completed.');
     } finally {
@@ -264,7 +265,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1">
                 <span className={ui.label}>Package</span>
                 <span className="text-xs text-ink-soft">
-                  {currentPlan.aed === 0 ? 'Complimentary introductory class' : 'Flexible studio credits'}
+                  {planKey === 'free' ? 'One trial class per person' : 'Flexible studio credits'}
                 </span>
               </div>
 
@@ -424,21 +425,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             </div>
 
-            {planKey === 'free' ? (
-              <div className={cn(ui.notice, 'flex items-center gap-3')}>
-                <Check size={16} className="text-success shrink-0" aria-hidden="true" />
-                <span>
-                  Complimentary session · Total: <strong className="font-semibold">AED 0</strong> (No card required)
-                </span>
-              </div>
-            ) : (
-              <div className={cn(ui.panel, 'flex flex-col gap-2')}>
-                <span className={ui.label}>Payment</span>
-                <p className="text-sm leading-[1.5] text-ink-soft">
-                  Your seat is held immediately. Pay AED {currentPlan.aed} in person at your session. Priyanshi will message you to confirm the details. Online payment is coming soon.
-                </p>
-              </div>
-            )}
+            <div className={cn(ui.panel, 'flex flex-col gap-2')}>
+              <span className={ui.label}>Payment</span>
+              <p className="text-sm leading-[1.5] text-ink-soft">
+                {mode === 'in_person'
+                  ? `Your seat is held immediately. Pay ${currentPlan.price} in person at your session. Priyanshi will message you to confirm the details.`
+                  : `Your seat is held immediately. Priyanshi will send you the details to pay ${currentPlan.price}, along with the class link.`}
+              </p>
+            </div>
 
             <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3">
               <AnimateIcon animateOnHover asChild>
@@ -451,9 +445,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <button type="button" disabled={loading} onClick={handleNextStep} className={cn(ui.primary, 'w-full sm:w-auto sm:flex-1 px-4')}>
                 {loading
                   ? 'Confirming...'
-                  : planKey === 'free'
-                  ? 'Confirm Free Reservation'
-                  : `Reserve Seat (Pay in Person)`}
+                  : mode === 'in_person'
+                  ? 'Reserve Seat (Pay in Person)'
+                  : 'Reserve Seat'}
               </button>
             </div>
           </div>
@@ -523,16 +517,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ],
                   [
                     'Status',
-                    confirmedBooking.amountAed
-                      ? `AED ${confirmedBooking.amountAed} (${
-                          confirmedBooking.paymentStatus === 'paid'
-                            ? 'Paid'
-                            : confirmedBooking.paymentStatus === 'pending_at_studio'
-                              ? 'Pay in Person'
-                              : 'Payment pending'
-                        })`
-                      : 'Complimentary',
-                    !confirmedBooking.amountAed || confirmedBooking.paymentStatus === 'paid' ? 'text-success' : 'text-ink',
+                    `AED ${(confirmedBooking.amountAed ?? 0).toLocaleString('en-US')} (${
+                      confirmedBooking.paymentStatus === 'paid'
+                        ? 'Paid'
+                        : confirmedBooking.paymentStatus !== 'pending_at_studio'
+                          ? 'Payment pending'
+                          : confirmedBooking.mode === 'in_person'
+                            ? 'Pay in Person'
+                            : 'Priyanshi sends payment details'
+                    })`,
+                    confirmedBooking.paymentStatus === 'paid' ? 'text-success' : 'text-ink',
                   ],
                 ] as const
               ).map(([term, value, tone]) => (

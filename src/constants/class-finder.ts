@@ -4,7 +4,7 @@
  * no `import.meta.env`. WhatsApp gating and the wa.me link stay in the component (contact.ts).
  *
  * Copy rules (Batch 2 plan, amendment A1): facts only, no medical, clearance or "safe" wording, and
- * "free" only on a bookable class in a group format.
+ * the trial class only on a bookable class in a group format.
  */
 import type { ClassStyle } from '../types';
 import { PRACTICE_CLASSES, type PracticeClass } from './classes';
@@ -91,7 +91,7 @@ export const FINDER_FORMAT_NOTES: Record<Format, string> = {
   private: 'Just you and Priyanshi. She arranges the details with you.',
 };
 
-export const FINDER_FREE_LINE = 'Your first class is free.';
+export const FINDER_TRIAL_LINE = 'Your first class is a trial at AED 90.';
 export const FINDER_NOT_SCHEDULED_LINE =
   'Not on the timetable. Send a message and Priyanshi will find a time with you.';
 export const FINDER_PREGNANCY_NOTICE =
@@ -147,10 +147,10 @@ export function resultAction(name: ClassName, format: Format): { label: string; 
   return { label: 'Ask about this class', choice: { kind: 'contact', interest: cls.contactInterest ?? 'General enquiry' } };
 }
 
-/** The quiet lines under the class: the format note, then the free or not-on-the-timetable line. */
+/** The quiet lines under the class: the format note, then the trial or not-on-the-timetable line. */
 export function resultLines(name: ClassName, { goal, format }: FinderAnswers) {
   const bookable = !!finderClass(name).style;
-  const extra = format === 'private' ? null : bookable ? FINDER_FREE_LINE : FINDER_NOT_SCHEDULED_LINE;
+  const extra = format === 'private' ? null : bookable ? FINDER_TRIAL_LINE : FINDER_NOT_SCHEDULED_LINE;
   const notices = [
     ...(goal === 'pregnancy' ? [FINDER_PREGNANCY_NOTICE] : []),
     ...(goal === 'back' ? [FINDER_BACK_NOTICE] : []),

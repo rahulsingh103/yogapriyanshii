@@ -4,41 +4,45 @@ const FEATURE = 'booking';
 
 async function openBooking(page: import('@playwright/test').Page) {
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Free Class' }).click();
+  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
   await expect(modal.locator('select option').first()).toBeAttached();
   return modal;
 }
 
-test('free first class: full happy path with validation', async ({ page }, info) => {
+test('trial class, online: full happy path with validation', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
-  const email = uniqueEmail('free');
+  const email = uniqueEmail('trial');
   const modal = await openBooking(page);
   await shot('step1-package-and-slot');
 
   await modal.getByRole('button', { name: 'Online Live Stream' }).click();
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await expect(modal.getByText('Step 2 of 2')).toBeVisible();
+  await expect(modal.getByText(/Priyanshi will send you the details to pay AED 90, along with the class link/)).toBeVisible();
+  // An online booking is never told to pay in person.
+  await expect(modal.getByText('Payment', { exact: true }).locator('..')).not.toContainText(/in person/i);
   await shot('step2-details');
 
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat', exact: true }).click();
   await expect(modal.getByText('Please provide your name and email address.')).toBeVisible();
   await shot('validation-empty');
 
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Test Student');
   await modal.getByPlaceholder('layla@example.com').fill('not-an-email');
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat', exact: true }).click();
   await expect(modal.getByText('Please enter a valid email address.')).toBeVisible();
   await shot('validation-bad-email');
 
   await modal.getByPlaceholder('layla@example.com').fill(email);
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat', exact: true }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
   const token = await modal.getByTestId('booking-token').innerText();
   expect(token).toMatch(/^YP-[0-9A-HJKMNP-TV-Z]{16}$/);
   await expect(modal.getByText('Online Stream')).toBeVisible();
-  await expect(modal.getByText('Complimentary', { exact: true })).toBeVisible();
+  await expect(modal.getByText('AED 90 (Priyanshi sends payment details)')).toBeVisible();
+  await expect(modal.getByText('Complimentary', { exact: true })).toHaveCount(0);
   await shot('confirmation');
 
   await modal.getByRole('button', { name: 'View Email Copy' }).click();
@@ -54,7 +58,7 @@ test('free first class: full happy path with validation', async ({ page }, info)
   await expect(modal).toHaveCount(0);
 });
 
-test('same email cannot claim the free class twice', async ({ page }, info) => {
+test('same email cannot claim the trial class twice', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   const email = uniqueEmail('dupe');
   const first = await apiBook(page.request, { email });
@@ -64,30 +68,30 @@ test('same email cannot claim the free class twice', async ({ page }, info) => {
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Repeat Student');
   await modal.getByPlaceholder('layla@example.com').fill(email);
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
-  await expect(modal.getByText('This email has already used its free first class.', { exact: false })).toBeVisible();
+  await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
+  await expect(modal.getByText('This email has already used its trial class.', { exact: false })).toBeVisible();
   await expect(modal.getByText("You're on the mat.")).toHaveCount(0);
-  await shot('duplicate-free-rejected');
+  await shot('duplicate-trial-rejected');
 });
 
 test('paid single class, pay at studio', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   const modal = await openBooking(page);
-  await modal.getByRole('button', { name: /AED 350/ }).click();
+  await modal.getByRole('button', { name: /AED 300/ }).click();
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('Studio Payer');
   await modal.getByPlaceholder('layla@example.com').fill(uniqueEmail('studio'));
-  await expect(modal.getByText(/Pay AED 350 in person at your session/)).toBeVisible();
+  await expect(modal.getByText(/Pay AED 300 in person at your session/)).toBeVisible();
   await shot('pay-at-studio-selected');
   await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
-  await expect(modal.getByText('AED 350 (Pay in Person)')).toBeVisible();
+  await expect(modal.getByText('AED 300 (Pay in Person)')).toBeVisible();
   await shot('confirmation');
 });
 
 test('paid packs are reserved to pay at the studio, with no card or bank form', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
-  for (const [price, total, who] of [['3,000', '3000', 'pack10'], ['5,600', '5600', 'pack20']] as const) {
+  for (const [price, who] of [['2,800', 'pack10'], ['5,200', 'pack20']] as const) {
     const modal = await openBooking(page);
     await modal.getByRole('button', { name: new RegExp(`AED ${price}`) }).click();
     await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
@@ -99,7 +103,7 @@ test('paid packs are reserved to pay at the studio, with no card or bank form', 
     await shot(`${who}-pay-at-studio`);
     await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
     await expect(modal.getByText("You're on the mat.")).toBeVisible();
-    await expect(modal.getByText(`AED ${total} (Pay in Person)`)).toBeVisible();
+    await expect(modal.getByText(`AED ${price} (Pay in Person)`)).toBeVisible();
     await shot(`${who}-confirmation`);
   }
 });
@@ -107,7 +111,7 @@ test('paid packs are reserved to pay at the studio, with no card or bank form', 
 test('back button returns to step 1 keeping choices', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   const modal = await openBooking(page);
-  await modal.getByRole('button', { name: /AED 350/ }).click();
+  await modal.getByRole('button', { name: /AED 300/ }).click();
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByRole('button', { name: 'Back' }).click();
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
@@ -131,15 +135,22 @@ test('booking API enforces capacity, double-booking and validation rules', async
   expect(againError).not.toMatch(/YP-/);
 
   // price and payment status come from the server, whatever the browser sends
-  expect(body.booking.amountAed).toBe(350);
+  expect(body.booking.amountAed).toBe(300);
   expect(body.booking.paymentStatus).toBe('pending_at_studio');
   const forged = await request.post('/api/bookings', {
     data: { sessionId: session.id, fullName: 'X', email: uniqueEmail('forged'), mode: 'in_person', planKey: 'pack10', paymentMethod: 'studio', amountAed: 1, paymentStatus: 'paid' },
   });
   expect(forged.status()).toBe(201);
   const forgedBody = await forged.json();
-  expect(forgedBody.booking.amountAed).toBe(3000);
+  expect(forgedBody.booking.amountAed).toBe(2800);
   expect(forgedBody.booking.paymentStatus).toBe('pending_at_studio');
+  const forgedTrial = await request.post('/api/bookings', {
+    data: { sessionId: session.id, fullName: 'X', email: uniqueEmail('forged-trial'), mode: 'in_person', planKey: 'free', paymentMethod: 'studio', amountAed: 0, paymentStatus: 'free' },
+  });
+  expect(forgedTrial.status()).toBe(201);
+  const forgedTrialBody = await forgedTrial.json();
+  expect(forgedTrialBody.booking.amountAed).toBe(90);
+  expect(forgedTrialBody.booking.paymentStatus).toBe('pending_at_studio');
 
   // card and bank transfer are refused by the server until real payments exist
   for (const method of ['card', 'bank_transfer']) {
@@ -171,4 +182,28 @@ test('booking API enforces capacity, double-booking and validation rules', async
     });
     expect(fullRes.status()).toBe(400);
   }
+});
+
+test('a tab from before the trial is told to refresh, and is not booked or charged', async ({ request }) => {
+  const email = uniqueEmail('stale');
+  const { session } = await apiBook(request, { planKey: 'single' });
+  const base = { sessionId: session.id, fullName: 'Stale Tab', email, mode: 'in_person' };
+  for (const data of [
+    { ...base, planKey: 'free', paymentMethod: 'complimentary' },
+    { ...base, planKey: 'free' },
+    { ...base, paymentMethod: 'complimentary' },
+    base,
+  ]) {
+    const res = await request.post('/api/bookings', { data });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.code).toBe('trial_refresh');
+    expect(body.error).toBe('Our first class is now a trial class at AED 90. Please refresh the page to book.');
+  }
+
+  // None of those refusals used the trial.
+  const trial = await request.post('/api/bookings', { data: { ...base, planKey: 'free', paymentMethod: 'studio' } });
+  expect(trial.status()).toBe(201);
+  const { booking } = await trial.json();
+  expect(booking).toMatchObject({ planKey: 'free', amountAed: 90, paymentMethod: 'studio', paymentStatus: 'pending_at_studio' });
 });

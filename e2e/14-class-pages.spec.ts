@@ -204,25 +204,25 @@ test.describe('rendered class pages', () => {
 
 test.describe('honest actions', () => {
   for (const cls of BOOKABLE) {
-    test(`${cls.name}: "Book a free class" opens booking at the soonest ${cls.name} session`, async ({ page, request }) => {
+    test(`${cls.name}: "Book a trial class" opens booking at the soonest ${cls.name} session`, async ({ page, request }) => {
       const session = await soonest(request, cls.style!);
       expect(session, `an available ${cls.style} session`).toBeTruthy();
       await openClass(page, cls.slug);
       const actions = page.locator('#class-actions');
-      await expect(actions).toContainText('Your first class is free.');
-      await actions.getByRole('button', { name: 'Book a free class' }).click();
+      await expect(actions).toContainText('Your first class is a trial at AED 90.');
+      await actions.getByRole('button', { name: 'Book a trial class' }).click();
       const modal = bookingModal(page);
       await expect(modal.locator('select')).toHaveValue(session.id);
     });
   }
 
-  test('contact-only and private pages open contact with the right interest, never "Book" or "free"', async ({ page }) => {
+  test('contact-only and private pages open contact with the right interest, never "Book" or "trial"', async ({ page }) => {
     for (const cls of [...CONTACT_ONLY, PRACTICE_CLASSES.find((c) => c.name === 'Aerial Yoga')!]) {
       await openClass(page, cls.slug);
       const aerial = cls.name === 'Aerial Yoga';
       const actions = page.locator('#class-actions');
       if (!aerial) await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
-      expect(await page.locator('main').innerText()).not.toMatch(/book|free/i);
+      expect(await page.locator('main').innerText()).not.toMatch(/book|free|trial/i);
       await actions.getByRole('button', { name: aerial ? 'Ask about private Aerial' : 'Ask about this class' }).click();
       const dialog = page.getByRole('dialog', { name: 'Send a message' });
       await expect(dialog.getByLabel('Area of Interest')).toHaveValue(aerial ? 'Private Aerial Yoga' : cls.contactInterest!);
@@ -632,7 +632,7 @@ test.describe('articles (hidden)', () => {
     expect(await sources.locator('span.font-medium').count()).toBe(0);
 
     const actions = page.locator('#article-actions');
-    await actions.getByRole('button', { name: 'Book a free class' }).click();
+    await actions.getByRole('button', { name: 'Book a trial class' }).click();
     await expect(bookingModal(page)).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(bookingModal(page)).toHaveCount(0);
@@ -649,7 +649,7 @@ test.describe('articles (hidden)', () => {
     await page.goto('/__test/article');
     await settled(page);
     await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
-    await expect(actions.getByRole('button', { name: 'Book a free class' })).toHaveCount(0);
+    await expect(actions.getByRole('button', { name: 'Book a trial class' })).toHaveCount(0);
     await expect(actions.getByRole('button', { name: 'Take the 30-second quiz' })).toBeVisible();
     await actions.getByRole('button', { name: 'Ask about this class' }).click();
     const dialog = page.getByRole('dialog', { name: 'Send a message' });

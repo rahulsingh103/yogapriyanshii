@@ -133,17 +133,24 @@ export interface BookingEmailData {
 }
 
 const PLAN_TITLES: Record<string, string> = {
-  free: 'Complimentary first class',
+  free: 'Trial class',
   single: 'Single drop-in (1 class)',
   pack10: '10-class pack',
   pack20: '20-class pack',
 };
 
-function paymentLine(d: BookingEmailData): string {
-  if (d.paymentStatus === 'free') return 'Complimentary (AED 0)';
-  if (d.paymentStatus === 'pending_at_studio') return `AED ${d.amountAed}, to pay in person at your session`;
-  if (d.paymentStatus === 'paid') return `AED ${d.amountAed}, paid`;
-  return `AED ${d.amountAed}, payment pending. Priyanshi will confirm how to pay.`;
+const aed = (amount: number) => `AED ${amount.toLocaleString('en-US')}`;
+
+/** Online bookings also store pending_at_studio, so the wording follows the mode. */
+function paymentLine(d: BookingEmailData, reader: 'student' | 'studio'): string {
+  if (d.paymentStatus === 'paid') return `${aed(d.amountAed)}, paid`;
+  if (d.paymentStatus === 'pending_at_studio') {
+    if (d.mode === 'in_person') return `${aed(d.amountAed)}, to pay in person at your session`;
+    return reader === 'student'
+      ? `${aed(d.amountAed)}. Priyanshi will send you the payment details.`
+      : `${aed(d.amountAed)}. Online: send the student the payment details.`;
+  }
+  return `${aed(d.amountAed)}, payment pending. Priyanshi will confirm how to pay.`;
 }
 
 function formatLine(mode: BookingEmailData['mode']): string {
@@ -160,7 +167,7 @@ Your session:
 • Date & Time: ${d.whenDubai} (Dubai time, GMT+4)
 • Format: ${formatLine(d.mode)}
 • Plan: ${PLAN_TITLES[d.planKey] ?? d.planKey}
-• Payment: ${paymentLine(d)}
+• Payment: ${paymentLine(d, 'student')}
 • Your Booking Token: ${d.token}
 
 A few gentle tips:
@@ -194,7 +201,7 @@ export async function sendBookingAlert(d: BookingEmailData, notifyEmail: string)
 • Date & Time: ${d.whenDubai} (Dubai time, GMT+4)
 • Format: ${formatLine(d.mode)}
 • Plan: ${PLAN_TITLES[d.planKey] ?? d.planKey}
-• Payment: ${paymentLine(d)}
+• Payment: ${paymentLine(d, 'studio')}
 • Booking token: ${d.token}
 
 Reply to this email to write to the student directly.`;
@@ -225,9 +232,11 @@ export async function sendCancellationAlert(d: CancellationEmailData, notifyEmai
   const outcome =
     d.creditStatus === 'refunded'
       ? d.planKey === 'free'
-        ? 'Cancelled with 6+ hours notice: the free first class is available to them again.'
+        ? 'Cancelled with 6+ hours notice: they can book the trial class again.'
         : 'Cancelled with 6+ hours notice: the class credit was refunded.'
-      : 'Late cancellation (under 6 hours): the seat was released and the credit is used.';
+      : d.planKey === 'free'
+        ? 'Late cancellation (under 6 hours): the seat was released and the trial counts as used.'
+        : 'Late cancellation (under 6 hours): the seat was released and the credit is used.';
 
   const body = `A booking was cancelled.
 

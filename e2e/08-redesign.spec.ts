@@ -217,7 +217,7 @@ test.describe('mobile menu', () => {
 test('Escape closes the booking sheet and returns focus to the button that opened it', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  const opener = page.locator('header').getByRole('button', { name: 'Book free class' });
+  const opener = page.locator('header').getByRole('button', { name: 'Book trial class' });
   await opener.click();
   const dialog = page.getByRole('dialog', { name: 'Select practice' });
   await expect(dialog).toBeVisible();
@@ -242,7 +242,7 @@ test.describe('at 375px', () => {
   test('the booking sheet sits at the bottom of the screen with no horizontal overflow', async ({ page }, info) => {
     const shot = stepShooter(page, FEATURE, info.title);
     await openHome(page);
-    await page.locator('#home').getByRole('button', { name: 'Book a free class' }).click();
+    await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
     const dialog = page.getByRole('dialog', { name: 'Select practice' });
     await expect(dialog.locator('select option').first()).toBeAttached();
     // let the slide-up finish

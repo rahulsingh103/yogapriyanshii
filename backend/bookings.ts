@@ -19,17 +19,24 @@ import {
 } from './validate.js';
 import { sendBookingAlert, sendBookingConfirmation, sendCancellationAlert, type EmailRecord } from './email.js';
 
-/** Prices are decided here, never by the browser. */
-export const PLAN_PRICES: Record<Exclude<PlanKey, 'free'>, { amountAed: number; credits: number; validMonths: number | null }> = {
-  single: { amountAed: 350, credits: 1, validMonths: null },
-  pack10: { amountAed: 3000, credits: 10, validMonths: 3 },
-  pack20: { amountAed: 5600, credits: 20, validMonths: 6 },
+/** Prices are decided here, never by the browser. `free` is the trial class's stored name (see validate.ts). */
+export const PLAN_PRICES: Record<PlanKey, { amountAed: number; credits: number; validMonths: number | null }> = {
+  free: { amountAed: 90, credits: 1, validMonths: null },
+  single: { amountAed: 300, credits: 1, validMonths: null },
+  pack10: { amountAed: 2800, credits: 10, validMonths: 3 },
+  pack20: { amountAed: 5200, credits: 20, validMonths: 6 },
 };
+
+/**
+ * orders.plan_key has a CHECK that allows only single, pack10 and pack20, and SQLite can't alter a CHECK.
+ * So a trial's order row says 'single' at the trial's price, while its booking keeps plan_key 'free'.
+ */
+const orderPlanKey = (planKey: PlanKey): Exclude<PlanKey, 'free'> => (planKey === 'free' ? 'single' : planKey);
 
 export const FREE_CANCEL_HOURS = 6;
 const NOT_FOUND = 'No booking found for this reference. Please check the token and try again.';
 
-/** 6 hours' notice or more refunds the credit (and gives a free class back); less burns it. */
+/** 6 hours' notice or more refunds the credit (and gives the trial class back); less burns it. */
 export function cancellationOutcome(startUtcMs: number, nowMs: number): { creditStatus: 'refunded' | 'burned'; noticeHours: number } {
   const noticeHours = (startUtcMs - nowMs) / (60 * 60 * 1000);
   return { creditStatus: noticeHours >= FREE_CANCEL_HOURS ? 'refunded' : 'burned', noticeHours };
@@ -66,7 +73,8 @@ const BOOKING_SELECT =
   'JOIN classes c ON c.id = s.class_id LEFT JOIN orders o ON o.id = b.order_id';
 
 export function toBookingView(r: Row): BookingView {
-  const isFree = String(r.plan_key) === 'free';
+  // Bookings from before the AED 90 trial: plan 'free' with no order. They stay AED 0.
+  const isLegacyFree = String(r.plan_key) === 'free' && r.order_id == null;
   return {
     id: String(r.id),
     bookingToken: String(r.token),
@@ -77,9 +85,9 @@ export function toBookingView(r: Row): BookingView {
     customerName: String(r.full_name),
     mode: String(r.mode) as BookingView['mode'],
     planKey: String(r.plan_key),
-    amountAed: isFree ? 0 : Number(r.amount_aed ?? 0),
-    paymentMethod: isFree ? 'complimentary' : String(r.payment_method ?? ''),
-    paymentStatus: isFree ? 'free' : (String(r.payment_status ?? 'pending') as PaymentStatus),
+    amountAed: isLegacyFree ? 0 : Number(r.amount_aed ?? 0),
+    paymentMethod: isLegacyFree ? 'complimentary' : String(r.payment_method ?? ''),
+    paymentStatus: isLegacyFree ? 'free' : (String(r.payment_status ?? 'pending') as PaymentStatus),
     status: String(r.status) as BookingView['status'],
     creditStatus: String(r.credit_status) as BookingView['creditStatus'],
     bookedAt: String(r.booked_at),
@@ -139,11 +147,12 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
   if (!email) throw bad('Please provide a valid email address.');
   const planKey: PlanKey | null = body.planKey === undefined || body.planKey === '' ? 'free' : oneOf(body.planKey, PLAN_KEYS);
   if (!planKey) throw bad('Please choose a valid plan.');
-  let paymentMethod: PaymentMethod | null = null;
-  if (planKey !== 'free') {
-    paymentMethod = oneOf(body.paymentMethod ?? 'studio', PAYMENT_METHODS);
-    if (!paymentMethod) throw bad('Paid classes are paid in person for now. Please choose "Pay in Person".');
+  // A tab opened before the trial still says "Complimentary". Don't book it at AED 90 unseen.
+  if (planKey === 'free' && body.paymentMethod !== 'studio') {
+    throw bad('Our first class is now a trial class at AED 90. Please refresh the page to book.', 'trial_refresh');
   }
+  const paymentMethod: PaymentMethod | null = oneOf(body.paymentMethod ?? 'studio', PAYMENT_METHODS);
+  if (!paymentMethod) throw bad('Paid classes are paid in person for now. Please choose "Pay in Person".');
   if (isRestDayId(sessionId)) throw bad('No classes are scheduled on this day.');
   if (!isSessionId(sessionId)) throw new HttpError(404, 'Selected class session was not found.');
 
@@ -184,14 +193,14 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
     });
     if (prior.rows.length) throw bad(rebookBlockedMessage(settings.studio_email), 'session_rebook_blocked');
 
-    // 4. Free plan: claim the one free class, atomically
+    // 4. Trial class: claim the one per person, atomically
     if (planKey === 'free') {
       const claim = await tx.execute({
         sql: 'UPDATE customers SET used_free_class = 1 WHERE id = ? AND used_free_class = 0',
         args: [customerId],
       });
       if (claim.rowsAffected === 0) {
-        throw bad('This email has already used its free first class. Please choose a single class or class pack.');
+        throw bad('This email has already used its trial class. Please choose a single class or class pack.');
       }
     }
 
@@ -202,35 +211,32 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
     });
     if (seat.rowsAffected === 0) throw bad('This class session is fully booked. Please choose another slot.');
 
-    // 6. Paid plan: record an order. The server sets the status; it is never 'paid' here.
-    let orderId: string | null = null;
-    if (planKey !== 'free' && paymentMethod) {
-      const price = PLAN_PRICES[planKey];
-      orderId = crypto.randomUUID();
-      let expiresAt: string | null = null;
-      if (price.validMonths) {
-        const d = new Date(now);
-        d.setUTCMonth(d.getUTCMonth() + price.validMonths);
-        expiresAt = d.toISOString();
-      }
-      await tx.execute({
-        sql:
-          'INSERT INTO orders (id, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at) ' +
-          'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        args: [
-          orderId,
-          customerId,
-          planKey,
-          price.amountAed,
-          paymentMethod,
-          paymentMethod === 'studio' ? 'pending_at_studio' : 'pending',
-          price.credits,
-          price.credits - 1,
-          expiresAt,
-          nowIso,
-        ],
-      });
+    // 6. Record the order. The server sets the status; it is never 'paid' here.
+    const price = PLAN_PRICES[planKey];
+    const orderId = crypto.randomUUID();
+    let expiresAt: string | null = null;
+    if (price.validMonths) {
+      const d = new Date(now);
+      d.setUTCMonth(d.getUTCMonth() + price.validMonths);
+      expiresAt = d.toISOString();
     }
+    await tx.execute({
+      sql:
+        'INSERT INTO orders (id, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at) ' +
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [
+        orderId,
+        customerId,
+        orderPlanKey(planKey),
+        price.amountAed,
+        paymentMethod,
+        paymentMethod === 'studio' ? 'pending_at_studio' : 'pending',
+        price.credits,
+        price.credits - 1,
+        expiresAt,
+        nowIso,
+      ],
+    });
 
     // 7. The booking itself; the partial unique index stops a second confirmed seat
     try {
@@ -321,7 +327,7 @@ export async function cancelBooking(rawToken: unknown): Promise<{
 
     if (result.creditStatus === 'refunded') {
       if (String(row.plan_key) === 'free') {
-        // Early cancel gives the free first class back (amendment K).
+        // Early cancel gives the trial class back (amendment K). Its order row stays as it is.
         await tx.execute({ sql: 'UPDATE customers SET used_free_class = 0 WHERE id = ?', args: [String(row.customer_id)] });
       } else if (row.order_id) {
         await tx.execute({
@@ -354,14 +360,14 @@ export async function cancelBooking(rawToken: unknown): Promise<{
     settings.notify_email
   );
 
-  const isFree = booking.planKey === 'free';
+  const isTrial = booking.planKey === 'free';
   const message =
     outcome.creditStatus === 'refunded'
-      ? isFree
-        ? 'Your booking has been cancelled. Your free first class is available again for a different session.'
+      ? isTrial
+        ? 'Your booking has been cancelled. You can book your AED 90 trial class for a different session.'
         : 'Your booking has been cancelled and your class credit has been refunded.'
-      : isFree
-        ? 'Late cancellation (less than 6 hours notice): your seat has been released, and the free first class counts as used.'
+      : isTrial
+        ? 'Late cancellation (less than 6 hours notice): your seat has been released, and your trial class counts as used.'
         : 'Late cancellation (less than 6 hours notice): your seat has been released, but under studio policy the class credit is used.';
 
   return { success: true, booking, noticeHours: outcome.noticeHours, message };

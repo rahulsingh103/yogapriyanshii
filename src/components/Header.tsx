@@ -183,7 +183,7 @@ export function Header({ onOpenBooking, onOpenCancel, onOpenAdmin, onMenuOpenCha
               onClick={onOpenBooking}
               className="press hidden sm:inline-flex items-center justify-center min-h-12 px-[22px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
             >
-              Book free class
+              Book trial class
             </button>
 
             <AnimateIcon animateOnHover asChild>

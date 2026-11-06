@@ -12,6 +12,8 @@ export class HttpError extends Error {
 
 export const bad = (message: string, code?: string) => new HttpError(400, message, code);
 
+// 'free' is the stored name of the AED 90 trial class. It stays because bookings.plan_key has a CHECK
+// list that SQLite can't alter without rebuilding the table. See docs/DATABASE.md.
 export const PLAN_KEYS = ['free', 'single', 'pack10', 'pack20'] as const;
 export type PlanKey = (typeof PLAN_KEYS)[number];
 

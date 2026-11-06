@@ -24,14 +24,14 @@ export interface PageMeta {
 export const HOME_META: PageMeta = {
   title: 'YogaPriyanshi · Yoga in Dubai',
   description:
-    'Yoga with Priyanshi in Dubai: Hatha, Barre, Chakra Flow, Vinyasa and Yin classes, in person or online. Your first class is free.',
+    'Yoga with Priyanshi in Dubai: Hatha, Barre, Chakra Flow, Vinyasa and Yin classes, in person or online. Trial class AED 90.',
   path: '/',
-  twitterDescription: 'Yoga with Priyanshi in Dubai, in person or online. Your first class is free.',
+  twitterDescription: 'Yoga with Priyanshi in Dubai, in person or online. Trial class AED 90.',
 };
 
 export const NOT_FOUND_META: PageMeta = {
   title: 'Page not found · YogaPriyanshi',
-  description: 'This page could not be found. See the classes and book a free first class with Priyanshi in Dubai.',
+  description: 'This page could not be found. See the classes and book a trial class with Priyanshi in Dubai.',
   path: null,
   noindex: true,
 };

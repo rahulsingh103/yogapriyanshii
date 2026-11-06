@@ -151,14 +151,20 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                 <dd className="font-medium text-ink">{cancelledBooking.sessionTitle}</dd>
               </div>
               <div className={row}>
-                <dt className="text-ink-soft">Credit Policy:</dt>
+                <dt className="text-ink-soft">Result:</dt>
                 <dd
                   className={cn(
                     'font-semibold uppercase tracking-[0.1em] text-xs self-center',
                     cancelledBooking.creditStatus === 'refunded' ? 'text-success' : 'text-error'
                   )}
                 >
-                  {cancelledBooking.creditStatus === 'refunded' ? 'Refunded' : 'Burned (Late Notice)'}
+                  {cancelledBooking.planKey === 'free'
+                    ? cancelledBooking.creditStatus === 'refunded'
+                      ? 'Trial available again'
+                      : 'Trial used'
+                    : cancelledBooking.creditStatus === 'refunded'
+                      ? 'Refunded'
+                      : 'Burned (Late Notice)'}
                 </dd>
               </div>
             </dl>
@@ -212,8 +218,16 @@ export const CancelModal: React.FC<CancelModalProps> = ({
                 </p>
                 <p>
                   {isFreeCancel
-                    ? `You are cancelling ${noticeHours?.toFixed(1)} hours before class (≥ 6h). Your seat will be released and your class credit will be refunded.`
-                    : `You are cancelling less than 6 hours before class (${noticeHours?.toFixed(1)}h remaining). Your seat will be released, but your class credit is burned per studio policy.`}
+                    ? `You are cancelling ${noticeHours?.toFixed(1)} hours before class (≥ 6h). Your seat will be released and ${
+                        lookedUpBooking.planKey === 'free'
+                          ? 'you can book your trial class for a different session'
+                          : 'your class credit will be refunded'
+                      }.`
+                    : `You are cancelling less than 6 hours before class (${noticeHours?.toFixed(1)}h remaining). Your seat will be released, ${
+                        lookedUpBooking.planKey === 'free'
+                          ? 'and your trial class counts as used'
+                          : 'but your class credit is burned per studio policy'
+                      }.`}
                 </p>
               </div>
             ) : (
@@ -265,10 +279,10 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             <div className={cn(ui.panel, 'text-sm leading-[1.5] text-ink-soft flex flex-col gap-1')}>
               <p className="font-semibold text-ink">Cancellation Policy:</p>
               <p>
-                • <strong className="font-semibold text-ink">Free up to 6 hours</strong> before start: Releases seat & refunds credit.
+                • <strong className="font-semibold text-ink">Free up to 6 hours</strong> before start: releases your seat and gives back your class or trial.
               </p>
               <p>
-                • <strong className="font-semibold text-ink">Late (&lt; 6 hours)</strong>: Releases seat to waitlist, credit is burned.
+                • <strong className="font-semibold text-ink">Late (&lt; 6 hours)</strong>: releases your seat, and the class or trial counts as used.
               </p>
             </div>
 

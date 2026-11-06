@@ -7,7 +7,7 @@
  * Facts only (design/PRIYANSHI-FACTS.md). Never: cure, treat, heal (the class name "Spine Healing"
  * aside), guarantee, "safe for", prevent, the video tool's name or the former studio's name.
  * Origins are neutral and well known (no founder named where none is clear); focus lists say what a
- * class works on, never what it fixes. Contact-only pages never say "Book" or "free". Intensity labels
+ * class works on, never what it fixes. Contact-only pages never say "Book" or "trial". Intensity labels
  * and the new classes' durations (classes.ts) are placeholders until Priyanshi checks them.
  */
 import type { ClassName } from './class-finder';
@@ -50,7 +50,7 @@ export interface ClassPageContent {
 
 /** The owner's line for the classes that aren't on the timetable (on-request.ts, shared with on-request articles). */
 export { CLASS_PAGE_ON_REQUEST_LINE };
-export const CLASS_PAGE_BOOKABLE_LINE = 'In person in Dubai or live online. Your first class is free.';
+export const CLASS_PAGE_BOOKABLE_LINE = 'In person in Dubai or live online. Your first class is a trial at AED 90.';
 export const CLASS_PAGE_PRIVATE_LINE = 'Private, one-to-one sessions, arranged with Priyanshi.';
 
 /** "What to bring" (facts, owner answers 6 and 7). Online students get the link; the tool is never named. */
@@ -120,7 +120,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     level: 'All levels',
     intensity: 'Gentle–Moderate',
     notices: [],
-    ...meta('Hatha', 'Hatha yoga with Priyanshi in Dubai: foundational postures, precise alignment and breath. In person or live online. Your first class is free.'),
+    ...meta('Hatha', 'Hatha yoga with Priyanshi in Dubai: foundational postures, precise alignment and breath. In person or live online. Trial class AED 90.'),
     photo: cardPhoto('Hatha'),
     testimonial: null,
   },
@@ -134,7 +134,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     level: 'All levels',
     intensity: 'Moderate',
     notices: [],
-    ...meta('Barre', 'Barre yoga with Priyanshi in Dubai: small, controlled strength work and deep stretching. In person or live online. Your first class is free.'),
+    ...meta('Barre', 'Barre yoga with Priyanshi in Dubai: small, controlled strength work and deep stretching. In person or live online. Trial class AED 90.'),
     photo: cardPhoto('Barre'),
     testimonial: review('Barre Yoga'),
   },
@@ -148,7 +148,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     level: 'Beginner friendly',
     intensity: 'Gentle',
     notices: [],
-    ...meta('Chakra Flow', 'Chakra Flow with Priyanshi in Dubai: a moving meditation pairing breath, sound and sequence. In person or live online. Your first class is free.'),
+    ...meta('Chakra Flow', 'Chakra Flow with Priyanshi in Dubai: a moving meditation pairing breath, sound and sequence. In person or live online. Trial class AED 90.'),
     photo: cardPhoto('Chakra Flow'),
     testimonial: null,
   },
@@ -162,7 +162,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     level: 'Some experience',
     intensity: 'Moderate–Strong',
     notices: [],
-    ...meta('Vinyasa', 'Vinyasa yoga with Priyanshi in Dubai: a breath-led flow that builds strength and focus. In person or live online. Your first class is free.'),
+    ...meta('Vinyasa', 'Vinyasa yoga with Priyanshi in Dubai: a breath-led flow that builds strength and focus. In person or live online. Trial class AED 90.'),
     photo: cardPhoto('Vinyasa'),
     testimonial: null,
   },
@@ -218,7 +218,7 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     level: 'All levels',
     intensity: 'Gentle',
     notices: [],
-    ...meta('Yin Yoga', 'Yin yoga with Priyanshi in Dubai: long, quiet holds that give your body time to slow down and let go. In person or live online. Your first class is free.'),
+    ...meta('Yin Yoga', 'Yin yoga with Priyanshi in Dubai: long, quiet holds that give your body time to slow down and let go. In person or live online. Trial class AED 90.'),
     photo: cardPhoto('Yin Yoga'),
     testimonial: null,
   },
@@ -294,7 +294,7 @@ export function classPageLine(kind: ClassPageKind) {
 
 /** The primary button's label: "Book" only when it really opens booking. */
 export function classPagePrimaryLabel(kind: ClassPageKind) {
-  return kind === 'bookable' ? 'Book a free class' : kind === 'private' ? 'Ask about private Aerial' : 'Ask about this class';
+  return kind === 'bookable' ? 'Book a trial class' : kind === 'private' ? 'Ask about private Aerial' : 'Ask about this class';
 }
 
 export interface ClassPageEntry {

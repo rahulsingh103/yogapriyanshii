@@ -25,33 +25,35 @@ test('FAQ: answers open and close, several at once, none open at first', async (
   await faq.scrollIntoViewIfNeeded();
   await expect(faq.getByRole('heading', { level: 2 })).toHaveText('Questions, answered');
   const questions = faq.getByRole('heading', { level: 3 }).getByRole('button');
-  await expect(questions).toHaveCount(10);
+  await expect(questions).toHaveCount(7);
   for (const q of await questions.all()) await expect(q).toHaveAttribute('aria-expanded', 'false');
   await expect(answers(faq)).toHaveCount(0);
   await expect(faq.getByRole('region')).toHaveCount(0);
   await shot('faq-closed');
 
-  const free = faq.getByRole('button', { name: 'Is the first class really free?' });
+  const cancel = faq.getByRole('button', { name: 'Can I cancel a booking?' });
   const price = faq.getByRole('button', { name: 'How much do classes cost?' });
-  await free.click();
-  await expect(free).toHaveAttribute('aria-expanded', 'true');
-  const freeAnswer = answer(faq, 'free-class');
-  await expect(freeAnswer).toContainText('one free class per person');
-  await expect(free).toHaveAttribute('aria-controls', (await freeAnswer.getAttribute('id'))!);
+  await cancel.click();
+  await expect(cancel).toHaveAttribute('aria-expanded', 'true');
+  const cancelAnswer = answer(faq, 'cancel');
+  await expect(cancelAnswer).toContainText('Cancellation is free up to 6 hours before class');
+  await expect(cancelAnswer).toContainText('If you cancel your trial class in time');
+  await expect(cancel).toHaveAttribute('aria-controls', (await cancelAnswer.getAttribute('id'))!);
 
   // A second one opens alongside the first.
   await price.click();
   await expect(answers(faq)).toHaveCount(2);
-  await expect(answer(faq, 'pricing')).toContainText('A 20-class pack is AED 5,600');
+  await expect(answer(faq, 'pricing')).toContainText('The first class is a trial at AED 90');
+  await expect(answer(faq, 'pricing')).toContainText('A 20-class pack is AED 5,200');
   // Open answers don't add landmarks.
   await expect(faq.getByRole('region')).toHaveCount(0);
   await shot('faq-two-open');
 
   // Keyboard: Enter toggles.
-  await free.focus();
+  await cancel.focus();
   await page.keyboard.press('Enter');
-  await expect(free).toHaveAttribute('aria-expanded', 'false');
-  await expect(freeAnswer).toHaveCount(0);
+  await expect(cancel).toHaveAttribute('aria-expanded', 'false');
+  await expect(cancelAnswer).toHaveCount(0);
   await expect(answers(faq)).toHaveCount(1);
 
   // Wide rows give the soft press (0.99).
@@ -69,7 +71,7 @@ test('FAQ JSON-LD is in the first HTML response and matches the visible question
   expect(raw).not.toContain('<');
   const data = JSON.parse(raw);
   expect(data['@type']).toBe('FAQPage');
-  expect(data.mainEntity).toHaveLength(10);
+  expect(data.mainEntity).toHaveLength(7);
 
   await openHome(page);
   const visible = await page.locator('#faq h3 button').allInnerTexts();
@@ -108,7 +110,7 @@ test('WhatsApp button hides while any modal is open', async ({ page }) => {
   await expect(chat(page)).toBeVisible();
 
   // Booking
-  await page.locator('header').getByRole('button', { name: 'Book Free Class' }).click();
+  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
   await expect(bookingModal(page)).toBeVisible();
   await expect(chat(page)).toHaveCount(0);
   await bookingModal(page).getByLabel('Close modal').click();
@@ -165,13 +167,13 @@ test('booking confirmation offers WhatsApp with the class and time, never the to
   const shot = stepShooter(page, FEATURE, info.title);
   const email = uniqueEmail('wa');
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Free Class' }).click();
+  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
   const modal = bookingModal(page);
   await expect(modal.locator('select option').first()).toBeAttached();
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
   await modal.getByPlaceholder('e.g. Layla Al-Mansoor').fill('WhatsApp Student');
   await modal.getByPlaceholder('layla@example.com').fill(email);
-  await modal.getByRole('button', { name: 'Confirm Free Reservation' }).click();
+  await modal.getByRole('button', { name: 'Reserve Seat (Pay in Person)' }).click();
   await expect(modal.getByText("You're on the mat.")).toBeVisible();
   const token = await modal.getByTestId('booking-token').innerText();
 
@@ -194,14 +196,13 @@ test('reduced motion: answers appear without movement', async ({ page }) => {
 
   const faq = page.locator('#faq');
   await faq.scrollIntoViewIfNeeded();
-  await faq.getByRole('button', { name: 'When are classes?' }).click();
-  const when = answer(faq, 'when');
-  await expect(when).toContainText('Every day.');
-  await expect(when).not.toContainText(/rest day/i);
+  await faq.getByRole('button', { name: 'Where do classes happen?' }).click();
+  const where = answer(faq, 'where');
+  await expect(where).toContainText('In person in Dubai');
   // Let the open commit and lay out (two frames) before measuring.
-  await when.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await where.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   // duration 0: already at full height, no spring in progress.
-  const { height, full } = await when.evaluate((el) => ({
+  const { height, full } = await where.evaluate((el) => ({
     height: el.getBoundingClientRect().height,
     full: el.firstElementChild!.getBoundingClientRect().height,
   }));
@@ -232,7 +233,7 @@ test.describe('phone', () => {
     await shot('sticky-bar');
 
     // The bar's button still takes a tap.
-    await bar.getByRole('button', { name: 'Book a free class' }).click();
+    await bar.getByRole('button', { name: 'Book a trial class' }).click();
     await expect(bookingModal(page)).toBeVisible();
     await expect(chat(page)).toHaveCount(0);
     await page.keyboard.press('Escape');
