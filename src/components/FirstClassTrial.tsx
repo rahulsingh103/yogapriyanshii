@@ -7,7 +7,7 @@ interface FirstClassTrialProps {
   onPickTime: () => void;
 }
 
-/** DESIGN_SYSTEM §5 step 11: the trial class invitation, pointing back to the live schedule. */
+/** DESIGN_SYSTEM §5 step 12: the trial class invitation, pointing back to the live schedule. */
 export function FirstClassTrial({ onPickTime }: FirstClassTrialProps) {
   return (
     <section id="first-class" aria-labelledby="first-class-title" className="py-20 lg:py-32 px-5">

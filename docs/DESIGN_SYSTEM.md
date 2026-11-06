@@ -263,6 +263,9 @@ All components have default, hover, focus-visible, active and disabled states. F
 ### Footer
 - Transparent with a hairline top border: the logo (40px mark + wordmark), address, Instagram, the quiet buttons "Manage booking" and "Studio admin" (above them a quiet "Guides" link, only once an article is published), and the copyright line (14px). The policy lives in Pricing, not here. No dark bands anywhere on the page.
 
+### Community ("You don't have to practise alone")
+- After the reviews, before the quote. Laid out like the Teacher block (photo | text, stacked on mobile). The photo is an AI placeholder (`practice/chakra-flow`) until a real group photo arrives. An eyebrow, the H2, one paragraph and a primary "See the schedule".
+
 ### Teacher block ("Hi, I'm Priyanshi.")
 - Two columns on desktop (photo | text), stacked on mobile. The photo is the real Burj Khalifa forearm stand (`real/burj-forearm-stand-1`, 480/800/1200), 4:5, `rounded-[18px]`.
 - The heading is H2, then the one-line aim, then a first-person credentials paragraph (about 35 words, 40 at most, facts from the private fact sheet only). It doesn't repeat the trust numbers, and the former studio is described, never named. On phones the photo's `sizes` is capped at `min(100vw, 400px)`.
@@ -316,14 +319,15 @@ All components have default, hover, focus-visible, active and disabled states. F
 2. Choose your practice: the carousel of 10 classes, with the same "Not sure? Take the 30-second quiz" line on its own row between the heading row and the track (never in the arrow row).
 3. Hi, I'm Priyanshi.: photo, the one-line aim, a short credentials paragraph and four trust numbers.
 4. What students say: three verified reviews.
-5. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
-6. How it works: three steps, the "Practise safely" note and the free 15-minute call link.
-7. Schedule: this week's classes with spots left (existing live schedule, restyled).
-8. Pricing: trial class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
-9. Questions, answered: the FAQ, 7 questions that open in place.
-10. See Priyanshi in action: five Instagram photos and a Follow link.
-11. Start with a trial class: "AED 90 · Classes every day · in person or online" / [Pick a time]
-12. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
+5. Community: a meditation photo, "You don't have to practise alone", one line and [See the schedule].
+6. Quote: "Yogas citta vritti nirodhah." (Patanjali, Yoga Sutras 1.2).
+7. How it works: three steps, the "Practise safely" note and the free 15-minute call link.
+8. Schedule: this week's classes with spots left (existing live schedule, restyled).
+9. Pricing: trial class, single, 10-pack, 20-pack (compact; pay in person, or online with Priyanshi's details), and the monthly membership card beside them ("Join the membership").
+10. Questions, answered: the FAQ, 7 questions that open in place.
+11. See Priyanshi in action: five Instagram photos and a Follow link.
+12. Start with a trial class: "AED 90 · Classes every day · in person or online" / [Pick a time]
+13. Contact: the address plus a "Contact Priyanshi" button that opens the form in a pop-up. Footer.
 
 About, How it works and the FAQ carry more than one line of text on purpose (approved with Batch 1, 2026-10-19): they answer the questions a first-time student asks before booking.
 

@@ -32,6 +32,7 @@ test('homepage sections come in the agreed order', async ({ page }) => {
     'classes',
     'about',
     'testimonials',
+    'community',
     'how-it-works',
     'schedule',
     'pricing',

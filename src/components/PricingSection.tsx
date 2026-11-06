@@ -24,7 +24,7 @@ const PLANS: ReadonlyArray<{ key: PlanKey; name: string; line: string; price: st
 ];
 
 /**
- * DESIGN_SYSTEM §5 step 8: a compact list (each row opens booking with that plan selected) and, beside it
+ * DESIGN_SYSTEM §5 step 9: a compact list (each row opens booking with that plan selected) and, beside it
  * from lg, the monthly membership card. Its button sits outside every list item, so the first
  * `#pricing li button` is still the first plan row.
  */

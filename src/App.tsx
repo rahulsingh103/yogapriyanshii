@@ -5,6 +5,7 @@ import { Hero } from './components/Hero';
 import { PracticeCarousel } from './components/PracticeCarousel';
 import { AboutSection } from './components/AboutSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
+import { CommunitySection } from './components/CommunitySection';
 import { QuoteSection } from './components/QuoteSection';
 import { HowItWorksSection } from './components/HowItWorksSection';
 import { ScheduleSection } from './components/ScheduleSection';
@@ -224,6 +225,7 @@ export default function App() {
         />
         <AboutSection />
         <TestimonialsSection />
+        <CommunitySection onSeeSchedule={() => scrollToSection('schedule')} />
         <QuoteSection />
         <HowItWorksSection />
         <ScheduleSection
