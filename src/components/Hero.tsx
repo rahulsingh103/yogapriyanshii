@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
-import { FindClassLink } from './FindClassLink';
+import { ui } from '@/lib/ui';
+import { cn } from '@/lib/utils';
 
 interface HeroProps {
   onOpenBooking: () => void;
@@ -24,20 +25,27 @@ export function Hero({ onOpenBooking, onOpenClassFinder }: HeroProps) {
         <p className="wf-after text-base leading-[1.6] text-ink-soft max-w-[46ch]" style={{ '--i': 4 } as CSSProperties}>
           Yoga with Priyanshi. <br className="sm:hidden" />Start with a trial class for AED 90.
         </p>
-        {/* The class finder link sits just under the one primary, quieter (DESIGN_SYSTEM §5). */}
-        <div className="flex flex-col items-center gap-3">
+        {/* Book stays the one primary and comes first; the quiz is the secondary beside it (DESIGN_SYSTEM §5). */}
+        <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
           <AnimateIcon animateOnHover asChild>
             <button
               type="button"
               onClick={onOpenBooking}
               style={{ '--i': 5 } as CSSProperties}
-              className="wf-after press inline-flex items-center justify-center gap-2 min-h-12 px-[22px] py-[14px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
+              className="wf-after press w-full max-w-[280px] sm:w-auto sm:max-w-none inline-flex items-center justify-center gap-2 min-h-12 px-[22px] py-[14px] rounded-full bg-ink text-on-ink text-xs font-semibold uppercase tracking-[0.14em] hover:opacity-90 transition duration-200 ease-spring active:duration-100"
             >
               Book a trial class
               <ArrowRight size={16} aria-hidden="true" />
             </button>
           </AnimateIcon>
-          <FindClassLink onOpen={onOpenClassFinder} className="wf-after justify-center" style={{ '--i': 6 } as CSSProperties} />
+          <button
+            type="button"
+            onClick={onOpenClassFinder}
+            style={{ '--i': 6 } as CSSProperties}
+            className={cn(ui.secondary, 'wf-after w-full max-w-[280px] sm:w-auto sm:max-w-none bg-bg border-line-strong')}
+          >
+            Find your class
+          </button>
         </div>
       </div>
     </section>

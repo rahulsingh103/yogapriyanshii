@@ -163,7 +163,7 @@ export function ArticleView({ article, banner, back, headingRef, onBook, onAsk, 
               </button>
             )}
             <button type="button" onClick={onOpenQuiz} className={cn(ui.secondary, 'w-full sm:w-auto whitespace-nowrap')}>
-              Take the 30-second quiz
+              Take the quiz
             </button>
           </div>
         </section>

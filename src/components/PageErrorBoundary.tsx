@@ -19,6 +19,21 @@ const readFlag = () => {
   }
 };
 
+/**
+ * The same one guarded reload, for a chunk loaded outside React (the class finder's). Returns true if
+ * the page is reloading. Offline, a reload would only swap the page for the browser's error screen.
+ */
+export const reloadOnceForChunkError = (error: unknown) => {
+  if (!isChunkError(error) || readFlag() || window.navigator.onLine === false) return false;
+  try {
+    window.sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+  } catch {
+    return false;
+  }
+  window.location.reload();
+  return true;
+};
+
 export const clearChunkReloadFlag = () => {
   try {
     window.sessionStorage.removeItem(CHUNK_RELOAD_KEY);
@@ -31,6 +46,8 @@ interface PageErrorBoundaryProps {
   children: ReactNode;
   /** The calm message is on screen: the preloader can fade. */
   onError: () => void;
+  /** Shown instead of the page-level message, also while reloading: a sheet must never add a second <main>. */
+  fallback?: ReactNode;
 }
 
 interface PageErrorBoundaryState {
@@ -66,6 +83,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
 
   render() {
     if (!this.state.failed) return this.props.children;
+    if (this.props.fallback !== undefined) return this.props.fallback;
     // The preloader still covers the page while it reloads.
     if (this.state.reloading) return <main className="flex-1" />;
     return (

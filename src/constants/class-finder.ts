@@ -5,9 +5,13 @@
  *
  * Copy rules (Batch 2 plan, amendment A1): facts only, no medical, clearance or "safe" wording, and
  * the trial class only on a bookable class in a group format.
+ *
+ * Nothing here ever receives the optional age, height or health details (class-finder-health.ts): the
+ * suggestion, its action and its copy depend only on the three answers below.
  */
 import type { ClassStyle } from '../types';
 import { PRACTICE_CLASSES, type PracticeClass } from './classes';
+import { FINDER_BACK_NOTICE, FINDER_PREGNANCY_NOTICE } from './finder-notices';
 
 export type Goal = 'relax' | 'flexibility' | 'strength' | 'back' | 'pregnancy' | 'unsure';
 export type Experience = 'new' | 'some' | 'regular';
@@ -94,9 +98,6 @@ export const FINDER_FORMAT_NOTES: Record<Format, string> = {
 export const FINDER_TRIAL_LINE = 'Your first class is a trial at AED 90.';
 export const FINDER_NOT_SCHEDULED_LINE =
   'Not on the timetable. Send a message and Priyanshi will find a time with you.';
-export const FINDER_PREGNANCY_NOTICE =
-  "Let Priyanshi know you're pregnant, or when you gave birth, before your first class.";
-export const FINDER_BACK_NOTICE = 'Tell Priyanshi about any back injury or pain before class.';
 
 type Pick = readonly [ClassName, ClassName | null];
 
@@ -179,7 +180,7 @@ const PREFILL_FORMAT: Record<Format, string> = {
   private: 'one to one',
 };
 
-/** The WhatsApp first message: fixed labels only, never anything the person typed. */
+/** The base of the WhatsApp first message: fixed labels only. Typed details are added after it by classFinderMessage(). */
 export function classFinderPrefill({ goal, experience, format }: FinderAnswers, name: ClassName) {
   return (
     `Hi Priyanshi, I found you on yogapriyanshi.com and used the class finder. ` +

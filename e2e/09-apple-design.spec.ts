@@ -259,7 +259,7 @@ test.describe('desktop carousel', () => {
     return track.evaluate((el) => {
       const origin = el.getBoundingClientRect().left - el.scrollLeft;
       const max = el.scrollWidth - el.clientWidth;
-      const offsets = [...el.querySelectorAll('[data-testid="practice-card"]')].map((c) =>
+      const offsets = [...el.querySelectorAll('[data-snap-item]')].map((c) =>
         Math.min(Math.max(Math.round(c.getBoundingClientRect().left - origin), 0), max)
       );
       return { left: el.scrollLeft, offsets, gliding: el.hasAttribute('data-gliding') };
@@ -305,12 +305,13 @@ test.describe('desktop carousel', () => {
     const track = classes.getByRole('group', { name: /Classes/ });
     const card = classes.getByRole('button', { name: /^Barre/ });
     const box = await settledBox(card);
+    const start = (await snapState(track)).left;
 
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 - 40, box.y + box.height / 2, { steps: 4 });
     // 1:1: 40px of mouse is 40px of scroll (less the 10px threshold never being lost).
-    expect(Math.round((await snapState(track)).left)).toBe(40);
+    expect(Math.round((await snapState(track)).left - start)).toBe(40);
     await page.mouse.move(box.x + box.width / 2 - 220, box.y + box.height / 2, { steps: 6 });
     await page.mouse.up();
     await expect(bookingModal(page)).toHaveCount(0);

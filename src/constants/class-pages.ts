@@ -11,7 +11,7 @@
  * and the new classes' durations (classes.ts) are placeholders until Priyanshi checks them.
  */
 import type { ClassName } from './class-finder';
-import { FINDER_BACK_NOTICE, FINDER_PREGNANCY_NOTICE } from './class-finder';
+import { FINDER_BACK_NOTICE, FINDER_PREGNANCY_NOTICE } from './finder-notices';
 import { PRACTICE_CLASSES, type PracticeClass } from './classes';
 import { TESTIMONIALS, type Testimonial } from './testimonials';
 import { CLASS_PAGE_ON_REQUEST_LINE } from './on-request';

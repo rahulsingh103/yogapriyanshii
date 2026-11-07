@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { useLenis } from 'lenis/react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { QuizBand } from './components/QuizBand';
 import { PracticeCarousel } from './components/PracticeCarousel';
 import { AboutSection } from './components/AboutSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
@@ -15,7 +16,6 @@ import { InstagramSection } from './components/InstagramSection';
 import { FirstClassTrial } from './components/FirstClassTrial';
 import { ContactSection } from './components/ContactSection';
 import { ContactModal } from './components/ContactModal';
-import { ClassFinderModal } from './components/ClassFinderModal';
 import { Footer } from './components/Footer';
 import { StickyBookBar } from './components/StickyBookBar';
 import { BookingModal } from './components/BookingModal';
@@ -24,7 +24,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { MandalaBackground } from './components/MandalaBackground';
 import { OfflineNotice } from './components/OfflineNotice';
 import { WhatsAppChat } from './components/WhatsAppChat';
-import { PageErrorBoundary, clearChunkReloadFlag } from './components/PageErrorBoundary';
+import { PageErrorBoundary, clearChunkReloadFlag, reloadOnceForChunkError } from './components/PageErrorBoundary';
 import { WHATSAPP_ENABLED } from './constants/contact';
 import { MEMBERSHIP } from './constants/membership';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
@@ -41,10 +41,35 @@ const NotFound = lazy(() => import('./components/NotFound').then((mod) => ({ def
 // The guides: lazy too, and only routed once an article is published (src/content/articles.ts).
 const ArticlePage = lazy(() => import('./components/ArticlePage').then((mod) => ({ default: mod.ArticlePage })));
 const GuidesIndex = lazy(() => import('./components/GuidesIndex').then((mod) => ({ default: mod.GuidesIndex })));
+// The class finder: one shared load, so a tap and the idle preload never fetch twice. A failed load
+// is forgotten, so the next tap tries again; lazy() only ever renders after it has resolved.
+let classFinderLoad: Promise<{ default: typeof import('./components/ClassFinderModal').ClassFinderModal }> | null = null;
+let classFinderLoaded = false;
+const loadClassFinder = () => {
+  classFinderLoad ??= import('./components/ClassFinderModal').then(
+    (mod) => {
+      classFinderLoaded = true;
+      return { default: mod.ClassFinderModal };
+    },
+    (error: unknown) => {
+      classFinderLoad = null;
+      throw error;
+    }
+  );
+  return classFinderLoad;
+};
+const ClassFinderModal = lazy(loadClassFinder);
 // DEV ONLY (P7): in a build `import.meta.env.DEV` is false, so the preview and its import are dropped.
 const DraftPreview = import.meta.env.DEV
   ? lazy(() => import('./components/DraftPreview').then((mod) => ({ default: mod.DraftPreview })))
   : null;
+
+/** Data saver or 2G: the quiz chunk waits for a tap instead of using the student's data at idle. */
+const onSlowOrSavingConnection = () => {
+  const connection = (window.navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
+    .connection;
+  return connection?.saveData === true || connection?.effectiveType?.endsWith('2g') === true;
+};
 
 /** Runs after the next layout and paint: the page has swapped and Lenis can measure it. */
 const afterLayout = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn));
@@ -64,6 +89,8 @@ export default function App() {
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [contactInterest, setContactInterest] = useState<string | null>(null);
   const [classFinderOpen, setClassFinderOpen] = useState(false);
+  // Rendered only after the first open, so a visitor who never opens it runs none of its code.
+  const [classFinderMounted, setClassFinderMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [booking, setBooking] = useState<BookingOpenState>({ session: null, style: null, planKey: 'free', mode: null });
   const scrollToSection = useScrollToSection();
@@ -80,8 +107,20 @@ export default function App() {
     clearChunkReloadFlag();
     setReadyKey(navKeyRef.current);
   }, []);
+  // Home never calls markReady, so a finder chunk that loads shows the chunks work again and a later
+  // failure may use its one reload. Only on home: a lazy page's own chunk may still be on its way, and
+  // clearing the flag before it fails would let it reload for ever. Lazy pages clear through markReady.
+  const isHomeRef = useRef(isHome);
+  isHomeRef.current = isHome;
+  const clearReloadFlagOnHome = () => {
+    if (isHomeRef.current) clearChunkReloadFlag();
+  };
   // The error message is on screen instead of the page: fade the preloader all the same.
   const markFailed = useCallback(() => setReadyKey(navKeyRef.current), []);
+  // A quiz tap waiting for its chunk. Anything else that takes over the screen cancels it, even if it
+  // has closed again by the time the chunk arrives, so the finder can't appear out of nowhere.
+  const finderWaitRef = useRef<{ navKey: number } | null>(null);
+  if (menuOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen) finderWaitRef.current = null;
   /** Where to scroll once home has rendered after an in-app "go home" (Header, Footer, "All classes"). */
   const pendingSectionRef = useRef<string | null>(null);
 
@@ -186,6 +225,48 @@ export default function App() {
     else handleOpenContact(choice.interest);
   };
 
+  // The open state is set only once the chunk is here. Until then the page stays live with no sheet,
+  // so no failure can leave `classFinderOpen` true (it hides the floating WhatsApp button).
+  const openClassFinder = () => {
+    const showFinder = () => {
+      setClassFinderMounted(true);
+      setClassFinderOpen(true);
+    };
+    if (classFinderLoaded) return showFinder();
+    const wait = { navKey: navKeyRef.current };
+    finderWaitRef.current = wait;
+    loadClassFinder().then(
+      () => {
+        clearReloadFlagOnHome();
+        if (finderWaitRef.current !== wait) return;
+        finderWaitRef.current = null;
+        if (navKeyRef.current === wait.navKey) showFinder();
+      },
+      (error: unknown) => {
+        if (finderWaitRef.current !== wait) return;
+        finderWaitRef.current = null;
+        reloadOnceForChunkError(error);
+      }
+    );
+  };
+
+  // Load the finder when the browser is idle, only on the pages that have a way to open it.
+  const hasQuizEntry = isHome || route.kind === 'article' || !!previewSource;
+  useEffect(() => {
+    if (!hasQuizEntry) return;
+    const preload = () => {
+      if (window.navigator.onLine === false || onSlowOrSavingConnection()) return;
+      loadClassFinder().then(clearReloadFlagOnHome, () => {}); // A tap tries again, and it handles the failure.
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(preload, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(preload, 2000);
+    return () => window.clearTimeout(id);
+    // `isHome` too: arriving home from an article, an already loaded finder still clears the flag.
+  }, [hasQuizEntry, isHome]);
+
   // Fade out the opening Buddha preloader (index.html) once the page has rendered: at once on home, and
   // only after the lazy page has mounted elsewhere (P3), so the static HTML never flashes away first.
   const pageReady = readyKey !== null;
@@ -217,10 +298,11 @@ export default function App() {
 
       {isHome ? (
       <main className="flex-1">
-        <Hero onOpenBooking={() => handleOpenBooking()} onOpenClassFinder={() => setClassFinderOpen(true)} />
+        <Hero onOpenBooking={() => handleOpenBooking()} onOpenClassFinder={openClassFinder} />
+        <QuizBand onOpenClassFinder={openClassFinder} />
         <PracticeCarousel
           onSelectClass={handleSelectPractice}
-          onOpenClassFinder={() => setClassFinderOpen(true)}
+          onOpenClassFinder={openClassFinder}
           onLearnMore={(practice) => navigate(classPath(practice.slug), { cardSlug: practice.slug })}
         />
         <AboutSection />
@@ -258,7 +340,7 @@ export default function App() {
                 missing={<NotFound onReady={markReady} onNavigateHome={navigateHome} />}
                 onBook={() => handleOpenBooking()}
                 onAsk={(interest) => handleOpenContact(interest)}
-                onOpenQuiz={() => setClassFinderOpen(true)}
+                onOpenQuiz={openClassFinder}
               />
             ) : route.kind === 'article' ? (
               <ArticlePage
@@ -270,7 +352,7 @@ export default function App() {
                 missing={<NotFound onReady={markReady} onNavigateHome={navigateHome} />}
                 onBook={() => handleOpenBooking()}
                 onAsk={(interest) => handleOpenContact(interest)}
-                onOpenQuiz={() => setClassFinderOpen(true)}
+                onOpenQuiz={openClassFinder}
               />
             ) : route.kind === 'guides' ? (
               <GuidesIndex focusHeading={navKind !== 'initial'} onReady={markReady} onNavigate={navigate} />
@@ -310,7 +392,20 @@ export default function App() {
       )}
 
       {/* Before Booking and Contact, so a sheet opened from the finder sits on top during its exit. */}
-      <ClassFinderModal isOpen={classFinderOpen} onClose={() => setClassFinderOpen(false)} onChoose={handleFinderChoice} />
+      {classFinderMounted && (
+        // A render failure drops the finder completely, so the next tap starts clean and nothing stays hidden.
+        <PageErrorBoundary
+          fallback={null}
+          onError={() => {
+            setClassFinderOpen(false);
+            setClassFinderMounted(false);
+          }}
+        >
+          <Suspense fallback={null}>
+            <ClassFinderModal isOpen={classFinderOpen} onClose={() => setClassFinderOpen(false)} onChoose={handleFinderChoice} />
+          </Suspense>
+        </PageErrorBoundary>
+      )}
 
       <BookingModal
         isOpen={bookingModalOpen}

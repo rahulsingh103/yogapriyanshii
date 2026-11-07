@@ -27,6 +27,11 @@ interface ModalSheetProps {
   size?: 'default' | 'wide';
   /** Phone only: drag the grabber strip down to dismiss. Off for Admin and while a form is sending. */
   dismissible?: boolean;
+  /**
+   * Phone only, for sheets with typing steps: keeps the sheet above the on-screen keyboard, which `dvh`
+   * doesn't account for. Off by default. No effect where `visualViewport` is missing.
+   */
+  keyboardAware?: boolean;
   children: ReactNode;
 }
 
@@ -54,6 +59,7 @@ export function ModalSheet({
   closeLabel,
   size = 'default',
   dismissible = true,
+  keyboardAware = false,
   children,
 }: ModalSheetProps) {
   const lenis = useLenis();
@@ -148,6 +154,50 @@ export function ModalSheet({
     controlsRef.current = null;
     dragY.jump(0);
   }, [isOpen, dragY]);
+
+  const [keyboard, setKeyboard] = useState<{ lift: number; maxHeight: number } | null>(null);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!isOpen || !keyboardAware || !isPhone || !viewport) return;
+
+    // The field's error or hint first, then the field, so the field wins if both can't fit.
+    const keepFieldInView = () => {
+      const field = document.activeElement;
+      if (!(field instanceof HTMLElement) || !field.matches('input, textarea')) return;
+      if (!panelRef.current?.contains(field)) return;
+      const noteId = field.getAttribute('aria-describedby');
+      if (noteId) document.getElementById(noteId)?.scrollIntoView({ block: 'nearest' });
+      field.scrollIntoView({ block: 'nearest' });
+    };
+
+    let lastLift = -1;
+    let lastMaxHeight = -1;
+    const update = () => {
+      // A pinch zoom shrinks the visual viewport too, and that isn't a keyboard.
+      const zoomed = viewport.scale > 1.01;
+      const lift = zoomed ? 0 : Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+      const maxHeight = zoomed ? 0 : Math.round(viewport.height * 0.92);
+      if (lift === lastLift && maxHeight === lastMaxHeight) return;
+      // Only when the height changes: a pan during a swipe must not pull the panel back to the field.
+      const resized = maxHeight !== lastMaxHeight;
+      lastLift = lift;
+      lastMaxHeight = maxHeight;
+      setKeyboard(zoomed ? null : { lift, maxHeight });
+      if (resized) requestAnimationFrame(keepFieldInView);
+    };
+
+    update();
+    viewport.addEventListener('resize', update);
+    viewport.addEventListener('scroll', update);
+    document.addEventListener('focusin', keepFieldInView);
+    return () => {
+      viewport.removeEventListener('resize', update);
+      viewport.removeEventListener('scroll', update);
+      document.removeEventListener('focusin', keepFieldInView);
+      setKeyboard(null);
+    };
+  }, [isOpen, keyboardAware, isPhone]);
 
   const canDrag = isPhone && dismissible;
 
@@ -262,7 +312,11 @@ export function ModalSheet({
       }}
     >
       {isOpen && (
-        <div key="modal" className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6">
+        <div
+          key="modal"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6"
+          style={keyboard?.lift ? { bottom: keyboard.lift } : undefined}
+        >
           <m.div
             aria-hidden="true"
             className="absolute inset-0"
@@ -282,7 +336,7 @@ export function ModalSheet({
               aria-describedby={describedBy}
               tabIndex={-1}
               data-lenis-prevent
-              style={{ y: dragY }}
+              style={{ y: dragY, maxHeight: keyboard?.maxHeight }}
               onClickCapture={(e) => {
                 if (!suppressClickRef.current) return;
                 e.preventDefault();

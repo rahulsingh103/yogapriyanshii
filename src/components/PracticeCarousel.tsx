@@ -7,7 +7,6 @@ import { DRAG_THRESHOLD, project, recordSample, releaseVelocity, rubberBand, typ
 import { PRACTICE_CLASSES, type PracticeClass } from '../constants/classes';
 import { isPlainClick } from '../hooks/use-route';
 import { classPath } from '../lib/route';
-import { FindClassLink } from './FindClassLink';
 import { Reveal } from './Reveal';
 
 interface PracticeCarouselProps {
@@ -26,7 +25,7 @@ const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: r
 function snapOffsets(track: HTMLDivElement) {
   const max = track.scrollWidth - track.clientWidth;
   const origin = track.getBoundingClientRect().left - track.scrollLeft + track.clientLeft;
-  const offsets = Array.from(track.querySelectorAll<HTMLElement>('[data-testid="practice-card"]')).map((card) =>
+  const offsets = Array.from(track.querySelectorAll<HTMLElement>('[data-snap-item]')).map((card) =>
     Math.min(Math.max(Math.round(card.getBoundingClientRect().left - origin), 0), max)
   );
   return [...new Set(offsets)].sort((a, b) => a - b);
@@ -264,26 +263,22 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder, onLearnMore
   return (
     <section ref={sectionRef} id="classes" className="py-20 lg:py-32 data-[banding]:overflow-x-clip">
       <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="font-display font-normal text-h2 text-ink">
-              Choose your practice
-            </h2>
-            <div className="flex gap-2">
-              <AnimateIcon animateOnHover asChild>
-                <button type="button" aria-label="Previous classes" onClick={() => scrollByCard(-1)} className={ICON_BUTTON}>
-                  <ArrowLeft size={18} aria-hidden="true" />
-                </button>
-              </AnimateIcon>
-              <AnimateIcon animateOnHover asChild>
-                <button type="button" aria-label="Next classes" onClick={() => scrollByCard(1)} className={ICON_BUTTON}>
-                  <ArrowRight size={18} aria-hidden="true" />
-                </button>
-              </AnimateIcon>
-            </div>
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="font-display font-normal text-h2 text-ink">
+            Choose your practice
+          </h2>
+          <div className="flex gap-2">
+            <AnimateIcon animateOnHover asChild>
+              <button type="button" aria-label="Previous classes" onClick={() => scrollByCard(-1)} className={ICON_BUTTON}>
+                <ArrowLeft size={18} aria-hidden="true" />
+              </button>
+            </AnimateIcon>
+            <AnimateIcon animateOnHover asChild>
+              <button type="button" aria-label="Next classes" onClick={() => scrollByCard(1)} className={ICON_BUTTON}>
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </AnimateIcon>
           </div>
-          {/* Its own row, so the arrow row keeps only the heading and the arrows. */}
-          <FindClassLink onOpen={onOpenClassFinder} />
         </div>
 
         <div
@@ -300,11 +295,31 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder, onLearnMore
           onClickCapture={onClickCapture}
           className="practice-track [@media(pointer:fine)]:cursor-grab data-[dragging]:cursor-grabbing grid grid-flow-col auto-cols-[min(78%,300px)] gap-4 overflow-x-auto snap-x snap-mandatory pt-2 pb-3 rounded-[18px]"
         >
+          {/* The quiz tile (DESIGN_SYSTEM §4). The spacer mirrors a class card's "Learn more" row, so the
+              bottoms line up. The track's onClickCapture swallows its click after a drag, as for a card. */}
+          <div data-snap-item className="snap-start flex flex-col gap-1 min-w-0">
+            <AnimateIcon animateOnHover asChild>
+              <button
+                type="button"
+                data-testid="quiz-card"
+                onClick={onOpenClassFinder}
+                className="card-lift [@media(pointer:fine)]:cursor-grab focus-visible:outline-on-ink focus-visible:outline-offset-[-3px] flex-1 flex flex-col justify-end gap-3 min-w-0 p-5 text-left bg-ink text-on-ink rounded-[18px] transition-transform duration-500 ease-spring hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              >
+                <span className="font-display font-normal text-h3">Not sure where to start?</span>
+                <span className="text-sm leading-[1.5] text-on-ink/80">A few quick questions.</span>
+                <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em]">
+                  Take the quiz
+                  <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </button>
+            </AnimateIcon>
+            <div aria-hidden="true" className="min-h-11" />
+          </div>
           {PRACTICE_CLASSES.map((practice, i) => (
             // The wrapper snaps and stretches to the row's height; the card button inside is unchanged.
             // "Learn more" sits under it (a link can't live inside a button), and the track's
             // onClickCapture swallows its click after a drag, as it does for the card.
-            <div key={practice.name} data-card-slug={practice.slug} className="snap-start flex flex-col gap-1 min-w-0">
+            <div key={practice.name} data-snap-item data-card-slug={practice.slug} className="snap-start flex flex-col gap-1 min-w-0">
             <button
               type="button"
               data-testid="practice-card"

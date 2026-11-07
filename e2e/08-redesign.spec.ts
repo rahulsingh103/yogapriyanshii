@@ -264,6 +264,8 @@ test('the Buddha preloader fades away once the site is ready', async ({ page }) 
 
 test('a calm notice appears while offline and clears when back online', async ({ page, context }) => {
   await openHome(page);
+  // Let the class finder's idle preload finish, so going offline can't cut it off mid-request.
+  await page.waitForLoadState('networkidle');
   await context.setOffline(true);
   await page.evaluate(() => window.dispatchEvent(new Event('offline')));
   await expect(page.getByTestId('offline-notice')).toContainText("You're offline");

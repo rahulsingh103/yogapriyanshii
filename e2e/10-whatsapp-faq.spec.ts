@@ -140,6 +140,8 @@ test('WhatsApp button hides offline, leaving the offline pill on its own', async
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   await expect(chat(page)).toBeVisible();
+  // Let the class finder's idle preload finish, so going offline can't cut it off mid-request.
+  await page.waitForLoadState('networkidle');
   await context.setOffline(true);
   await page.evaluate(() => window.dispatchEvent(new Event('offline')));
   await expect(page.getByTestId('offline-notice')).toContainText("You're offline");

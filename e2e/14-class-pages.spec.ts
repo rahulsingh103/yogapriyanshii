@@ -14,7 +14,9 @@ import {
   classPageKind,
   classPagePrefill,
 } from '../src/constants/class-pages';
-import type { ClassName } from '../src/constants/class-finder';
+import { FINDER_QUESTIONS, type ClassName } from '../src/constants/class-finder';
+import { HEALTH_INTRO, HEALTH_RESULT, HEALTH_TEXT_STEPS } from '../src/constants/class-finder-health';
+import { FINDER_BACK_NOTICE } from '../src/constants/finder-notices';
 import { isSafeHref, itemText, parseArticle, splitFrontMatter } from '../src/lib/article-md';
 import { readPublishedArticles } from '../src/lib/article-files';
 import { applyRoute } from '../src/lib/route-html';
@@ -636,7 +638,7 @@ test.describe('articles (hidden)', () => {
     await expect(bookingModal(page)).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(bookingModal(page)).toHaveCount(0);
-    await actions.getByRole('button', { name: 'Take the 30-second quiz' }).click();
+    await actions.getByRole('button', { name: 'Take the quiz' }).click();
     await expect(classFinder(page)).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(classFinder(page)).toHaveCount(0);
@@ -650,7 +652,7 @@ test.describe('articles (hidden)', () => {
     await settled(page);
     await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
     await expect(actions.getByRole('button', { name: 'Book a trial class' })).toHaveCount(0);
-    await expect(actions.getByRole('button', { name: 'Take the 30-second quiz' })).toBeVisible();
+    await expect(actions.getByRole('button', { name: 'Take the quiz' })).toBeVisible();
     await actions.getByRole('button', { name: 'Ask about this class' }).click();
     const dialog = page.getByRole('dialog', { name: 'Send a message' });
     await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Yin Yoga');
@@ -853,6 +855,22 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
     expect(homeFiles.some((u) => u.endsWith(`/${lineChunk}`))).toBe(false);
     const ashtanga = fs.readFileSync(path.join(out, 'classes', 'ashtanga', 'index.html'), 'utf-8');
     expect(ashtanga).toContain(`href="/assets/${lineChunk}"`);
+
+    // The quiz is a lazy chunk: its questions and the details copy are in neither what the homepage
+    // loads nor what a class page preloads, and the class pages still have their notices.
+    const quizTexts = [FINDER_QUESTIONS[0].title, HEALTH_INTRO.title, HEALTH_RESULT.privacy, HEALTH_TEXT_STEPS[0].title];
+    const classHtml = fs.readFileSync(path.join(out, 'classes', 'spine-healing', 'index.html'), 'utf-8');
+    const classFiles = [...classHtml.matchAll(/<link[^>]*rel="modulepreload"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+    expect(classFiles.length).toBeGreaterThan(0);
+    for (const url of [...homeFiles.filter((u) => u.endsWith('.js')), ...classFiles]) {
+      const js = read(url).toString('utf-8');
+      for (const text of quizTexts) expect(js.includes(text), `${text} in ${url}`).toBe(false);
+    }
+    const assets = fs.readdirSync(path.join(out, 'assets')).filter((f) => f.endsWith('.js'));
+    for (const text of quizTexts) {
+      expect(assets.some((f) => fs.readFileSync(path.join(out, 'assets', f), 'utf-8').includes(text)), text).toBe(true);
+    }
+    expect(classFiles.some((url) => read(url).toString('utf-8').includes(FINDER_BACK_NOTICE))).toBe(true);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
