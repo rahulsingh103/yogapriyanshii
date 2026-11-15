@@ -57,7 +57,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
 
   return (
     <section id="schedule" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         {/* Heading, one line, and the week switcher */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="flex flex-col gap-6">

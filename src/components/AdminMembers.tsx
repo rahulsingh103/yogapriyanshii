@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ui } from '@/lib/ui';
+import { dubaiYmd, formatDay } from '@/lib/dubai-date';
 import { ApiError, api } from '../services/api';
 import type { MemberFormat, MemberStatus, MembersPage, MembershipRequest } from '../types';
 
@@ -30,18 +31,6 @@ const NEXT: Record<MemberStatus, readonly MemberStatus[]> = {
 
 const FILTERS: ReadonlyArray<MemberStatus | null> = [null, 'new', 'contacted', 'active'];
 const PAGE_SIZE = 20;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** YYYY-MM-DD of an instant, in Dubai. */
-function dubaiYmd(at: Date | string = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dubai' }).format(typeof at === 'string' ? new Date(at) : at);
-}
-
-/** "25 Oct 2026" from YYYY-MM-DD. */
-function formatDay(ymd: string): string {
-  const [y, m, d] = ymd.split('-').map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
-}
 
 const segment = (on: boolean) =>
   cn(

@@ -127,7 +127,7 @@ test('contact API rejects missing fields and bad input', async ({ request }) => 
   expect(tooLong.status()).toBe(400);
 });
 
-test('contact API validates the optional phone and accepts the new class interests (incl. Private Aerial Yoga)', async ({ request }) => {
+test('contact API validates the optional phone and accepts the new class interests', async ({ request }) => {
   for (const phone of ['abc', '1'.repeat(40), '+971 50\n123 4567', '12345']) {
     const res = await request.post('/api/contact', {
       data: { name: 'Phone Check', email: uniqueEmail('badphone'), message: 'hi', phone },
@@ -142,7 +142,6 @@ test('contact API validates the optional phone and accepts the new class interes
     'Prenatal & Postnatal',
     'Vinyasa Yoga',
     'Ashtanga Yoga',
-    'Private Aerial Yoga',
   ]) {
     const res = await request.post('/api/contact', {
       data: { name: 'Interest Check', email: uniqueEmail('interest'), message: 'hi', interest },

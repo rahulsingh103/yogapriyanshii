@@ -41,7 +41,7 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * The one modal shell (DESIGN_SYSTEM §4, §7) for Booking, Cancel, Admin, Contact and the class finder.
+ * The one modal shell (DESIGN_SYSTEM §4, §7) for Booking, Cancel, Admin, Contact, the class finder and Account.
  * Centred sheet from 640px, a bottom sheet below. While open: Escape closes it, Tab stays
  * inside, the page behind is inert and Lenis is stopped; on close, focus returns to the opener.
  * The outer `div.fixed.inset-0` and "close button first" order are relied on by the e2e helpers.

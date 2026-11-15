@@ -10,6 +10,7 @@ import { HOME_META, absoluteUrl, headTags } from './src/lib/page-meta.ts';
 import { readPublishedArticles } from './src/lib/article-files.ts';
 import { CLASS_SLUGS, GUIDES_PATH, articlePath, classPath, type Route } from './src/lib/route.ts';
 import { SEO_END, SEO_START, applyRoute } from './src/lib/route-html.ts';
+import { LEGAL_PAGES } from './src/constants/legal.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,6 +76,10 @@ function routePages(): Plugin {
           emit(`classes/${slug}/index.html`, applyRoute(html, route, { preload: classPreload }));
         }
         emit('404.html', applyRoute(html, { kind: 'notFound' }, { preload: preloadFor('NotFound') }));
+        // Noindex and never in the sitemap: it only works from someone's own link.
+        emit('unsubscribe/index.html', applyRoute(html, { kind: 'unsubscribe' }, { preload: preloadFor('UnsubscribePage') }));
+        const legalPreload = preloadFor('LegalPage');
+        for (const p of LEGAL_PAGES) emit(`${p.path.slice(1)}/index.html`, applyRoute(html, { kind: 'legal', slug: p.slug }, { preload: legalPreload }));
 
         // Published guides only: src/content/articles/ in the repo (empty until Priyanshi approves one).
         // The drafts folder is never read here, whatever SHOW_DRAFTS or DRAFTS_DIR say (spec 14 proves it).
@@ -91,6 +96,7 @@ function routePages(): Plugin {
         const urls = [
           '/',
           ...CLASS_SLUGS.map(classPath),
+          ...LEGAL_PAGES.map((p) => p.path),
           ...(published.length ? [GUIDES_PATH, ...published.map((a) => articlePath(a.slug))] : []),
         ];
         emit(

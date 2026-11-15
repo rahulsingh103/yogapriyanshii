@@ -37,9 +37,13 @@ export const CONTACT_INTERESTS = [
   'Mobility Yoga',
   'Prenatal & Postnatal',
   'Ashtanga Yoga',
-  // Aerial is private sessions only, on request.
-  'Private Aerial Yoga',
 ] as const;
+
+/** The offers wording shown beside the box. A new wording gets a new version; docs/DATABASE.md lists them. */
+export const OFFERS_CONSENT = {
+  version: '2026-11-07',
+  text: 'Email me monthly and holiday offers from Priyanshi. I can unsubscribe at any time.',
+} as const;
 
 export const MEMBER_STATUSES = ['new', 'contacted', 'active'] as const;
 export type MemberStatus = (typeof MEMBER_STATUSES)[number];

@@ -25,7 +25,7 @@ export function FaqSection() {
 
   return (
     <section id="faq" aria-labelledby="faq-title" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         <h2 id="faq-title" className="font-display font-normal text-h2 text-ink">
           Questions, answered
         </h2>

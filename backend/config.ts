@@ -1,4 +1,5 @@
 // The only module that reads process.env. Everything else asks for a resolved config.
+import crypto from 'crypto';
 
 export type AppMode = 'test' | 'development' | 'production';
 
@@ -21,17 +22,31 @@ export interface AppConfig {
   emailFrom: string;
   adminPasswordHash: string | null;
   testRoutes: boolean;
+  /** Keys the login-code and rate-limit HMACs. Null only in production without ACCOUNT_SECRET: accounts answer 503. */
+  accountSecret: string | null;
+  /** Session cookies carry Secure in production only. */
+  secureCookies: boolean;
+  /** The base of the links in emails. */
+  siteUrl: string;
 }
 
 const DEFAULT_EMAIL_FROM = 'Priyanshi · YogaPriyanshi <priyanshi@yogapriyanshi.com>';
 const DEFAULT_TEST_DB = 'file:.data/e2e.db';
 const DEFAULT_DEV_DB = 'file:.data/dev.db';
+/** Equal to SITE_URL in src/lib/page-meta.ts (spec 16 checks it; backend/ never imports from src/). */
+export const PRODUCTION_SITE_URL = 'https://www.yogapriyanshi.com';
 
 let cached: AppConfig | null = null;
 
 function env(name: string): string | undefined {
   const v = process.env[name];
   return v && v.trim() ? v.trim() : undefined;
+}
+
+/** Shorter than 32 characters is too weak to key the HMACs, so it counts as not set. */
+const MIN_SECRET_LENGTH = 32;
+export function accountSecretFrom(value: string | undefined): string | null {
+  return value && value.length >= MIN_SECRET_LENGTH ? value : null;
 }
 
 function resolveMode(): AppMode {
@@ -71,6 +86,11 @@ export function getConfig(): AppConfig {
       emailFrom,
       adminPasswordHash,
       testRoutes: true,
+      // Per boot: codes and limits don't outlive this server, and test mode wipes the database anyway.
+      accountSecret: accountSecretFrom(env('ACCOUNT_SECRET')) ?? crypto.randomBytes(32).toString('hex'),
+      secureCookies: false,
+      // Preview links stay on this machine.
+      siteUrl: `http://localhost:${env('PORT') ?? '3000'}`,
     };
     return cached;
   }
@@ -87,6 +107,9 @@ export function getConfig(): AppConfig {
       emailFrom,
       adminPasswordHash,
       testRoutes: false,
+      accountSecret: accountSecretFrom(env('ACCOUNT_SECRET')) ?? crypto.randomBytes(32).toString('hex'),
+      secureCookies: false,
+      siteUrl: PRODUCTION_SITE_URL,
     };
     return cached;
   }
@@ -102,6 +125,9 @@ export function getConfig(): AppConfig {
     emailFrom,
     adminPasswordHash: isPreview ? null : adminPasswordHash,
     testRoutes: false,
+    accountSecret: isPreview ? null : accountSecretFrom(env('ACCOUNT_SECRET')),
+    secureCookies: true,
+    siteUrl: PRODUCTION_SITE_URL,
   };
   return cached;
 }

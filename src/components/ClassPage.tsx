@@ -86,7 +86,7 @@ export function ClassPage({ slug, focusHeading, onReady, onBook, onContact, onAl
     <main className="flex-1">
       <article
         aria-labelledby="class-title"
-        className="max-w-[1040px] mx-auto px-5 pt-24 pb-24 lg:pt-32 lg:pb-32 flex flex-col gap-8 lg:gap-12"
+        className="max-w-[1320px] mx-auto px-5 pt-24 pb-24 lg:pt-32 lg:pb-32 flex flex-col gap-8 lg:gap-12"
       >
         <AnimateIcon animateOnHover asChild>
           <a

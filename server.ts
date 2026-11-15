@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 if (process.env.APP_ENV !== 'test') dotenv.config({ quiet: true });
 
 const { createApp } = await import('./backend/app.js');
+const { LEGAL_PAGES } = await import('./src/constants/legal.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,6 +102,7 @@ async function startServer() {
         if (testPage) html = withMeta(html, 'yp-test-article');
         res.status(isNotFound(route) ? 404 : 200).set({ 'Content-Type': 'text/html' });
         if (route.kind === 'draft') res.set(PREVIEW_HEADERS);
+        if (route.kind === 'unsubscribe') res.set('X-Robots-Tag', 'noindex');
         res.end(html);
       } catch (e) {
         vite.ssrFixStacktrace(e as Error);
@@ -141,6 +143,15 @@ async function startServer() {
       if (guideSlugs.size === 0 || (slug && !guideSlugs.has(slug))) return notFound(res);
       next();
     });
+    // Prerendered, like the class pages: static alone wouldn't answer it without the trailing slash.
+    app.get('/unsubscribe', (_req: Request, res: Response) => {
+      res.set('X-Robots-Tag', 'noindex').sendFile(path.resolve(distPath, 'unsubscribe', 'index.html'));
+    });
+    for (const p of LEGAL_PAGES) {
+      app.get(p.path, (_req: Request, res: Response) => {
+        res.sendFile(path.resolve(distPath, p.path.slice(1), 'index.html'));
+      });
+    }
     // index: 'index.html' (serve-static wants the file name; `true` is refused) serves /classes/<slug>/ from its folder.
     app.use(express.static(distPath, { redirect: false, index: 'index.html' }));
     app.get('/classes/:slug', (req: Request, res: Response, next: NextFunction) => {

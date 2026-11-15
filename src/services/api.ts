@@ -4,6 +4,7 @@ import {
   Booking,
   ContactMessage,
   AdminStats,
+  AccountView,
   EmailNotification,
   MemberFormat,
   MemberStatus,
@@ -26,7 +27,7 @@ export class ApiError extends Error {
 const NETWORK_ERROR =
   "We couldn't reach the studio's booking system. Please check your connection and try again, or contact Priyanshi directly.";
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+export async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
     res = await fetch(url, init);
@@ -46,7 +47,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-const json = (body: unknown, token?: string): RequestInit => ({
+export const json = (body: unknown, token?: string): RequestInit => ({
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -136,5 +137,9 @@ export const api = {
     body: { status: MemberStatus; expectedStatus: MemberStatus; startDate?: string }
   ): Promise<{ member: MembershipRequest }> {
     return request(`/api/admin/members/${encodeURIComponent(id)}`, json(body, token));
+  },
+
+  async getAccount(): Promise<{ account: AccountView | null }> {
+    return request('/api/account/me');
   },
 };

@@ -4,7 +4,7 @@
    Colours are provisional; swapping the palette only changes this block. */
 @theme {
   /* Backgrounds */
-  --color-bg: #f4f6f2;
+  --color-bg: #f7f5ef;
   --color-surface: #fafbf8;
   --color-surface-alt: #e8ebe4;
   --color-glass: rgb(255 255 255 / 0.6);
@@ -21,7 +21,11 @@
   /* Accent (gold) */
   --color-accent: #4e6b5d;
   --color-accent-text: #3f5a4d;
-  --color-on-ink: #f4f6f2;
+  --color-on-ink: #f7f5ef;
+
+  /* Palette B (owner-approved 2026-11-14): off-white page and a soft sage hero panel. No red (owner removed it). */
+  --color-sage-soft: #dfe6d6;
+  --color-sage-tile: #c9d6bd; /* the logo tile (owner-approved 2026-11-14), with the mark in ink */
 
   /* States */
   --color-success: #3f6f55;
@@ -226,7 +230,7 @@ h1, h2, h3 {
 .practice-track[data-dragging] { user-select: none; }
 
 /* Materials (DS §6), central accessibility overrides. Unlayered, so they beat every utility
-   without !important. Hooks: `bg-glass` (glass cards and panels), `material-bar` (the scrolled
+   without !important. Hooks: `bg-glass` (glass cards and panels), `material-bar` (the floating
    header and the sticky bar), `material-scrim` (the modal backdrop), `scroll-edge` (the soft fades
    that stand in for hairlines under translucent bars). */
 @media (prefers-reduced-transparency: reduce) {

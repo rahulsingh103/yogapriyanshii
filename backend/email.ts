@@ -6,18 +6,28 @@ import { getConfig } from './config.js';
 
 const SEND_TIMEOUT_MS = 5000;
 
-export type EmailKind = 'booking_confirmation' | 'booking_alert' | 'cancellation_alert' | 'contact_alert';
+export type EmailKind =
+  | 'booking_confirmation'
+  | 'booking_alert'
+  | 'cancellation_alert'
+  | 'contact_alert'
+  | 'login_code'
+  | 'login_no_account'
+  | 'offer';
 
 export interface EmailRecord {
   id: string;
   kind: EmailKind;
-  type: 'student_confirmation' | 'studio_alert';
+  type: 'student_confirmation' | 'studio_alert' | 'student_account' | 'student_offer';
   recipient: string;
   sender: string;
   replyTo?: string;
   subject: string;
   body: string;
   sentAt: string;
+  /** Account and offer emails only: extra headers, and the id on their log line. */
+  headers?: Record<string, string>;
+  ref?: string;
 }
 
 interface Draft {
@@ -26,8 +36,9 @@ interface Draft {
   replyTo?: string;
   subject: string;
   body: string;
-  /** A non-personal reference (booking or message id) for the log line. */
+  /** A non-personal reference (booking or message id, or a random id) for the log line. Never an email address. */
   ref: string;
+  headers?: Record<string, string>;
 }
 
 // --- test outbox (APP_ENV=test only) ---
@@ -64,18 +75,28 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function recordType(kind: EmailKind): EmailRecord['type'] {
+  if (kind === 'booking_confirmation') return 'student_confirmation';
+  if (kind === 'login_code' || kind === 'login_no_account') return 'student_account';
+  if (kind === 'offer') return 'student_offer';
+  return 'studio_alert';
+}
+
 async function deliver(draft: Draft): Promise<EmailRecord | null> {
   const { email, emailFrom } = getConfig();
   const record: EmailRecord = {
     id: `email-${crypto.randomUUID()}`,
     kind: draft.kind,
-    type: draft.kind === 'booking_confirmation' ? 'student_confirmation' : 'studio_alert',
+    type: recordType(draft.kind),
     recipient: draft.to,
     sender: emailFrom,
     replyTo: draft.replyTo || undefined,
     subject: draft.subject,
     body: draft.body,
     sentAt: new Date().toISOString(),
+    ...(draft.kind === 'login_code' || draft.kind === 'login_no_account' || draft.kind === 'offer'
+      ? { ref: draft.ref, ...(draft.headers ? { headers: draft.headers } : {}) }
+      : {}),
   };
 
   try {
@@ -97,6 +118,7 @@ async function deliver(draft: Draft): Promise<EmailRecord | null> {
             subject: draft.subject,
             text: draft.body,
             ...(draft.replyTo ? { replyTo: draft.replyTo } : {}),
+            ...(draft.headers ? { headers: draft.headers } : {}),
           }),
           SEND_TIMEOUT_MS
         );
@@ -174,7 +196,7 @@ A few gentle tips:
 - Please arrive 10 minutes early so we can talk about any areas or injuries you'd like to work with.
 - Priyanshi will message you before class to confirm where and how.
 - Wear comfortable clothing you can breathe and move in.
-- Cancellations are free up to 6 hours before class. Use your booking token on the website under "Manage Booking".
+- Cancel or move for free up to 24 hours before class. Later than that but not on the day, you can move it once; on the day, the class is charged. Use your booking token on the website under "Manage Booking".
 
 See you on the mat.
 
@@ -226,17 +248,22 @@ export interface CancellationEmailData {
   planKey: string;
   creditStatus: 'refunded' | 'burned';
   noticeHours: number;
+  /** Given back as the one late move (less than 24 hours, not on the day). */
+  lateMove?: boolean;
 }
 
 export async function sendCancellationAlert(d: CancellationEmailData, notifyEmail: string): Promise<EmailRecord | null> {
-  const outcome =
-    d.creditStatus === 'refunded'
+  const outcome = d.lateMove
+    ? d.planKey === 'free'
+      ? 'Moved late (under 24 hours, not on the day): their one late move. They can book the trial class for another day.'
+      : 'Moved late (under 24 hours, not on the day): their one late move. The class credit was given back.'
+    : d.creditStatus === 'refunded'
       ? d.planKey === 'free'
-        ? 'Cancelled with 6+ hours notice: they can book the trial class again.'
-        : 'Cancelled with 6+ hours notice: the class credit was refunded.'
+        ? 'Cancelled with 24+ hours notice: they can book the trial class again.'
+        : 'Cancelled with 24+ hours notice: the class credit was refunded.'
       : d.planKey === 'free'
-        ? 'Late cancellation (under 6 hours): the seat was released and the trial counts as used.'
-        : 'Late cancellation (under 6 hours): the seat was released and the credit is used.';
+        ? 'Late cancellation: the seat was released and the trial counts as used (AED 90 is due).'
+        : 'Late cancellation: the seat was released and the credit is used.';
 
   const body = `A booking was cancelled.
 
@@ -290,5 +317,74 @@ Reply to this email to answer ${d.name} directly.`;
     subject: `New message: ${d.name} (${d.interest})`,
     body,
     ref: d.messageId,
+  });
+}
+
+// --- student accounts and offers: no name anywhere, and the log line's id is random ---
+
+/** For a new account, `offers` says what entering the code will set, so nobody is opted in unawares. */
+const OFFERS_LINE = {
+  on: '\n\nEntering it also turns on monthly and holiday offers by email from Priyanshi. You can turn them off in your account at any time.',
+  off: '\n\nOffers by email stay off. You can turn them on in your account at any time.',
+};
+
+/** `offers` is null for an existing account: the code only logs in and changes no setting. */
+export function sendLoginCode(to: string, code: string, offers: boolean | null): Promise<EmailRecord | null> {
+  return deliver({
+    kind: 'login_code',
+    to,
+    subject: 'Your YogaPriyanshi code',
+    body: `Your code is ${code}.
+
+Enter it on the website within 10 minutes. It works once.${offers === null ? '' : offers ? OFFERS_LINE.on : OFFERS_LINE.off}
+
+If you didn't ask for this, you can ignore this email. Nothing changes.
+
+YogaPriyanshi · ${STUDIO_AREA}`,
+    ref: crypto.randomUUID(),
+  });
+}
+
+export function sendNoAccountNotice(to: string): Promise<EmailRecord | null> {
+  return deliver({
+    kind: 'login_no_account',
+    to,
+    subject: 'No YogaPriyanshi account for this email yet',
+    body: `Someone asked to log in to YogaPriyanshi with this email, but it doesn't have an account yet.
+
+To make one, choose Sign up at ${getConfig().siteUrl}. You don't need an account to read or book.
+
+If this wasn't you, you can ignore this email. Nothing changes.
+
+YogaPriyanshi · ${STUDIO_AREA}`,
+    ref: crypto.randomUUID(),
+  });
+}
+
+/** The part of every offer email that Priyanshi can't edit. The Offers tab shows it at review. */
+export function offerFooter(unsubscribeLink: string): string {
+  return `--
+You're getting this because you chose to get offers from YogaPriyanshi.
+Unsubscribe: ${unsubscribeLink}`;
+}
+
+export function sendOfferEmail(d: {
+  to: string;
+  subject: string;
+  body: string;
+  unsubscribeToken: string;
+}): Promise<EmailRecord | null> {
+  const { siteUrl } = getConfig();
+  const query = `token=${encodeURIComponent(d.unsubscribeToken)}`;
+  return deliver({
+    kind: 'offer',
+    to: d.to,
+    subject: d.subject,
+    body: `${d.body}\n\n${offerFooter(`${siteUrl}/unsubscribe?${query}`)}`,
+    ref: crypto.randomUUID(),
+    headers: {
+      'List-Unsubscribe': `<${siteUrl}/api/offers/unsubscribe?${query}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }

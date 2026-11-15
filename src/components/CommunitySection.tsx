@@ -1,6 +1,7 @@
 import { AnimateIcon } from '@/components/animate-ui/icons/icon';
 import { ArrowRight } from '@/components/animate-ui/icons/arrow-right';
 import { ui } from '@/lib/ui';
+import { cn } from '@/lib/utils';
 import { Reveal } from './Reveal';
 
 interface CommunitySectionProps {
@@ -11,7 +12,7 @@ interface CommunitySectionProps {
 export function CommunitySection({ onSeeSchedule }: CommunitySectionProps) {
   return (
     <section id="community" aria-labelledby="community-title" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 gap-12 items-center">
+      <Reveal className="max-w-[1320px] mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 gap-12 items-center">
         <img
           src="/media/images/practice/chakra-flow-800.webp"
           srcSet="/media/images/practice/chakra-flow-480.webp 480w, /media/images/practice/chakra-flow-800.webp 800w"
@@ -24,7 +25,7 @@ export function CommunitySection({ onSeeSchedule }: CommunitySectionProps) {
           className="w-full aspect-[4/5] object-cover rounded-[18px] bg-surface-alt"
         />
         <div className="flex flex-col items-start gap-6">
-          <p className={ui.eyebrow}>Community</p>
+          <p className={cn(ui.eyebrow, 'text-accent-text')}>Community</p>
           <h2 id="community-title" className="font-display font-normal text-h2 text-ink">
             You don&apos;t have to practise alone
           </h2>

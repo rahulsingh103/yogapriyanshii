@@ -29,8 +29,12 @@ function useOnline() {
   return online;
 }
 
-/** Sections with their own WhatsApp link or actions: How it works (the call link), Contact (the pill), a class page's and an article's actions. */
-const OWN_LINK_SECTIONS = ['how-it-works', 'contact', 'class-actions', 'article-actions'];
+/**
+ * Sections where the floating button steps aside: the hero (owner request 2026-11-14: the button starts after the
+ * hero, so it never covers the hero's buttons), and those with their own WhatsApp link or actions: How it works
+ * (the call link), Contact (the pill), a class page's and an article's actions.
+ */
+const OWN_LINK_SECTIONS = ['home', 'how-it-works', 'contact', 'class-actions', 'article-actions'];
 
 /**
  * True while any of those sections is on screen (the same IntersectionObserver pattern as

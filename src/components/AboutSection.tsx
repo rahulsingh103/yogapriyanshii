@@ -11,17 +11,17 @@ const TRUST_NUMBERS: ReadonlyArray<{ value: string; label: string }> = [
 export function AboutSection() {
   return (
     <section id="about" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 gap-12 items-center">
+      <Reveal className="max-w-[1320px] mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 gap-12 items-center">
         <img
-          src="/media/images/real/burj-forearm-stand-1-800.webp"
-          srcSet="/media/images/real/burj-forearm-stand-1-480.webp 480w, /media/images/real/burj-forearm-stand-1-800.webp 800w, /media/images/real/burj-forearm-stand-1-1200.webp 1200w"
+          src="/media/images/real/priyanshi-namaste-arch-800.webp"
+          srcSet="/media/images/real/priyanshi-namaste-arch-480.webp 480w, /media/images/real/priyanshi-namaste-arch-800.webp 800w, /media/images/real/priyanshi-namaste-arch-1200.webp 1200w"
           sizes="(min-width: 640px) 500px, min(100vw, 400px)"
           width={800}
           height={1067}
           loading="lazy"
           decoding="async"
-          alt="Priyanshi in a forearm stand on a mat on the lawn below the Burj Khalifa, Dubai"
-          className="w-full aspect-[4/5] object-cover object-[50%_70%] rounded-[18px] bg-surface-alt"
+          alt="Priyanshi seated cross-legged under a white arch, eyes closed, hands together in prayer"
+          className="w-full aspect-[4/5] object-cover object-[50%_62%] rounded-[18px] bg-surface-alt"
         />
         <div className="flex flex-col gap-6">
           <h2 className="font-display font-normal text-h2 text-ink">

@@ -9,6 +9,16 @@
       "source": "/classes/wheel/",
       "destination": "/classes/spine-healing",
       "permanent": true
+    },
+    {
+      "source": "/classes/aerial-yoga",
+      "destination": "/#classes",
+      "permanent": true
+    },
+    {
+      "source": "/classes/aerial-yoga/",
+      "destination": "/#classes",
+      "permanent": true
     }
   ],
   "rewrites": [

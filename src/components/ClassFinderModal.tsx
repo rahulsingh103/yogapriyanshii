@@ -512,8 +512,8 @@ function Result({ answers, health, showAlt, headingRef, onSwap, onChoose, onStar
   const cls = finderClass(shown);
   const { label, choice } = resultAction(shown, answers.format);
   const { formatNote, extra, notices } = resultLines(shown, answers);
-  // The card's duration only ("60 min"); Aerial's line has none.
-  const duration = shown === 'Aerial Yoga' ? null : cls.line.split(' · ').pop();
+  // The card's duration only ("60 min").
+  const duration = cls.line.split(' · ').pop();
   // One string for the preview and the link, rebuilt when "Also a good fit" changes the class.
   const { message, trimmed } = classFinderMessage(classFinderPrefill(answers, shown), health, whatsappUrl);
   const hasDetails = WHATSAPP_ENABLED && finderHasHealth(health);

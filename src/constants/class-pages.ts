@@ -51,7 +51,6 @@ export interface ClassPageContent {
 /** The owner's line for the classes that aren't on the timetable (on-request.ts, shared with on-request articles). */
 export { CLASS_PAGE_ON_REQUEST_LINE };
 export const CLASS_PAGE_BOOKABLE_LINE = 'In person in Dubai or live online. Your first class is a trial at AED 90.';
-export const CLASS_PAGE_PRIVATE_LINE = 'Private, one-to-one sessions, arranged with Priyanshi.';
 
 /** "What to bring" (facts, owner answers 6 and 7). Online students get the link; the tool is never named. */
 export const BEFORE_CLASS: ReadonlyArray<string> = [
@@ -63,9 +62,9 @@ export const BEFORE_CLASS: ReadonlyArray<string> = [
   'Arrive or log in 5–10 minutes early. Online, Priyanshi sends you the class link.',
 ];
 
-/** "What to bring" for a page: private Aerial uses the hammock, so it drops the own-mat line. */
-export function classBeforeList(kind: ClassPageKind): ReadonlyArray<string> {
-  return kind === 'private' ? BEFORE_CLASS.filter((item) => !item.startsWith('Your own mat')) : BEFORE_CLASS;
+/** "What to bring": the same list on every page. */
+export function classBeforeList(_kind: ClassPageKind): ReadonlyArray<string> {
+  return BEFORE_CLASS;
 }
 
 /** The WhatsApp first message from a class page: the class name only, never personal data. */
@@ -236,20 +235,6 @@ export const CLASS_PAGES: Record<ClassName, ClassPageContent> = {
     photo: cardPhoto('Prenatal & Postnatal'),
     testimonial: null,
   },
-  'Aerial Yoga': {
-    whoFor: 'Anyone who would like to try yoga in the aerial hammock, one to one with Priyanshi.',
-    about:
-      'Aerial yoga uses a soft hammock hung from the ceiling, so you can explore postures in a new way. With Priyanshi it is private sessions only, arranged with you on request.',
-    origin: 'A modern practice in a soft fabric hammock, developed in the 1990s and 2000s.',
-    focus: ['Core strength', 'Flexibility', 'Balance'],
-    format: 'One-to-one',
-    level: null,
-    intensity: 'Moderate',
-    notices: [],
-    ...meta('Aerial Yoga', 'Private aerial yoga with Priyanshi in Dubai: one-to-one sessions in the aerial hammock, arranged with you on request.'),
-    photo: cardPhoto('Aerial Yoga'),
-    testimonial: null,
-  },
 };
 
 export interface ClassDetailRow {
@@ -275,26 +260,26 @@ export function classDetailRows(cls: PracticeClass, content: ClassPageContent): 
   ];
 }
 
-/** "60 min" from the card line ("Alignment and breath · 60 min"); null for Aerial, which has no length. */
+/** "60 min" from the card line ("Alignment and breath · 60 min"); null if the line has no length. */
 export function classDuration(cls: PracticeClass): string | null {
   return cls.line.match(/· (\d+ min)$/)?.[1] ?? null;
 }
 
-export type ClassPageKind = 'bookable' | 'onRequest' | 'private';
+export type ClassPageKind = 'bookable' | 'onRequest';
 
 export function classPageKind(cls: PracticeClass): ClassPageKind {
   if (cls.style) return 'bookable';
-  return cls.name === 'Aerial Yoga' ? 'private' : 'onRequest';
+  return 'onRequest';
 }
 
 /** The line above the actions. */
 export function classPageLine(kind: ClassPageKind) {
-  return kind === 'bookable' ? CLASS_PAGE_BOOKABLE_LINE : kind === 'private' ? CLASS_PAGE_PRIVATE_LINE : CLASS_PAGE_ON_REQUEST_LINE;
+  return kind === 'bookable' ? CLASS_PAGE_BOOKABLE_LINE : CLASS_PAGE_ON_REQUEST_LINE;
 }
 
 /** The primary button's label: "Book" only when it really opens booking. */
 export function classPagePrimaryLabel(kind: ClassPageKind) {
-  return kind === 'bookable' ? 'Book a trial class' : kind === 'private' ? 'Ask about private Aerial' : 'Ask about this class';
+  return kind === 'bookable' ? 'Book a trial class' : 'Ask about this class';
 }
 
 export interface ClassPageEntry {

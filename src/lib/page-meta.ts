@@ -17,7 +17,7 @@ export interface PageMeta {
   path: string | null;
   /** The home page keeps its shorter Twitter line; every other page uses the description. */
   twitterDescription?: string;
-  /** The 404 page only. */
+  /** The 404 and unsubscribe pages. */
   noindex?: boolean;
 }
 
@@ -35,6 +35,21 @@ export const NOT_FOUND_META: PageMeta = {
   path: null,
   noindex: true,
 };
+
+/** No canonical and noindex: the page only makes sense with someone's own link. */
+export const UNSUBSCRIBE_META: PageMeta = {
+  title: 'Unsubscribe from offers · YogaPriyanshi',
+  description: 'Stop getting offer emails from YogaPriyanshi.',
+  path: null,
+  noindex: true,
+};
+
+/** A legal page's head (src/constants/legal.ts). */
+export const legalMeta = (page: { title: string; metaDescription: string; path: string }): PageMeta => ({
+  title: `${page.title} · YogaPriyanshi`,
+  description: page.metaDescription,
+  path: page.path,
+});
 
 // The Guides metas (GUIDES_META, articleMeta, DRAFT_META) are in article-meta.ts, outside the homepage bundle.
 

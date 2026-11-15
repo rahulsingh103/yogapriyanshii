@@ -2,7 +2,6 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { useLenis } from 'lenis/react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { QuizBand } from './components/QuizBand';
 import { PracticeCarousel } from './components/PracticeCarousel';
 import { AboutSection } from './components/AboutSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
@@ -17,23 +16,24 @@ import { FirstClassTrial } from './components/FirstClassTrial';
 import { ContactSection } from './components/ContactSection';
 import { ContactModal } from './components/ContactModal';
 import { Footer } from './components/Footer';
+import { PrivacyChoicesModal } from './components/PrivacyChoicesModal';
 import { StickyBookBar } from './components/StickyBookBar';
 import { BookingModal } from './components/BookingModal';
 import { CancelModal } from './components/CancelModal';
-import { AdminDashboard } from './components/AdminDashboard';
 import { MandalaBackground } from './components/MandalaBackground';
 import { OfflineNotice } from './components/OfflineNotice';
 import { WhatsAppChat } from './components/WhatsAppChat';
 import { PageErrorBoundary, clearChunkReloadFlag, reloadOnceForChunkError } from './components/PageErrorBoundary';
 import { WHATSAPP_ENABLED } from './constants/contact';
 import { MEMBERSHIP } from './constants/membership';
+import { useAccount } from './hooks/use-account';
 import { useScrollToSection } from './hooks/use-smooth-scroll';
 import { devPreviewSource, homeHistoryState, pageHistoryState, useRoute } from './hooks/use-route';
 import { HOME_META, setDocumentHead } from './lib/page-meta';
 import { CLASS_SLUGS, classPath } from './lib/route';
 import type { PracticeClass } from './constants/classes';
 import type { FinderChoice } from './constants/class-finder';
-import type { ClassSession, ClassStyle } from './types';
+import type { AccountView, ClassSession, ClassStyle } from './types';
 
 // The class pages and the 404 are their own chunks, so none of their copy is in the homepage bundle.
 const ClassPage = lazy(() => import('./components/ClassPage').then((mod) => ({ default: mod.ClassPage })));
@@ -59,6 +59,23 @@ const loadClassFinder = () => {
   return classFinderLoad;
 };
 const ClassFinderModal = lazy(loadClassFinder);
+/** One shared load per chunk; a failed load is forgotten, so the next tap tries again. */
+const sharedLoad = <T,>(load: () => Promise<T>) => {
+  let p: Promise<T> | null = null;
+  return () =>
+    (p ??= load().catch((error: unknown) => {
+      p = null;
+      throw error;
+    }));
+};
+// The account sheet and the admin dashboard: loaded on the first tap, so only their entry points are in
+// the homepage bundle.
+const loadAccountSheet = sharedLoad(() => import('./components/AccountModal').then((mod) => ({ default: mod.AccountModal })));
+const AccountModal = lazy(loadAccountSheet);
+const loadAdmin = sharedLoad(() => import('./components/AdminDashboard').then((mod) => ({ default: mod.AdminDashboard })));
+const AdminDashboard = lazy(loadAdmin);
+const LegalPage = lazy(() => import('./components/LegalPage').then((mod) => ({ default: mod.LegalPage })));
+const UnsubscribePage = lazy(() => import('./components/UnsubscribePage').then((mod) => ({ default: mod.UnsubscribePage })));
 // DEV ONLY (P7): in a build `import.meta.env.DEV` is false, so the preview and its import are dropped.
 const DraftPreview = import.meta.env.DEV
   ? lazy(() => import('./components/DraftPreview').then((mod) => ({ default: mod.DraftPreview })))
@@ -85,13 +102,19 @@ interface BookingOpenState {
 export default function App() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [privacyChoicesOpen, setPrivacyChoicesOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [adminMounted, setAdminMounted] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [contactInterest, setContactInterest] = useState<string | null>(null);
   const [classFinderOpen, setClassFinderOpen] = useState(false);
   // Rendered only after the first open, so a visitor who never opens it runs none of its code.
   const [classFinderMounted, setClassFinderMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountMounted, setAccountMounted] = useState(false);
+  const [accountIntent, setAccountIntent] = useState<'signup' | 'login' | 'account'>('signup');
+  const { account, checking: accountChecking, setAccount } = useAccount();
   const [booking, setBooking] = useState<BookingOpenState>({ session: null, style: null, planKey: 'free', mode: null });
   const scrollToSection = useScrollToSection();
   const lenis = useLenis();
@@ -120,7 +143,13 @@ export default function App() {
   // A quiz tap waiting for its chunk. Anything else that takes over the screen cancels it, even if it
   // has closed again by the time the chunk arrives, so the finder can't appear out of nowhere.
   const finderWaitRef = useRef<{ navKey: number } | null>(null);
-  if (menuOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen) finderWaitRef.current = null;
+  if (menuOpen || accountOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen) finderWaitRef.current = null;
+  // A tap on Log in or Sign up waiting for its chunk, cancelled the same way.
+  const accountWaitRef = useRef<object | null>(null);
+  if (menuOpen || classFinderOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen) accountWaitRef.current = null;
+  const adminWaitRef = useRef<object | null>(null);
+  if (menuOpen || accountOpen || classFinderOpen || bookingModalOpen || cancelModalOpen || contactModalOpen) adminWaitRef.current = null;
+  const accountChangedRef = useRef(false);
   /** Where to scroll once home has rendered after an in-app "go home" (Header, Footer, "All classes"). */
   const pendingSectionRef = useRef<string | null>(null);
 
@@ -250,6 +279,64 @@ export default function App() {
     );
   };
 
+  /** Shows a lazy sheet once its chunk is here, unless something else took over the screen meanwhile. */
+  const openWhenLoaded = (load: () => Promise<unknown>, waitRef: { current: object | null }, show: () => void) => {
+    finderWaitRef.current = null;
+    const wait = {};
+    waitRef.current = wait;
+    const atNav = navKeyRef.current;
+    load().then(
+      () => {
+        if (waitRef.current !== wait) return;
+        waitRef.current = null;
+        if (navKeyRef.current === atNav) show();
+      },
+      (error: unknown) => {
+        if (waitRef.current !== wait) return;
+        waitRef.current = null;
+        reloadOnceForChunkError(error);
+      }
+    );
+  };
+
+  const openAccount = (intent: 'signup' | 'login' | 'account') => {
+    accountChangedRef.current = false;
+    openWhenLoaded(loadAccountSheet, accountWaitRef, () => {
+      setAccountIntent(intent);
+      setAccountMounted(true);
+      setAccountOpen(true);
+    });
+  };
+
+  const openAdmin = () =>
+    openWhenLoaded(loadAdmin, adminWaitRef, () => {
+      setAdminMounted(true);
+      setAdminModalOpen(true);
+    });
+
+  // Logging in or out removes the button that opened the sheet, and below 1080px the opener was in the
+  // closed menu: focus goes to Account or Log in on the bar, or to the menu toggle.
+  const handOffFocus = (onlyIfLost = false) => {
+    const narrow = !window.matchMedia('(min-width: 1080px)').matches;
+    afterLayout(() => {
+      // Closed before the reply came: only take focus back if it fell to the page.
+      if (onlyIfLost && document.activeElement && document.activeElement !== document.body) return;
+      document.querySelector<HTMLElement>(narrow ? '[data-menu-toggle]' : '[data-account-entry]')?.focus({ preventScroll: true });
+    });
+  };
+  const accountOpenRef = useRef(accountOpen);
+  accountOpenRef.current = accountOpen;
+  const closeAccount = () => {
+    setAccountOpen(false);
+    if (accountChangedRef.current || !window.matchMedia('(min-width: 1080px)').matches) handOffFocus();
+  };
+  const changeAccount = (next: AccountView | null) => {
+    accountChangedRef.current = true;
+    setAccount(next);
+    // The sheet was closed while the code was being checked: the hand-off happens now instead.
+    if (!accountOpenRef.current) handOffFocus(true);
+  };
+
   // Load the finder when the browser is idle, only on the pages that have a way to open it.
   const hasQuizEntry = isHome || route.kind === 'article' || !!previewSource;
   useEffect(() => {
@@ -288,9 +375,11 @@ export default function App() {
       <MandalaBackground />
 
       <Header
-        onOpenBooking={() => handleOpenBooking()}
+        account={account}
+        accountChecking={accountChecking}
+        onOpenAccount={openAccount}
         onOpenCancel={() => setCancelModalOpen(true)}
-        onOpenAdmin={() => setAdminModalOpen(true)}
+        onOpenAdmin={openAdmin}
         onMenuOpenChange={setMenuOpen}
         isHome={isHome}
         onNavigateHome={navigateHome}
@@ -299,7 +388,6 @@ export default function App() {
       {isHome ? (
       <main className="flex-1">
         <Hero onOpenBooking={() => handleOpenBooking()} onOpenClassFinder={openClassFinder} />
-        <QuizBand onOpenClassFinder={openClassFinder} />
         <PracticeCarousel
           onSelectClass={handleSelectPractice}
           onOpenClassFinder={openClassFinder}
@@ -354,6 +442,10 @@ export default function App() {
                 onAsk={(interest) => handleOpenContact(interest)}
                 onOpenQuiz={openClassFinder}
               />
+            ) : route.kind === 'legal' ? (
+              <LegalPage slug={route.slug} onReady={markReady} onNavigate={navigate} />
+            ) : route.kind === 'unsubscribe' ? (
+              <UnsubscribePage onReady={markReady} onNavigateHome={navigateHome} />
             ) : route.kind === 'guides' ? (
               <GuidesIndex focusHeading={navKind !== 'initial'} onReady={markReady} onNavigate={navigate} />
             ) : route.kind === 'class' ? (
@@ -376,7 +468,10 @@ export default function App() {
 
       <Footer
         onOpenCancel={() => setCancelModalOpen(true)}
-        onOpenAdmin={() => setAdminModalOpen(true)}
+        onOpenAdmin={openAdmin}
+        onOpenBooking={() => handleOpenBooking()}
+        onOpenClassFinder={openClassFinder}
+        onOpenPrivacyChoices={() => setPrivacyChoicesOpen(true)}
         isHome={isHome}
         onNavigateHome={navigateHome}
         onNavigate={navigate}
@@ -386,7 +481,7 @@ export default function App() {
         <WhatsAppChat
           pageKey={readyKey}
           hidden={
-            menuOpen || classFinderOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen
+            menuOpen || accountOpen || classFinderOpen || bookingModalOpen || cancelModalOpen || adminModalOpen || contactModalOpen || privacyChoicesOpen
           }
         />
       )}
@@ -407,6 +502,27 @@ export default function App() {
         </PageErrorBoundary>
       )}
 
+      {accountMounted && (
+        // A render failure drops the sheet, like the finder: the next tap starts clean and nothing stays hidden.
+        <PageErrorBoundary
+          fallback={null}
+          onError={() => {
+            setAccountOpen(false);
+            setAccountMounted(false);
+          }}
+        >
+          <Suspense fallback={null}>
+            <AccountModal
+              isOpen={accountOpen}
+              intent={accountIntent}
+              account={account}
+              onClose={closeAccount}
+              onAccountChange={changeAccount}
+            />
+          </Suspense>
+        </PageErrorBoundary>
+      )}
+
       <BookingModal
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
@@ -417,8 +533,21 @@ export default function App() {
       />
 
       <CancelModal isOpen={cancelModalOpen} onClose={() => setCancelModalOpen(false)} />
+      <PrivacyChoicesModal isOpen={privacyChoicesOpen} onClose={() => setPrivacyChoicesOpen(false)} />
 
-      <AdminDashboard isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
+      {adminMounted && (
+        <PageErrorBoundary
+          fallback={null}
+          onError={() => {
+            setAdminModalOpen(false);
+            setAdminMounted(false);
+          }}
+        >
+          <Suspense fallback={null}>
+            <AdminDashboard isOpen={adminModalOpen} onClose={() => setAdminModalOpen(false)} />
+          </Suspense>
+        </PageErrorBoundary>
+      )}
 
       <ContactModal
         isOpen={contactModalOpen}

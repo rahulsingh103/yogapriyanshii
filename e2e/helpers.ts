@@ -72,6 +72,28 @@ export async function apiBook(request: APIRequestContext, overrides: Record<stri
   return { res, session, body: await res.json() };
 }
 
+/** Every captured email, newest first. */
+export async function outbox(request: APIRequestContext): Promise<any[]> {
+  return (await (await request.get('/api/test/outbox')).json()).emails;
+}
+
+/** The newest login code sent to this address. */
+export async function latestCode(request: APIRequestContext, email: string): Promise<string> {
+  const mail = (await outbox(request)).find((m) => m.recipient === email && m.kind === 'login_code');
+  expect(mail, `a login code for ${email}`).toBeTruthy();
+  return String(mail.body.match(/\b(\d{6})\b/)?.[1]);
+}
+
+/** Rate limits would otherwise break a suite that runs on one IP. */
+export async function resetAccountLimits(request: APIRequestContext) {
+  expect((await request.post('/api/test/account-limits-reset', { data: {} })).status()).toBe(200);
+}
+
+/** A same-origin account write, as the browser sends it. */
+export function accountPost(request: APIRequestContext, path: string, data: Record<string, unknown>) {
+  return request.post(`/api/account${path}`, { data, headers: { Origin: test.info().project.use.baseURL! } });
+}
+
 export async function openHome(page: Page) {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

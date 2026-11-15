@@ -31,7 +31,7 @@ const SAFETY: ReadonlyArray<string> = [
 export function HowItWorksSection() {
   return (
     <section id="how-it-works" aria-labelledby="how-it-works-title" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-12">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-12">
         <div className="flex flex-col gap-6">
           <h2 id="how-it-works-title" className="font-display font-normal text-h2 text-ink">
             How it works

@@ -8,6 +8,7 @@ import { ui } from '@/lib/ui';
 import { api } from '../services/api';
 import { Booking, ClassSession } from '../types';
 import { ModalSheet } from './ModalSheet';
+import { cancelTier, type CancelTier } from '@/constants/cancel-policy';
 
 interface CancelModalProps {
   isOpen: boolean;
@@ -103,7 +104,9 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   };
 
   const noticeHours = getNoticeHours();
-  const isFreeCancel = noticeHours !== null && noticeHours >= 6;
+  const tier: CancelTier | null = lookedUpSession ? cancelTier(new Date(lookedUpSession.startTimeUtc).getTime(), Date.now()) : null;
+  const isFreeCancel = tier === 'free';
+  const isTrialBooking = lookedUpBooking?.planKey === 'free';
 
   const titleId = 'cancel-modal-title';
   const row = 'flex justify-between gap-4 py-2 border-b border-line last:border-b-0';
@@ -117,7 +120,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             Manage Reservation
           </h2>
           <p className="text-sm leading-[1.5] text-ink-soft">
-            Look up booking details or cancel according to the studio 6-hour policy.
+            Look up booking details or cancel according to the studio's 24-hour policy.
           </p>
         </div>
 
@@ -214,20 +217,20 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             {lookedUpBooking.status === 'confirmed' ? (
               <div className={cn(isFreeCancel ? ui.notice : ui.error, 'flex flex-col gap-1')}>
                 <p className={cn('font-semibold', isFreeCancel ? 'text-success' : 'text-error')}>
-                  {isFreeCancel ? 'Eligible for Free Cancellation' : 'Late Cancellation Notice'}
+                  {isFreeCancel ? 'Eligible for Free Cancellation' : tier === 'move' ? 'Late Move' : 'Late Cancellation Notice'}
                 </p>
                 <p>
                   {isFreeCancel
-                    ? `You are cancelling ${noticeHours?.toFixed(1)} hours before class (≥ 6h). Your seat will be released and ${
-                        lookedUpBooking.planKey === 'free'
-                          ? 'you can book your trial class for a different session'
-                          : 'your class credit will be refunded'
+                    ? `You are cancelling ${noticeHours?.toFixed(1)} hours before class (24h or more). Your seat will be released and ${
+                        isTrialBooking ? 'you can book your trial class for a different session' : 'your class credit will be refunded'
                       }.`
-                    : `You are cancelling less than 6 hours before class (${noticeHours?.toFixed(1)}h remaining). Your seat will be released, ${
-                        lookedUpBooking.planKey === 'free'
-                          ? 'and your trial class counts as used'
-                          : 'but your class credit is burned per studio policy'
-                      }.`}
+                    : tier === 'move'
+                      ? `You are cancelling less than 24 hours before class (${noticeHours?.toFixed(1)}h remaining), but not on the day. You can move a class late once: if you haven't already, ${
+                          isTrialBooking ? 'your trial comes back to book another day' : 'your class credit comes back'
+                        }. Otherwise it counts as used.`
+                      : `You are cancelling on the day of the class (${noticeHours?.toFixed(1)}h remaining). Your seat will be released, ${
+                          isTrialBooking ? 'and your trial class counts as used (AED 90 is due)' : 'but your class credit is used per studio policy'
+                        }.`}
                 </p>
               </div>
             ) : (
@@ -279,10 +282,13 @@ export const CancelModal: React.FC<CancelModalProps> = ({
             <div className={cn(ui.panel, 'text-sm leading-[1.5] text-ink-soft flex flex-col gap-1')}>
               <p className="font-semibold text-ink">Cancellation Policy:</p>
               <p>
-                • <strong className="font-semibold text-ink">Free up to 6 hours</strong> before start: releases your seat and gives back your class or trial.
+                • <strong className="font-semibold text-ink">Free up to 24 hours</strong> before start: releases your seat and gives back your class or trial.
               </p>
               <p>
-                • <strong className="font-semibold text-ink">Late (&lt; 6 hours)</strong>: releases your seat, and the class or trial counts as used.
+                • <strong className="font-semibold text-ink">Under 24 hours, not on the day</strong>: you can move it once and your class or trial comes back.
+              </p>
+              <p>
+                • <strong className="font-semibold text-ink">On the day of the class</strong>: the class or trial counts as used.
               </p>
             </div>
 

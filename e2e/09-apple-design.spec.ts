@@ -349,7 +349,7 @@ test.describe('desktop carousel', () => {
     const classes = page.locator('#classes');
     await classes.scrollIntoViewIfNeeded();
     const track = classes.getByRole('group', { name: /Classes/ });
-    await expect(classes.getByTestId('practice-card')).toHaveCount(10);
+    await expect(classes.getByTestId('practice-card')).toHaveCount(9);
     const max = await track.evaluate((el) => el.scrollWidth - el.clientWidth);
     const next = classes.getByRole('button', { name: 'Next classes' });
     let s = await rest(page, track);
@@ -361,7 +361,7 @@ test.describe('desktop carousel', () => {
       s = after;
     }
     expect(Math.abs(s.left - max)).toBeLessThanOrEqual(1);
-    // The last card (Aerial Yoga) is fully inside the track.
+    // The last card (Prenatal & Postnatal) is fully inside the track.
     const fits = await track.evaluate((el) => {
       const cards = el.querySelectorAll('[data-testid="practice-card"]');
       const last = cards[cards.length - 1].getBoundingClientRect();
@@ -369,7 +369,7 @@ test.describe('desktop carousel', () => {
       return last.left >= box.left - 1 && last.right <= box.right + 1;
     });
     expect(fits).toBe(true);
-    await expect(classes.getByTestId('practice-card').last().locator('h3')).toHaveText('Aerial Yoga');
+    await expect(classes.getByTestId('practice-card').last().locator('h3')).toHaveText('Prenatal & Postnatal');
   });
 
   test('a press released off the track does not leave a drag behind', async ({ page, request }, info) => {
@@ -434,8 +434,8 @@ test('reduced transparency turns every glass surface solid', async ({ page }, in
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
   await expect.poll(async () => (await style(bar)).blur).toBe('none');
-  expect((await style(bar)).bg).toBe('rgb(244, 246, 242)');
-  expect((await style(page.locator('header .scroll-edge'))).display).toBe('none');
+  // Polled: the pill's background eases over 300ms, while its blur switches at once.
+  await expect.poll(async () => (await style(bar)).bg).toBe('rgb(247, 245, 239)');
   const card = page.getByTestId('practice-card').first();
   expect(await style(card)).toMatchObject({ bg: 'rgb(250, 251, 248)', blur: 'none' });
   await shot('solid');
@@ -458,8 +458,9 @@ test('more contrast gives the bars and glass a solid fill and a defined ink edge
       return { bg: cs.backgroundColor, blur: cs.backdropFilter, shadow: cs.boxShadow };
     });
   await expect.poll(async () => (await style(bar)).blur).toBe('none');
+  // Polled: the pill's background eases over 300ms, while its blur switches at once.
+  await expect.poll(async () => (await style(bar)).bg).toBe('rgb(247, 245, 239)');
   const b = await style(bar);
-  expect(b.bg).toBe('rgb(244, 246, 242)');
   expect(b.shadow).toContain('rgb(28, 38, 33)');
   const c = await style(page.getByTestId('practice-card').first());
   expect(c.bg).toBe('rgb(250, 251, 248)');

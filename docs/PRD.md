@@ -19,8 +19,10 @@
 | New classes | Ashtanga, Spine Healing, Mobility Yoga and Prenatal & Postnatal are on the carousel as front-end content only. Their cards open the contact pop-up with the class preset; they join the timetable (DB) once Priyanshi confirms slots and durations. **Aerial Yoga is private sessions only, on request**: its card opens the contact pop-up with "Private Aerial Yoga" and it never goes on the schedule. |
 | Class finder | ✅ "Find your class": a three-question pop-up (goal, experience, format) opened from three places: a "Find your class" button beside the hero's "Book a trial class", a "Take the quiz" band above the classes, and a dark "Take the quiz" first card in the carousel. While WhatsApp is enabled it then offers optional age, height and health questions, which go only into the WhatsApp message the student checks and sends. It suggests one class (plus an alternative, except for pregnancy) from a fixed table (`src/constants/class-finder.ts`). "Book this class" appears only for the 4 bookable classes in a group format and opens booking at the soonest session of that style (live online preselects "Online Live Stream"); every other result opens the contact pop-up with the matching interest. While WhatsApp is enabled it also offers "Ask Priyanshi on WhatsApp" with a prefill naming the answers and the class. Frontend only: no backend, data or analytics, and the optional answers never change the suggestion. |
 | Monthly membership | ✅ A card in Pricing: "Monthly membership", AED 2,999 a month, with three perks (12 classes a month; recordings included, details shared when you join; in person in Dubai or live online). No priority booking and no shareable packs. "Join the membership" opens the contact pop-up preset to "Monthly membership" (FR-15b); the request is saved, alerts Priyanshi, and then offers "Continue on WhatsApp" with the person's name and the plan typed in. Priyanshi tracks requests in the admin Members tab (New → Contacted → Active with a start date). No payment or credits: she arranges those with the member. Needs migration 004 on the live database before release. |
-| Class pages | ✅ (Batch 4a, 2026-10-26) One page per class at `/classes/<slug>` (10), opened from each carousel card's "Learn more" (no reload) or directly. Each page is prerendered at build time with its own title, description, canonical and Open Graph tags, and readable without JavaScript. It shows who it's for, about, duration (none for Aerial), intensity, level (the 5 timetabled classes), format, what to bring, any notice, a matching review, and one honest action: "Book a trial class" for Hatha, Barre, Chakra Flow, Vinyasa and Yin Yoga; "Ask about this class" for the 4 classes not on the timetable (with the line "Not on the timetable yet. Send a message and Priyanshi will find a time with you. In person in Dubai or live online."); "Ask about private Aerial" for Aerial. Unknown paths are real 404s (noindex). `sitemap.xml` and `robots.txt` are generated. The photos are real photos of Priyanshi until the shoot; the intensity labels and the new classes' durations wait for her check. Articles ("Guides") are not public yet (4b). |
+| Class pages | ✅ (Batch 4a, 2026-10-26) One page per class at `/classes/<slug>` (9; Aerial removed 2026-11-14), opened from each carousel card's "Learn more" (no reload) or directly. Each page is prerendered at build time with its own title, description, canonical and Open Graph tags, and readable without JavaScript. It shows who it's for, about, duration (none for Aerial), intensity, level (the 5 timetabled classes), format, what to bring, any notice, a matching review, and one honest action: "Book a trial class" for Hatha, Barre, Chakra Flow, Vinyasa and Yin Yoga; "Ask about this class" for the 4 classes not on the timetable (with the line "Not on the timetable yet. Send a message and Priyanshi will find a time with you. In person in Dubai or live online."); "Ask about private Aerial" for Aerial. Unknown paths are real 404s (noindex). `sitemap.xml` and `robots.txt` are generated. The photos are real photos of Priyanshi until the shoot; the intensity labels and the new classes' durations wait for her check. Articles ("Guides") are not public yet (4b). |
 | Guides (articles) | 🟡 (Batch 4b, 2026-10-26) Built but hidden. The pipeline is ready: Markdown articles in `src/content/articles/` become `/guides/<slug>` pages (prerendered, in the sitemap) with a `/guides` index and a footer "Guides" link, all of which appear only once an article is published. Four drafts (your first class, which style, a stiff back, prenatal basics) wait outside the repo for Priyanshi's review; none is published, so `/guides` is a 404 today. Publishing needs her written OK and checked sources. |
+| Student accounts | ✅ Optional. "Log in" and "Sign up" in the header open a sheet that works with a 6-digit code sent by email: no password and no name. A signed-in student sees their email, an offers setting and Log out. Reading and booking never need an account, and accounts aren't linked to bookings. Needs migration 006 and `ACCOUNT_SECRET` before release. See FR-23 to FR-28. |
+| Offer emails | ✅ Email only and opt-in. Priyanshi writes an offer in the admin Offers tab, checks the exact email and sends it to the students who chose to get offers. Every offer email has an unsubscribe link that needs no login. |
 | Testimonials | ✅ Three real, verified ClassPass reviews, quoted exactly (`src/constants/testimonials.ts`), captioned "Verified ClassPass review · <class> class". No venue names and no links to review sites (they name a former studio). |
 
 **Still to fill in:** real photos for the class cards (AI placeholders today), and the slots and durations of the new classes. The booking pop-up still says "Pay in Person" only, while Pricing and the FAQ also mention online payment details (follow-up).
@@ -46,7 +48,7 @@
 
 ### Non-Goals (Phase 1)
 - Real online payments (card checkout) — the paid plans are shown, but paid purchase shows a "launching soon" message. Payments are Phase 2.
-- Customer accounts / login / passwords for students.
+- Passwords, social login or anything that makes an account necessary. Student accounts are optional and work by email code (FR-23).
 - Multiple instructors, multi-studio, or multi-language support.
 - Video hosting / on-demand class library.
 
@@ -102,16 +104,16 @@
 |---|---|---|---|---|
 | Trial class | AED 90 | 1 | — | Any style, **one per person (email) ever** |
 | Single class | AED 300 | 1 | No expiry | Drop in once |
-| 10-class pack | AED 2,800 | 10 | 3 months | AED 280/class; "Most popular" tag; class recordings (7 days) |
-| 20-class pack | AED 5,200 | 20 | 6 months | AED 260/class, save AED 400; "Best value" tag; 1 private session included; priority booking |
+| 10-class pack | AED 2,800 | 10 | 45 days | AED 280/class; "Most popular" tag; class recordings (7 days) |
+| 20-class pack | AED 5,200 | 20 | 75 days | AED 260/class, save AED 400; "Best value" tag; 1 private session included; priority booking |
 | Private 1-to-1 | AED 500 / 60 min | — | — | Mentioned as an add-on |
 
 **Changed 2026-11-05 (owner's launch notes):** the free first class became a paid AED 90 trial, still one per email, with the new prices above. Bookings made before this stay AED 0. In the code and database the trial keeps the plan key `free`; see [DATABASE.md](DATABASE.md).
 
-Extra pricing-page notes: *Packs are shareable (bring a friend on your credits). Free cancellation up to 6 hours before class.*
+Extra pricing-page notes: *Packs are shareable (bring a friend on your credits). Free cancellation up to 24 hours before class.*
 
 ### Policies (display verbatim on Schedule page "Good to know")
-- Cancellations are **free up to 6 hours** before class. **Late cancellations use one class credit.** A trial class cancelled in time can be booked for a different session; cancelled late, it counts as used.
+- Cancellation rule (owner-approved 2026-11-14, `src/constants/cancel-policy.ts`): **free up to 24 hours** before class; **under 24 hours but not on the day** (Dubai time), the class can be moved **once** per pack or trial and the credit comes back; **on the day**, the credit is used (a trial counts as used and AED 90 is due). The same rule applies to the trial. Packs and memberships are non-refundable; Priyanshi may extend dates for illness or travel. Membership minimum 3 months.
 
 ### Page copy tone
 Warm, short, confident, second-person ("Start with a trial class for AED 90."). Avoid hype and exclamation marks.
@@ -124,8 +126,8 @@ Hero (see §5), credibility strip, "Five paths" section introducing the 5 classe
 **As built (2026-10-25, entry points and optional details 2026-11-05), the class finder:** "Find your class" beside the hero's "Book a trial class", the "Take the quiz" band above the classes, the dark first card in the carousel and "Take the quiz" on an article page all open the **Find your class** pop-up. Three questions, one per step (What would you like yoga to give you? · How much yoga have you done? · How would you like to practise?), then one suggested class with a short reason, its length (none for Aerial), the format note and one honest action:
 - a bookable class (Hatha, Barre, Chakra Flow, Vinyasa, Yin Yoga) in person or online: "Book this class", plus "Your first class is a trial at AED 90.";
 - a class not on the timetable (Ashtanga, Spine Healing, Mobility Yoga, Prenatal & Postnatal): "Ask about this class" (contact pop-up with that class as the interest);
-- private: "Ask about a private session" (interest "Private session"), Aerial "Ask about private Aerial" ("Private Aerial Yoga"), Prenatal "Ask about this class" ("Prenatal & Postnatal").
-Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to tell Priyanshi before the first class; Aerial is suggested only for private. No medical or clearance wording.
+- private: "Ask about a private session" (interest "Private session"), Prenatal "Ask about this class" ("Prenatal & Postnatal").
+Pregnancy always suggests Prenatal & Postnatal with no alternative and a note to tell Priyanshi before the first class. Aerial Yoga was removed 2026-11-14: private answers use the same table and ask for a private session. No medical or clearance wording.
 
 **Optional details (owner decision 2026-11-05: they travel in the wa.me link, with a plain note before and at the result).** While WhatsApp is enabled, after question 3 comes an intro ("A few details for Priyanshi"), then age and height, health conditions, medication (now or in the past), and injury, surgery or pain, each skippable. "Skip to my suggestion" clears anything entered. Rules:
 - The answers never change the suggestion, its action or its copy, and the free text is never parsed.
@@ -161,7 +163,7 @@ Five class cards (name, level, duration, description, typical slot, **Book →**
 - Each shows time, class, level, duration, and **spots left**. If full → show "Fully booked"/"Full" and disable booking.
 - Clicking a day reveals a detail panel with a **Book This Class** button; a "Full week" list below also has **Book →**.
 - Loading and error states are friendly (no blank page).
-- One "good to know" line (free cancellation up to 6 hours before) next to the "Cancel / Manage Reservation" button.
+- One "good to know" line (free cancellation up to 24 hours before) next to the "Cancel / Manage Reservation" button.
 
 ### 6.5 Contact
 The section is a heading ("Get in touch"), the studio address and a **"Contact Priyanshi"** button that opens the **Send a message** pop-up: name, email, **phone (optional)**, interest dropdown (General enquiry / Hatha / Barre / Chakra / Spine Healing / Mobility Yoga / Yin Yoga / Prenatal & Postnatal / Vinyasa Yoga / Ashtanga Yoga / Private Aerial Yoga / Private session / Monthly membership / Class Packs & Corporate), message. With "Monthly membership" selected (preset by "Join the membership", or picked from the list) the pop-up is in **membership mode**: title "Join the membership", an optional "In person or online" choice, and the message becomes the optional "Preferred days and times" (FR-15b). A not-yet-scheduled class card opens the same pop-up with that class preset as the interest. Shows inline errors, a sending state, and a "Thank you — Priyanshi will be in touch within 24 hours" success state. **Must include a hidden honeypot field to deter bots.**
@@ -184,7 +186,8 @@ Login screen (email + password). After login, one page showing:
 - **Google Drive / Sheet link** (clickable) — editable.
 - **Upcoming classes** (next ~10) with spots left / capacity.
 - **Recent messages** from the contact form (name, email, phone as a tap-to-call link when given, interest, message, date). A membership request without preferred times shows no message block.
-- **Members tab** (as built 2026-10-25): the dashboard has two tabs, **Overview** (everything above and below, the default) and **Members**. Members lists the membership requests, newest first, 20 per page, with a filter (All / New / Contacted / Active, each with its count). Each request shows the name, email and phone links, the plan and price, the format, the preferred times, the request date and, when Active, the start date. Priyanshi moves it one step at a time: New → Contacted → Active (with a start date within a year either side of today), and back one step. Leaving Active clears the start date.
+- **Offers tab** (as built 2026-11-07): FR-27.
+- **Members tab** (as built 2026-10-25): the dashboard's tabs are **Overview** (everything above and below, the default), **Members** and **Offers**. Members lists the membership requests, newest first, 20 per page, with a filter (All / New / Contacted / Active, each with its count). Each request shows the name, email and phone links, the plan and price, the format, the preferred times, the request date and, when Active, the start date. Priyanshi moves it one step at a time: New → Contacted → Active (with a start date within a year either side of today), and back one step. Leaving Active clears the start date.
 - **Settings:** Drive/Sheet link, and **notification email** (where booking/message alerts go).
 - Log out. Must not be indexed by search engines.
 
@@ -207,8 +210,8 @@ Login screen (email + password). After login, one page showing:
 
 ### 7.3 Credits & cancellation
 - FR-11: Each booking consumes 1 credit from the person's plan/pack. Packs expire per §5 and cannot be used after expiry.
-- FR-12: **Cancel ≥ 6 hours before** class → seat released **and credit refunded**. For a trial class, it can be booked again for a different session.
-- FR-13: **Cancel < 6 hours before** class → seat released **but credit is burned**. For a trial class, it stays used.
+- FR-12: **Cancel ≥ 24 hours before** class → seat released **and credit refunded**. For a trial class, it can be booked again for a different session. Under 24 hours but not on the day → refunded once per pack (or trial) as the one late move.
+- FR-13: **Cancel on the day of the class**, or a second late move → seat released **but credit is burned**. For a trial class, it stays used.
 - FR-14: Cancelling an already-cancelled booking is rejected; wrong token reveals nothing.
 
 ### 7.4 Contact
@@ -226,6 +229,14 @@ Login screen (email + password). After login, one page showing:
 - FR-20: Single admin account, password stored hashed; **lock out for 15 minutes after 5 failed logins**; session expires after ~2 hours.
 - FR-21: Dashboard metrics per §6.7; settings editable and persisted.
 
+### 7.6a Student accounts and offers (2026-11-07)
+- FR-23: **Accounts are optional.** Every page, booking and cancellation works without one, and an anonymous visit makes no account request. Sign-up asks for an email and an unticked offers box, nothing else. No account exists until the code is verified. No names, booking history, prefill or email change.
+- FR-24: **Email codes.** 6 digits, valid for 10 minutes, single use, 5 attempts, and a new request replaces the old code. The reply to a code request is the same for every email: an address with an account gets a code, and logging in with an unknown address gets a "No account yet" email and no code. A send that fails answers honestly and shows no code step.
+- FR-25: **Limits.** Per email: 1 a minute, 5 an hour and 10 a day. Per IP: 20 code requests and 60 code checks an hour. A daily cap on account emails protects the mail allowance booking needs. **While that cap is hit, nobody can sign up or log in until it resets (up to 24 hours); booking is unaffected.** The caps (30 account emails and 50 offer emails a day) are provisional until the mail plan is confirmed.
+- FR-26: **Offers consent.** The box says "Email me monthly and holiday offers from Priyanshi. I can unsubscribe at any time." It's stored only after verification, with the time and the wording's version. It can be changed in the account view. For a new account, the code email says whether entering it turns offers on, and straight after verifying the account view says whether offers are on or off.
+- FR-27: **Sending offers (admin Offers tab).** Subject up to 120 characters on one line, message up to 5,000, plain text. The review shows the exact email and "Send to N subscribers". One send at a time, to the verified, opted-in accounts at that moment; nobody's address is shown or exported. Each recipient gets at most one copy: a failed or interrupted send is counted as "not delivered" and never retried. Someone who unsubscribes mid-send is skipped. A closed tab shows "Continue sending". The daily cap pauses a send, and it can continue later.
+- FR-28: **Unsubscribe.** Every offer email has a link and the `List-Unsubscribe` headers. The page never shows the email, opening it changes nothing, and its one button (or a mail app's one-click) unsubscribes without a login. Login codes and booking emails carry no unsubscribe link.
+
 ### 7.7 Payments (Phase 2 — design for, don't build now)
 - FR-22: Paid plans purchased through a **hosted checkout provider (e.g., Stripe Checkout)** — the site/server must **never see or store card numbers**. After successful payment a webhook marks the order paid and unlocks credits. Webhooks are signature-verified and idempotent.
 
@@ -241,6 +252,8 @@ Login screen (email + password). After login, one page showing:
 - **Membership request** (one contact message; plan key, label and price snapshot, optional format, status New / Contacted / Active, start date while Active)
 - **Admin user** (email, password hash, failed attempts, locked-until)
 - **Settings** (key/value: drive link, notify email)
+- **Account** (email, offers setting, consent time and version, unsubscribe token), its **sessions**, **login codes** and **rate limits**
+- **Offer** (subject, body, status) and **offer recipient** (one per account, status)
 
 ## 9. Non-Functional Requirements
 - **Security:** input validation on every endpoint; rate limiting (stricter on writes and admin login); parameterised queries; secure headers; CORS locked down; secrets only in environment variables; hashed admin password; no card data stored.

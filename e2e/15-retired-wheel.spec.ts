@@ -308,8 +308,8 @@ test.describe('public text', () => {
     expect(options.join('|')).not.toMatch(WHEEL);
   });
 
-  test('all 10 class pages never name a Wheel class', async ({ page, request }) => {
-    expect(PRACTICE_CLASSES).toHaveLength(10);
+  test('all 9 class pages never name a Wheel class', async ({ page, request }) => {
+    expect(PRACTICE_CLASSES).toHaveLength(9);
     for (const cls of PRACTICE_CLASSES) {
       const res = await request.get(`/classes/${cls.slug}`);
       expect(res.status(), cls.slug).toBe(200);

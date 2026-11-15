@@ -146,7 +146,7 @@ test('early cancel of a trial class gives it back, but not for the same session'
   const shot = stepShooter(page, FEATURE, info.title);
   const request = page.request;
   const email = uniqueEmail('k-early');
-  const first = await firstAvailableSession(request, 7); // far enough ahead for a free cancellation
+  const first = await firstAvailableSession(request, 25); // far enough ahead for a free cancellation
   const second = (await schedule(request)).find((s) => !s.isRestDay && s.status === 'available' && s.id !== first.id);
 
   const booked = await book(request, first.id, email);
@@ -166,7 +166,7 @@ test('early cancel of a trial class gives it back, but not for the same session'
 
   // the booking form says the same and offers the other sessions instead
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   const modal = bookingModal(page);
   await expect(modal.locator(`select option[value="${first.id}"]`)).toBeAttached();
   await modal.locator('select').selectOption(first.id);
@@ -192,9 +192,17 @@ test('early cancel of a trial class gives it back, but not for the same session'
   expect(other.body.booking.amountAed).toBe(90);
 });
 
-test('late cancel of a trial class keeps it used', async ({ request }) => {
+/** Minutes from now to the next Dubai midnight (Dubai is UTC+4 all year). */
+const minutesToDubaiMidnight = () => {
+  const dubai = new Date(Date.now() + 4 * 60 * 60 * 1000);
+  return 24 * 60 - (dubai.getUTCHours() * 60 + dubai.getUTCMinutes());
+};
+
+test('late cancel of a trial class on the day keeps it used', async ({ request }) => {
+  const toMidnight = minutesToDubaiMidnight();
+  test.skip(toMidnight < 10, 'too close to Dubai midnight for a same-day session');
   const email = uniqueEmail('k-late');
-  const soon = await request.post('/api/test/session-soon', { data: { minutesFromNow: 90 } });
+  const soon = await request.post('/api/test/session-soon', { data: { minutesFromNow: Math.min(90, toMidnight - 5) } });
   expect(soon.status()).toBe(201);
   const { session } = await soon.json();
 
@@ -204,13 +212,39 @@ test('late cancel of a trial class keeps it used', async ({ request }) => {
   expect(cancel.status()).toBe(200);
   const cancelBody = await cancel.json();
   expect(cancelBody.booking.creditStatus).toBe('burned');
-  expect(cancelBody.noticeHours).toBeLessThan(6);
+  expect(cancelBody.noticeHours).toBeLessThan(24);
   expect(cancelBody.message).toContain('your trial class counts as used');
 
   const next = await firstAvailableSession(request);
   const again = await book(request, next.id, email);
   expect(again.res.status()).toBe(400);
   expect(again.body.error).toContain('already used its trial class');
+});
+
+test('under 24 hours but not on the day: one late move gives the class back, a second is charged', async ({ request }) => {
+  const toMidnight = minutesToDubaiMidnight();
+  // The session must be tomorrow (Dubai) and still under 24 hours away.
+  const minutes = Math.min(toMidnight + 60, 24 * 60 - 10);
+  test.skip(minutes <= toMidnight + 10, 'too close to Dubai midnight for a next-day session under 24 hours');
+  const email = uniqueEmail('k-move');
+  // Two different sessions (the same start would be the same session, which a cancelled trial can't rebook).
+  const make = async (offset = 0) =>
+    (await (await request.post('/api/test/session-soon', { data: { minutesFromNow: minutes - offset } })).json()).session;
+
+  const first = await book(request, (await make()).id, email);
+  expect(first.res.status()).toBe(201);
+  const moved = await (await request.post('/api/bookings/cancel', { data: { bookingToken: first.body.booking.bookingToken } })).json();
+  expect(moved.booking.creditStatus).toBe('refunded');
+  expect(moved.message).toContain('one late move');
+  const alert = (await outbox(request)).find((e) => e.kind === 'cancellation_alert' && e.replyTo === email);
+  expect(alert.body).toContain('their one late move');
+
+  // The trial came back; moving it late a second time is charged.
+  const second = await book(request, (await make(3)).id, email);
+  expect(second.res.status()).toBe(201);
+  const late = await (await request.post('/api/bookings/cancel', { data: { bookingToken: second.body.booking.bookingToken } })).json();
+  expect(late.booking.creditStatus).toBe('burned');
+  expect(late.message).toContain('your trial class counts as used');
 });
 
 test('the payment line in both emails follows the format, and never says "in person" online', async ({ request }) => {
@@ -239,14 +273,14 @@ test('the payment line in both emails follows the format, and never says "in per
   const confirmation = emails.find((e) => e.kind === 'booking_confirmation' && e.recipient === online);
   expect(confirmation.body).toContain('• Plan: Trial class');
   expect(confirmation.body).not.toMatch(/complimentary/i);
-  expect(confirmation.body).toContain('Cancellations are free up to 6 hours');
+  expect(confirmation.body).toContain('Cancel or move for free up to 24 hours before class');
 });
 
 test('a cancelled trial tells Priyanshi they can book it again', async ({ request }) => {
-  const session = await firstAvailableSession(request, 7);
+  const session = await firstAvailableSession(request, 25);
   const email = uniqueEmail('pay-cancel');
   const { body } = await book(request, session.id, email);
   expect((await request.post('/api/bookings/cancel', { data: { bookingToken: body.booking.bookingToken } })).status()).toBe(200);
   const alert = (await outbox(request)).find((e) => e.kind === 'cancellation_alert' && e.replyTo === email);
-  expect(alert.body).toContain('Cancelled with 6+ hours notice: they can book the trial class again.');
+  expect(alert.body).toContain('Cancelled with 24+ hours notice: they can book the trial class again.');
 });

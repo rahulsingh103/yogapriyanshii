@@ -41,18 +41,12 @@ const GROUP: Record<Goal, Record<Experience, [string, string | null]>> = {
   pregnancy: { new: ['Prenatal & Postnatal', null], some: ['Prenatal & Postnatal', null], regular: ['Prenatal & Postnatal', null] },
   unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Barre'] },
 };
-const PRIVATE: Partial<Record<Goal, Partial<Record<Experience, [string, string]>>>> = {
-  strength: { some: ['Aerial Yoga', 'Vinyasa'], regular: ['Aerial Yoga', 'Ashtanga'] },
-  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Yin Yoga'] },
-};
 const BOOKABLE = ['Hatha', 'Barre', 'Chakra Flow', 'Vinyasa', 'Yin Yoga'];
 
 function expected(goal: Goal, exp: Experience, format: Format) {
-  const [main, alt] = (format === 'private' && PRIVATE[goal]?.[exp]) || GROUP[goal][exp];
+  const [main, alt] = GROUP[goal][exp];
   const primary =
-    main === 'Aerial Yoga'
-      ? 'Ask about private Aerial'
-      : format === 'private'
+    format === 'private'
         ? main === 'Prenatal & Postnatal'
           ? 'Ask about this class'
           : 'Ask about a private session'
@@ -64,6 +58,13 @@ function expected(goal: Goal, exp: Experience, format: Format) {
 
 const heroLink = (page: Page) => page.locator('#home').getByRole('button', { name: 'Find your class' });
 const carouselLink = (page: Page) => page.locator('#classes').getByTestId('quiz-card');
+
+/** The floating WhatsApp button starts after the hero (owner request 2026-11-14): scroll just past it. */
+const pastHero = (page: Page) =>
+  page.evaluate(() => {
+    const h = document.getElementById('home');
+    window.scrollTo(0, (h?.offsetTop ?? 0) + (h?.offsetHeight ?? 0) + 40);
+  });
 const quizBand = (page: Page) => page.getByRole('region', { name: 'Not sure which class suits you?' });
 const chat = (page: Page) => page.getByTestId('whatsapp-chat');
 const resultName = (finder: Locator) => finder.getByTestId('class-finder-result').getByRole('heading', { level: 3 });
@@ -139,12 +140,13 @@ test('hero: "Find your class" is the secondary pill after the one primary, opens
   expect(l.x, 'beside the button').toBeGreaterThanOrEqual(c.x + c.width);
   expect(Math.abs(l.y - c.y)).toBeLessThanOrEqual(1);
   expect(l.height).toBeGreaterThanOrEqual(44);
-  // A pill with a border in the page's own colour, so only Book is dark and the mandala's lines stay out. No underline.
+  // A pill with a light border over the photo. No underline.
   const style = await link.evaluate((el) => {
     const s = getComputedStyle(el);
     return { bg: s.backgroundColor, radius: parseFloat(s.borderRadius), border: parseFloat(s.borderTopWidth), decoration: s.textDecorationLine };
   });
-  expect(style.bg).toBe(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
+  // On the full-photo hero (2026-11-14) it is a light see-through glass pill, so only Book is solid.
+  expect(style.bg).toMatch(/\/ 0\.1\)$|, 0\.1\)$/);
   expect(style.radius).toBeGreaterThan(20);
   expect(style.border).toBe(1);
   expect(style.decoration).toBe('none');
@@ -165,26 +167,12 @@ test('hero: "Find your class" is the secondary pill after the one primary, opens
   await expect(link).toBeFocused();
 });
 
-test('band: its own section before the classes, one line, one quieter button, opens the finder', async ({ page }) => {
+test('no quiz band: removed 2026-11-14, the hero link and the carousel card are the ways in', async ({ page }) => {
   await openHome(page);
-  const band = quizBand(page);
-  await band.scrollIntoViewIfNeeded();
-  await expect(band.getByRole('heading', { level: 2 })).toHaveText('Not sure which class suits you?');
-  await expect(band.getByText("Answer a few quick questions and get a suggestion from Priyanshi's classes.")).toBeVisible();
-  await expect(band.getByRole('button')).toHaveCount(1);
-  const button = band.getByRole('button', { name: 'Take the quiz' });
-  expect(await button.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
-  // Outside #classes, with no id: the nav and the card restore still land on the carousel heading.
-  expect(await band.getAttribute('id')).toBeNull();
-  const b = (await band.boundingBox())!;
-  const c = (await page.locator('#classes').boundingBox())!;
-  expect(b.y + b.height).toBeLessThanOrEqual(c.y);
-  await button.click();
-  const finder = classFinder(page);
-  await expect(finder.getByText('Question 1 of 3')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(finder).toHaveCount(0);
-  await expect(button).toBeFocused();
+  await expect(quizBand(page)).toHaveCount(0);
+  await expect(page.getByText('Not sure which class suits you?')).toHaveCount(0);
+  await expect(heroLink(page)).toBeVisible();
+  await expect(carouselLink(page)).toHaveCount(1);
 });
 
 test('carousel: the quiz card comes first, opens the finder, and the X returns focus', async ({ page }, info) => {
@@ -202,8 +190,8 @@ test('carousel: the quiz card comes first, opens the finder, and the X returns f
   const title = (await card.getByText('Not sure where to start?').boundingBox())!;
   const cardBox = (await card.boundingBox())!;
   expect(title.y).toBeGreaterThan(cardBox.y + cardBox.height / 2);
-  await expect(track.getByTestId('practice-card')).toHaveCount(10);
-  await expect(track.locator('[data-snap-item]')).toHaveCount(11);
+  await expect(track.getByTestId('practice-card')).toHaveCount(9);
+  await expect(track.locator('[data-snap-item]')).toHaveCount(10);
   await expect(track.locator('[data-snap-item]').first().getByTestId('quiz-card')).toHaveCount(1);
   // The bottoms line up with the class cards.
   const c = (await card.boundingBox())!;
@@ -271,8 +259,8 @@ for (const goal of Object.keys(GOAL) as Goal[]) {
       for (const format of Object.keys(FORMAT) as Format[]) {
         await answerAll(finder, goal, exp, format);
         await expectResult(finder, goal, exp, format);
-        // Aerial appears only for private.
-        if (format !== 'private') await expect(finder.getByText(/Aerial/)).toHaveCount(0);
+        // Aerial was removed (2026-11-14): never suggested.
+        await expect(finder.getByText(/Aerial/)).toHaveCount(0);
         await expect(finder.getByText(/\bWheel\b/)).toHaveCount(0);
         await startAgain(finder);
       }
@@ -303,27 +291,27 @@ test('pregnancy: always Prenatal & Postnatal, no alternative, the notice, and no
 test('WhatsApp: the prefill names the answers and the class, and the floating button steps aside', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
+  await expect(chat(page)).toHaveCount(0);
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
-  await heroLink(page).click();
+  await carouselLink(page).click();
   const finder = classFinder(page);
   await expect(finder.getByText('Question 1 of 3')).toBeVisible();
   await expect(chat(page)).toHaveCount(0);
 
-  // Private Aerial.
+  // Private: strength, regular suggests Ashtanga, arranged one to one.
   await answerAll(finder, 'strength', 'regular', 'private');
   const link = finder.getByRole('link', { name: 'Ask Priyanshi on WhatsApp' });
   await expect(link).toHaveAttribute('target', '_blank');
   let { href, text } = await prefillOf(link);
   expect(text).toBe(
-    "Hi Priyanshi, I found you on yogapriyanshi.com and used the class finder. I'm looking for more strength, I'm practising regularly, and I'd like to practise one to one. It suggested Aerial Yoga. Is that a good fit for me?"
+    "Hi Priyanshi, I found you on yogapriyanshi.com and used the class finder. I'm looking for more strength, I'm practising regularly, and I'd like to practise one to one. It suggested Ashtanga. Is that a good fit for me?"
   );
   expect(href).not.toMatch(/@|YP-/);
   await expect(finder.getByText('Just you and Priyanshi. She arranges the details with you.')).toBeVisible();
-  // Aerial's card line has no duration, so no meta line shows.
-  await expect(finder.getByTestId('class-finder-result').getByText(/\bmin\b|Private sessions only/)).toHaveCount(0);
   // The title is visually hidden on the result, so the eyebrow leads into the class name.
   await expect(finder.getByRole('heading', { level: 2 })).toHaveClass(/\bsr-only\b/);
-  await shot('private-aerial');
+  await shot('private-ashtanga');
   await startAgain(finder);
 
   // Online Yin, then the alternative.
@@ -362,6 +350,7 @@ test('WhatsApp: the prefill names the answers and the class, and the floating bu
   await expect(finder.getByRole('link', { name: 'Chat with Priyanshi on WhatsApp' })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(finder).toHaveCount(0);
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
   await expect(page.getByRole('link', { name: 'Chat with Priyanshi on WhatsApp' })).toHaveCount(1);
 
@@ -415,7 +404,6 @@ test('book and contact routes open the right sheet with the right class', async 
   const routes: Array<[Goal, Experience, Format, string, string]> = [
     ['back', 'new', 'in_person', 'Ask about this class', 'Spine Healing'],
     ['relax', 'new', 'private', 'Ask about a private session', 'Private session'],
-    ['strength', 'regular', 'private', 'Ask about private Aerial', 'Private Aerial Yoga'],
     ['pregnancy', 'new', 'private', 'Ask about this class', 'Prenatal & Postnatal'],
   ];
   for (const [goal, exp, format, label, interest] of routes) {
@@ -705,7 +693,7 @@ test('screenshots: Q1, a result, the pregnancy result and the hero link at 1280 
     await startAgain(finder);
     await answerAll(finder, 'strength', 'regular', 'private');
     await settled(finder);
-    await page.screenshot({ path: path.join(SHOTS, `${width}-result-aerial.png`) });
+    await page.screenshot({ path: path.join(SHOTS, `${width}-result-private.png`) });
     if (width === 1280) {
       await page.keyboard.press('Escape');
       const classes = page.locator('#classes');
@@ -1331,8 +1319,9 @@ async function holdChunk(page: Page) {
 test('slow chunk: the sheet opens once it arrives, and focus returns to the opener', async ({ page }) => {
   const release = await holdChunk(page);
   await openHome(page);
+  await pastHero(page);
   const finder = classFinder(page);
-  const button = quizBand(page).getByRole('button', { name: 'Take the quiz' });
+  const button = carouselLink(page);
   await button.click();
   // While it loads the page stays live: no half-open state, the WhatsApp button stays.
   await expect(finder).toHaveCount(0);
@@ -1344,6 +1333,7 @@ test('slow chunk: the sheet opens once it arrives, and focus returns to the open
   await page.keyboard.press('Escape');
   await expect(finder).toHaveCount(0);
   await expect(button).toBeFocused();
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
 });
 
@@ -1388,18 +1378,20 @@ plainTest('failed chunk: one guarded reload on a tap, never on the preload, one 
   expect(loads, 'a failed idle preload never reloads').toBe(1);
 
   const finder = classFinder(page);
-  await quizBand(page).getByRole('button', { name: 'Take the quiz' }).click();
+  await heroLink(page).click();
   await expect.poll(() => loads).toBe(2);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.evaluate(() => sessionStorage.getItem('yp-chunk-reload'))).resolves.toBe('1');
 
   // The second failure does nothing beyond leaving the page as it was.
-  await quizBand(page).getByRole('button', { name: 'Take the quiz' }).click();
+  await pastHero(page);
+  await carouselLink(page).click();
   await page.waitForTimeout(800);
   expect(loads, 'no reload loop').toBe(2);
   await expect(finder).toHaveCount(0);
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('main')).not.toHaveAttribute('inert');
+  await pastHero(page);
   await expect(page.getByTestId('whatsapp-chat')).toBeVisible();
   expect(uncaught).toEqual([]);
 

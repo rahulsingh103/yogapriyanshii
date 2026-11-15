@@ -7,6 +7,7 @@ import type { APIRequestContext, Page } from '@playwright/test';
 import { test, expect, bookingModal, classFinder } from './helpers';
 // Pure data modules (relative imports, no import.meta.env), so the tests check against the source of truth.
 import { PRACTICE_CLASSES } from '../src/constants/classes';
+import { LEGAL_PAGES } from '../src/constants/legal';
 import {
   CLASS_PAGES,
   CLASS_PAGE_ON_REQUEST_LINE,
@@ -32,7 +33,7 @@ const HOME_GZ_BASELINE = 156678;
 const SITE = 'https://www.yogapriyanshi.com';
 const SHOTS = path.join('.data', 'shots', 'batch4');
 const BOOKABLE = PRACTICE_CLASSES.filter((c) => c.style);
-const CONTACT_ONLY = PRACTICE_CLASSES.filter((c) => !c.style && c.name !== 'Aerial Yoga');
+const CONTACT_ONLY = PRACTICE_CLASSES.filter((c) => !c.style);
 const content = (name: string) => CLASS_PAGES[name as ClassName];
 
 const attr = (html: string, re: RegExp) => html.match(re)?.[1] ?? null;
@@ -87,7 +88,7 @@ async function cardInTrack(page: Page, slug: string) {
 }
 
 test.describe('served HTML', () => {
-  test('all 10 class pages are prerendered with their own head and content', async ({ request }) => {
+  test('all 9 class pages are prerendered with their own head and content', async ({ request }) => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
     for (const cls of PRACTICE_CLASSES) {
@@ -118,8 +119,8 @@ test.describe('served HTML', () => {
       // "Spine Healing" is the class's name, the one allowed use (with its slug in the photo URLs).
       expect(decode(root).replace(/Spine Healing|\/media\/images\/practice\/spine-healing-\d+\.webp/g, '')).not.toMatch(WORDING_GUARD);
     }
-    expect(titles.size).toBe(10);
-    expect(descriptions.size).toBe(10);
+    expect(titles.size).toBe(PRACTICE_CLASSES.length);
+    expect(descriptions.size).toBe(PRACTICE_CLASSES.length);
 
     const slash = await request.get('/classes/hatha/');
     expect(slash.status()).toBe(200);
@@ -139,13 +140,12 @@ test.describe('rendered class pages', () => {
       await expect(page.getByTestId('class-who-for')).toHaveText(staticWho);
       await expect(page.getByTestId('class-who-for')).toHaveText(content(cls.name).whoFor);
       const bring = page.getByTestId('class-before').locator('li');
-      // 6 items; private Aerial drops the own-mat line.
+      // 6 items on every page.
       const expected = classBeforeList(classPageKind(cls));
-      expect(expected).toHaveLength(cls.name === 'Aerial Yoga' ? 5 : 6);
+      expect(expected).toHaveLength(6);
       await expect(bring).toHaveCount(expected.length);
       await expect(bring).toHaveText(staticBring);
       await expect(bring).toHaveText([...expected]);
-      if (cls.name === 'Aerial Yoga') await expect(page.getByTestId('class-before')).not.toContainText(/own mat/i);
       // "What it focuses on" and "Where it comes from": same text as the static HTML and the data.
       const c = content(cls.name);
       for (const [key, value] of [['focus', c.focus.join(' · ')], ['origin', c.origin]]) {
@@ -186,7 +186,7 @@ test.describe('rendered class pages', () => {
       expect(text, `${cls.slug} facts`).not.toMatch(FACTS_GUARD);
       origins.add(origin);
     }
-    expect(origins.size).toBe(10);
+    expect(origins.size).toBe(PRACTICE_CLASSES.length);
   });
 
   test('a class page served in dev has no failed requests', async ({ page }) => {
@@ -195,7 +195,7 @@ test.describe('rendered class pages', () => {
     page.on('response', (r) => {
       if (r.status() >= 400) failures.push(`${r.status()} ${r.url()}`);
     });
-    for (const slug of ['hatha', 'prenatal-postnatal', 'aerial-yoga']) {
+    for (const slug of ['hatha', 'prenatal-postnatal', 'ashtanga']) {
       await openClass(page, slug);
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       await expect(page.locator('main img')).toHaveJSProperty('complete', true);
@@ -219,15 +219,14 @@ test.describe('honest actions', () => {
   }
 
   test('contact-only and private pages open contact with the right interest, never "Book" or "trial"', async ({ page }) => {
-    for (const cls of [...CONTACT_ONLY, PRACTICE_CLASSES.find((c) => c.name === 'Aerial Yoga')!]) {
+    for (const cls of CONTACT_ONLY) {
       await openClass(page, cls.slug);
-      const aerial = cls.name === 'Aerial Yoga';
       const actions = page.locator('#class-actions');
-      if (!aerial) await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
+      await expect(actions).toContainText(CLASS_PAGE_ON_REQUEST_LINE);
       expect(await page.locator('main').innerText()).not.toMatch(/book|free|trial/i);
-      await actions.getByRole('button', { name: aerial ? 'Ask about private Aerial' : 'Ask about this class' }).click();
+      await actions.getByRole('button', { name: 'Ask about this class' }).click();
       const dialog = page.getByRole('dialog', { name: 'Send a message' });
-      await expect(dialog.getByLabel('Area of Interest')).toHaveValue(aerial ? 'Private Aerial Yoga' : cls.contactInterest!);
+      await expect(dialog.getByLabel('Area of Interest')).toHaveValue(cls.contactInterest!);
       await page.keyboard.press('Escape');
       await expect(dialog).toHaveCount(0);
     }
@@ -259,7 +258,7 @@ test.describe('carousel', () => {
     const classes = page.locator('#classes');
     await classes.scrollIntoViewIfNeeded();
     const links = classes.getByRole('link', { name: /^Learn more about / });
-    await expect(links).toHaveCount(10);
+    await expect(links).toHaveCount(9);
     for (const [i, cls] of PRACTICE_CLASSES.entries()) {
       await expect(links.nth(i)).toHaveAccessibleName(`Learn more about ${cls.name}`);
       await expect(links.nth(i)).toHaveAttribute('href', `/classes/${cls.slug}`);
@@ -445,7 +444,7 @@ test('the action pills never wrap or overflow, 320 to 1440px', async ({ browser 
   try {
     for (const width of [320, 375, 640, 768, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const slug of ['aerial-yoga', 'hatha', 'prenatal-postnatal']) {
+      for (const slug of ['ashtanga', 'hatha', 'prenatal-postnatal']) {
         await page.goto(`/classes/${slug}`);
         await settled(page);
         const bad = await page.locator('#class-actions').evaluate((section) =>
@@ -473,7 +472,7 @@ test('screenshots at 1024, 1280 and 375', async ({ browser }) => {
   for (const [width, height] of [[1024, 768], [1280, 900], [375, 812]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     try {
-      for (const p of ['/classes/hatha', '/classes/barre', '/classes/spine-healing', '/classes/aerial-yoga', '/classes/nope']) {
+      for (const p of ['/classes/hatha', '/classes/barre', '/classes/spine-healing', '/classes/ashtanga', '/classes/nope']) {
         await page.goto(p);
         await settled(page);
         await page.evaluate(() => document.fonts.ready);
@@ -818,7 +817,7 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
 
     const sitemap = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf-8');
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    expect(locs).toEqual([`${SITE}/`, ...PRACTICE_CLASSES.map((c) => `${SITE}/classes/${c.slug}`)]);
+    expect(locs).toEqual([`${SITE}/`, ...PRACTICE_CLASSES.map((c) => `${SITE}/classes/${c.slug}`), ...LEGAL_PAGES.map((p) => `${SITE}${p.path}`)]);
     expect(sitemap).not.toContain('/guides');
     const robots = fs.readFileSync(path.join(out, 'robots.txt'), 'utf-8');
     expect(robots).toContain(`Sitemap: ${SITE}/sitemap.xml`);

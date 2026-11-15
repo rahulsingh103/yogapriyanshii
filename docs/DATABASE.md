@@ -22,7 +22,7 @@
 - Local `file:` databases migrate themselves when the server starts. Turso never auto-migrates.
 - Each migration file runs as one atomic batch, and re-running is safe.
 
-## Schema (`db/migrations/001_init.sql`, plus `003_contact_phone.sql`, `004_membership_requests.sql` and `005_replace_wheel_timetable.sql`)
+## Schema (`db/migrations/001_init.sql`, plus `003_contact_phone.sql`, `004_membership_requests.sql`, `005_replace_wheel_timetable.sql` and `006_student_accounts.sql`)
 
 | Table | Key columns | Notes |
 |---|---|---|
@@ -37,6 +37,12 @@
 | `settings` | `key` PK, value | `notify_email` (where alerts go), `studio_email` (reply-to for students, shown when a rebook is refused), `drive_link` |
 | `admin_users` | `id` PK, email, failed_attempts, locked_until | One row. The password hash is **not** here: it's the `ADMIN_PASSWORD_HASH` env var. |
 | `admin_sessions` | `token_hash` PK (SHA-256), admin_id, created_at, expires_at | 2-hour sessions. Deleted on logout. |
+| `accounts` | `id` PK, email UNIQUE (normalized), created_at, unsubscribe_token UNIQUE, offers_opt_in (0/1), offers_consent_at, offers_consent_version, offers_opted_out_at | One per verified student. Separate from `customers`: no name, and no link to bookings. Created only when a code is verified. |
+| `account_sessions` | `token_hash` PK (SHA-256), account_id → accounts, created_at, expires_at | 30-day sessions. Deleted on log-out; expired rows are purged. Indexed on (expires_at). |
+| `login_codes` | `email` PK, code_hash (HMAC-SHA-256 over email and code, keyed with `ACCOUNT_SECRET`), attempts, pending_offers (0/1), created_at, expires_at | One live code per email. Deleted when used; expired rows are purged. Indexed on (expires_at). |
+| `rate_limits` | `key` PK (HMAC, never a raw email or IP), count, expires_at | Fixed-window counters, in the database because Vercel runs several instances. Indexed on (expires_at). |
+| `offers` | `id` PK, subject, body, status (`sending`, `done`), created_at, finished_at | A partial UNIQUE index on status `WHERE status = 'sending'` allows one send at a time. The admin list shows the last 10. |
+| `offer_recipients` | (offer_id, account_id) PK, status (`pending`, `sending`, `sent`, `failed`, `skipped`), claimed_at, sent_at | The recipients, taken when the offer is created. The composite key means one row per person per offer. Indexed on (offer_id, status) and (status, sent_at). |
 
 `003_contact_phone.sql` adds the optional `contact_messages.phone` column. It's additive, so code from before it keeps working against a migrated database. Release order: run `db:migrate:live` first, then deploy.
 
@@ -56,6 +62,24 @@
   4. Check the live site: Thursday and Friday have classes, and `/classes/wheel` gives a 308. Repeat the booked-Wheel query after the deploy, and settle what happens to those bookings against that result.
 - **If the code deploys first:** Thursday and Friday show as empty "No class" days while the copy says "every day", and the Vinyasa and Yin cards fall back to the soonest other class, visibly named. Safe, but misleading, so avoid it.
 - **Rollback:** revert the code and leave the rows. The old code works against them: Vinyasa and Yin book correctly, and the old Wheel card preselects a new class, visibly named. Restoring the Wheel slot needs a new, human-approved migration.
+
+`006_student_accounts.sql` adds the six account and offer tables above and their indexes (`IF NOT EXISTS`, so a re-run does nothing). It's additive: nothing older reads them, and booking doesn't use them.
+- **Release order (human-run):** set `ACCOUNT_SECRET` on Vercel Production, check which migrations are pending, run `db:migrate:live`, then deploy. **`db:migrate:live` applies every pending file**, which may include 004 and the non-additive 005, so read their release notes above first if they're still pending. If the code deploys first, account and offer routes answer a friendly 503 and booking is unaffected.
+- **Rollback:** revert the code and leave the tables; dropping them is a manual, human-only step.
+- **Queries:** a code is consumed with `DELETE … WHERE email = ? AND code_hash = ? RETURNING`, so concurrent checks have one winner. Each `request-code` deletes at most 100 expired rows from each of `rate_limits`, `login_codes` and `account_sessions`. Creating an offer copies the opted-in accounts into `offer_recipients` in one `INSERT … SELECT` (nothing is returned to the browser); the admin list has `LIMIT 10`.
+- **Offers consent versions** (`accounts.offers_consent_version`). A new wording needs a new row here and in `OFFERS_CONSENT` (`backend/validate.ts`):
+
+| Version | Wording |
+|---|---|
+| `2026-11-07` | Email me monthly and holiday offers from Priyanshi. I can unsubscribe at any time. |
+
+- **Deleting an account (manual, human-run, by email):** there is no self-serve deletion. Against the right database, in one transaction, in this order:
+  1. `DELETE FROM offer_recipients WHERE account_id IN (SELECT id FROM accounts WHERE email = ?)`
+  2. `DELETE FROM account_sessions WHERE account_id IN (SELECT id FROM accounts WHERE email = ?)`
+  3. `DELETE FROM login_codes WHERE email = ?`
+  4. `DELETE FROM accounts WHERE email = ?`
+
+  Bookings and contact messages are separate records and aren't touched by this.
 
 `002_seed.sql` adds reference data only: the classes, the weekly template, the default settings and the admin row. There are no sample customers, bookings or messages.
 

@@ -30,7 +30,6 @@ const INTERESTS: ReadonlyArray<readonly [string, string]> = [
   ['Prenatal & Postnatal', 'Prenatal & Postnatal'],
   ['Vinyasa Yoga', 'Vinyasa Yoga'],
   ['Ashtanga Yoga', 'Ashtanga Yoga'],
-  ['Private Aerial Yoga', 'Private Aerial Yoga'],
   ['Private session', 'Private 1-to-1 session'],
   [MEMBERSHIP.interest, 'Monthly membership'],
   ['Class Packs & Corporate', 'Class Packs & Corporate'],

@@ -8,7 +8,30 @@ import { login, logout, requireAdmin, resetAdminLockout, saveSettings, stats } f
 import { listMembers, parseMembersQuery, updateMember } from './membership.js';
 import { RETIRED_CLASS_ID, createAdhocSession, createLegacyWheelOrphans, listSchedule, setUnmigratedTemplate } from './schedule.js';
 import { testOutbox } from './email.js';
-import { bad, normalizeEmail } from './validate.js';
+import {
+  ACCOUNTS_UNAVAILABLE,
+  accountTestHelpers,
+  accountWriteGuard,
+  clearedSessionCookie,
+  currentAccount,
+  logoutAccount,
+  requestCode,
+  sessionCookie,
+  updateAccount,
+  verifyCode,
+} from './accounts.js';
+import {
+  OFFERS_UNAVAILABLE,
+  createOffer,
+  interruptOneRecipientForTests,
+  isUnsubscribeToken,
+  offersOverview,
+  sendOfferBatch,
+  setOfferDailyLimitForTests,
+  unsubscribe,
+} from './offers.js';
+import { clientIp } from './rate-limit.js';
+import { HttpError, UUID_RE, bad, normalizeEmail } from './validate.js';
 
 type Handler = (req: Request, res: Response) => Promise<unknown>;
 
@@ -19,6 +42,22 @@ const wrap = (fn: Handler) => (req: Request, res: Response, next: NextFunction) 
 
 const bodyOf = (req: Request): Record<string, unknown> =>
   req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? (req.body as Record<string, unknown>) : {};
+
+/** The tables arrive with migration 006: if the code deploys first, a friendly 503 instead of a 500. */
+const needsTables = (message: string, fn: Handler): Handler => async (req, res) => {
+  try {
+    await fn(req, res);
+  } catch (err) {
+    throw /no such table/i.test((err as Error)?.message ?? '') ? new HttpError(503, message) : err;
+  }
+};
+const accountHandler = (fn: Handler) => wrap(needsTables(ACCOUNTS_UNAVAILABLE, fn));
+const offersHandler = (fn: Handler) => wrap(needsTables(OFFERS_UNAVAILABLE, fn));
+
+const noStore = (_req: Request, res: Response, next: NextFunction) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+};
 
 export function buildRouter(): express.Router {
   const r = express.Router();
@@ -146,6 +185,93 @@ export function buildRouter(): express.Router {
     })
   );
 
+  // Student accounts. Everything here carries the session, so nothing is cached and writes pass the CSRF guard.
+  r.use('/api/account', noStore);
+
+  r.post(
+    '/api/account/request-code',
+    accountWriteGuard,
+    accountHandler(async (req, res) => {
+      res.json(await requestCode(bodyOf(req), clientIp(req)));
+    })
+  );
+
+  r.post(
+    '/api/account/verify',
+    accountWriteGuard,
+    accountHandler(async (req, res) => {
+      const { token, ...result } = await verifyCode(bodyOf(req), clientIp(req));
+      res.set('Set-Cookie', sessionCookie(token, { secure: getConfig().secureCookies }));
+      res.json(result);
+    })
+  );
+
+  r.get(
+    '/api/account/me',
+    accountHandler(async (req, res) => {
+      res.json(await currentAccount(req));
+    })
+  );
+
+  r.post(
+    '/api/account/update',
+    accountWriteGuard,
+    accountHandler(async (req, res) => {
+      res.json(await updateAccount(req, bodyOf(req)));
+    })
+  );
+
+  r.post(
+    '/api/account/logout',
+    accountWriteGuard,
+    accountHandler(async (req, res) => {
+      // The session row goes first: if that fails, the cookie stays and the student can try again.
+      const result = await logoutAccount(req);
+      res.set('Set-Cookie', clearedSessionCookie({ secure: getConfig().secureCookies }));
+      res.json(result);
+    })
+  );
+
+  // Offer emails: unsubscribing needs no login and no Origin, because mail clients POST it one-click.
+  r.use('/api/offers', noStore);
+
+  r.post(
+    '/api/offers/unsubscribe',
+    offersHandler(async (req, res) => {
+      res.json(await unsubscribe(req.query.token));
+    })
+  );
+
+  // The List-Unsubscribe link, for mail apps that open it. A GET never changes anything.
+  r.get('/api/offers/unsubscribe', (req, res) => {
+    const { token } = req.query;
+    res.redirect(302, isUnsubscribeToken(token) ? `/unsubscribe?token=${token}` : '/unsubscribe');
+  });
+
+  r.get(
+    '/api/admin/offers',
+    requireAdmin,
+    offersHandler(async (_req, res) => {
+      res.json(await offersOverview());
+    })
+  );
+
+  r.post(
+    '/api/admin/offers',
+    requireAdmin,
+    offersHandler(async (req, res) => {
+      res.json(await createOffer(bodyOf(req)));
+    })
+  );
+
+  r.post(
+    '/api/admin/offers/:id/send-batch',
+    requireAdmin,
+    offersHandler(async (req, res) => {
+      res.json(await sendOfferBatch(req.params.id));
+    })
+  );
+
   // Test-only helpers: mounted only when APP_ENV=test and never on Vercel.
   const cfg = getConfig();
   if (cfg.testRoutes && cfg.mode === 'test' && !cfg.onVercel) {
@@ -200,6 +326,87 @@ export function buildRouter(): express.Router {
         const { on } = bodyOf(req);
         if (typeof on !== 'boolean') throw bad('on must be true or false.');
         await setUnmigratedTemplate(on);
+        res.json({ success: true });
+      })
+    );
+    const testEmail = (req: Request) => {
+      const email = normalizeEmail(bodyOf(req).email);
+      if (!email) throw bad('email is required.');
+      return email;
+    };
+    // Clears the limits so account tests start clean: all of them, only the named windows for one email,
+    // or (allData) every account and offer too.
+    r.post(
+      '/api/test/account-limits-reset',
+      wrap(async (req, res) => {
+        const { email, scopes, allData } = bodyOf(req);
+        await accountTestHelpers.resetLimits({
+          email: typeof email === 'string' ? email : undefined,
+          scopes: Array.isArray(scopes) ? scopes.map(String) : undefined,
+          allData: allData === true,
+        });
+        res.json({ success: true });
+      })
+    );
+    r.post(
+      '/api/test/account-row',
+      wrap(async (req, res) => {
+        res.json(await accountTestHelpers.row(testEmail(req)));
+      })
+    );
+    // A fixed list of tables and no input.
+    r.get(
+      '/api/test/account-table-counts',
+      wrap(async (_req, res) => {
+        res.json(await accountTestHelpers.tableCounts());
+      })
+    );
+    r.post(
+      '/api/test/login-code-expire',
+      wrap(async (req, res) => {
+        await accountTestHelpers.expireCode(testEmail(req));
+        res.json({ success: true });
+      })
+    );
+    r.post(
+      '/api/test/account-session-expire',
+      wrap(async (req, res) => {
+        await accountTestHelpers.expireSessions(testEmail(req));
+        res.json({ success: true });
+      })
+    );
+    // Reads the global account email counter; { cap } also sets the cap (null restores the default).
+    r.post(
+      '/api/test/account-email-cap',
+      wrap(async (req, res) => {
+        const { cap } = bodyOf(req);
+        if (cap !== undefined && cap !== null && (!Number.isInteger(cap) || (cap as number) < 0)) throw bad('cap must be a whole number or null.');
+        res.json(await accountTestHelpers.setEmailCap(cap as number | null | undefined));
+      })
+    );
+    // Expired rows, for the bounded-purge test.
+    r.post(
+      '/api/test/account-seed-expired',
+      wrap(async (req, res) => {
+        const count = Number(bodyOf(req).count);
+        if (!Number.isInteger(count) || count < 1 || count > 500) throw bad('count must be 1-500.');
+        await accountTestHelpers.seedExpired(count);
+        res.json({ success: true });
+      })
+    );
+    r.post('/api/test/offer-daily-limit', (req, res) => {
+      const { limit } = bodyOf(req);
+      if (limit !== null && (!Number.isInteger(limit) || (limit as number) < 0)) throw bad('limit must be a whole number or null.');
+      setOfferDailyLimitForTests(limit as number | null);
+      res.json({ success: true });
+    });
+    // One recipient left as if a send was cut off mid-call.
+    r.post(
+      '/api/test/offer-interrupt',
+      wrap(async (req, res) => {
+        const { offerId } = bodyOf(req);
+        if (typeof offerId !== 'string' || !UUID_RE.test(offerId)) throw bad('offerId is required.');
+        await interruptOneRecipientForTests(offerId);
         res.json({ success: true });
       })
     );

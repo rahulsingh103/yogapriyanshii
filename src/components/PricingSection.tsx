@@ -19,8 +19,8 @@ interface PricingSectionProps {
 const PLANS: ReadonlyArray<{ key: PlanKey; name: string; line: string; price: string }> = [
   { key: 'free', name: 'Trial class', line: 'Any style, one per person', price: 'AED 90' },
   { key: 'single', name: 'Single class', line: 'One drop-in, no expiry', price: 'AED 300' },
-  { key: 'pack10', name: '10-class pack', line: 'AED 280 a class · 3 months', price: 'AED 2,800' },
-  { key: 'pack20', name: '20-class pack', line: 'AED 260 a class · 6 months · Includes a private session', price: 'AED 5,200' },
+  { key: 'pack10', name: '10-class pack', line: 'AED 280 a class · 45 days', price: 'AED 2,800' },
+  { key: 'pack20', name: '20-class pack', line: 'AED 260 a class · 75 days · Includes a private session', price: 'AED 5,200' },
 ];
 
 /**
@@ -31,7 +31,7 @@ const PLANS: ReadonlyArray<{ key: PlanKey; name: string; line: string; price: st
 export function PricingSection({ onOpenBooking, onJoinMembership }: PricingSectionProps) {
   return (
     <section id="pricing" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         <h2 className="font-display font-normal text-h2 text-ink">Pricing</h2>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <ul className="border-t border-line">
@@ -94,7 +94,7 @@ export function PricingSection({ onOpenBooking, onJoinMembership }: PricingSecti
         </div>
         <p className="text-sm leading-[1.5] text-ink-soft">
           Pay in person at your session, or online with the details Priyanshi sends after you book. Free
-          cancellation up to 6 hours before class.
+          cancellation up to 24 hours before class.
         </p>
       </Reveal>
     </section>

@@ -4,7 +4,7 @@ const FEATURE = 'booking';
 
 async function openBooking(page: import('@playwright/test').Page) {
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   const modal = bookingModal(page);
   await expect(modal.getByText('Step 1 of 2')).toBeVisible();
   await expect(modal.locator('select option').first()).toBeAttached();

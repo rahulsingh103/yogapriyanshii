@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { ExternalLink, Lock, LogOut, RefreshCw, Save } from 'lucide-react';
 import { Check } from '@/components/animate-ui/icons/check';
 import { cn } from '@/lib/utils';
@@ -7,14 +7,18 @@ import { api } from '../services/api';
 import { AdminStats, ClassSession, ContactMessage, Booking } from '../types';
 import { AdminMembers } from './AdminMembers';
 import { ModalSheet } from './ModalSheet';
+import { PageErrorBoundary } from './PageErrorBoundary';
 
-type AdminTab = 'overview' | 'members';
+const AdminOffers = lazy(() => import('./AdminOffers').then((mod) => ({ default: mod.AdminOffers })));
+
+type AdminTab = 'overview' | 'members' | 'offers';
 /** Panels take focus (tabIndex 0) so keyboard users can move from the tabs into them; the ring shows on keyboard only. */
 const PANEL = 'focus:outline-none focus-visible:outline-2 focus-visible:outline-accent-text focus-visible:outline-offset-4 rounded-[16px]';
 
 const TABS: ReadonlyArray<readonly [AdminTab, string]> = [
   ['overview', 'Overview'],
   ['members', 'Members'],
+  ['offers', 'Offers'],
 ];
 
 interface AdminDashboardProps {
@@ -37,7 +41,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [tab, setTab] = useState<AdminTab>('overview');
-  /** Bumped by Refresh so the Members panel fetches its list again too. */
+  /** Bumped by Refresh so the Members and Offers panels fetch their lists again too. */
   const [membersRefresh, setMembersRefresh] = useState(0);
   const tabRefs = useRef<Partial<Record<AdminTab, HTMLButtonElement | null>>>({});
 
@@ -210,7 +214,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 type="button"
                 onClick={() => {
                   loadStats(token);
-                  if (tab === 'members') setMembersRefresh((n) => n + 1);
+                  if (tab !== 'overview') setMembersRefresh((n) => n + 1);
                 }}
                 className="press inline-flex items-center justify-center size-11 rounded-full border border-line text-ink hover:border-ink transition duration-200 ease-spring active:duration-100"
                 title="Refresh"
@@ -228,7 +232,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
           <div
             role="tablist"
             aria-label="Dashboard sections"
-            className="inline-flex self-start gap-1 p-1 bg-surface-alt rounded-full"
+            className="inline-flex self-start max-w-full overflow-x-auto gap-1 p-1 bg-surface-alt rounded-full"
           >
             {TABS.map(([key, label]) => (
               <button
@@ -246,7 +250,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
                 onClick={() => setTab(key)}
                 onKeyDown={handleTabKey}
                 className={cn(
-                  'press-soft min-h-11 px-5 rounded-full text-sm font-medium transition duration-200 ease-spring active:duration-100',
+                  'press-soft shrink-0 min-h-11 px-5 rounded-full text-sm font-medium transition duration-200 ease-spring active:duration-100',
                   tab === key ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
                 )}
               >
@@ -255,7 +259,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
             ))}
           </div>
 
-          {tab === 'members' ? (
+          {tab === 'offers' ? (
+            <div role="tabpanel" id="admin-panel-offers" aria-labelledby="admin-tab-offers" tabIndex={0} className={PANEL}>
+              <PageErrorBoundary
+                onError={() => undefined}
+                fallback={
+                  <p role="alert" className={ui.error}>
+                    The Offers tab didn&apos;t load. Please refresh the page and try again.
+                  </p>
+                }
+              >
+                <Suspense fallback={<p role="status" className="text-sm text-ink-soft">Loading offers...</p>}>
+                  <AdminOffers token={token} onUnauthorized={handleLogout} refreshKey={membersRefresh} />
+                </Suspense>
+              </PageErrorBoundary>
+            </div>
+          ) : tab === 'members' ? (
             <div role="tabpanel" id="admin-panel-members" aria-labelledby="admin-tab-members" tabIndex={0} className={PANEL}>
               <AdminMembers token={token} onUnauthorized={handleLogout} refreshKey={membersRefresh} />
             </div>

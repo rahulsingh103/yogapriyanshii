@@ -34,7 +34,7 @@ export const FAQ_ITEMS: ReadonlyArray<FaqItem> = [
     id: 'pricing',
     question: 'How much do classes cost?',
     answer:
-      'The first class is a trial at AED 90, in any style, one per person, linked to your email address. After that, a single class is AED 300 with no expiry. A 10-class pack is AED 2,800 (AED 280 a class), valid for 3 months. A 20-class pack is AED 5,200 (AED 260 a class), valid for 6 months, and includes one private session.',
+      'The first class is a trial at AED 90, in any style, one per person, linked to your email address. After that, a single class is AED 300 with no expiry. A 10-class pack is AED 2,800 (AED 280 a class), valid for 45 days. A 20-class pack is AED 5,200 (AED 260 a class), valid for 75 days, and includes one private session.',
   },
   {
     id: 'private',
@@ -51,6 +51,6 @@ export const FAQ_ITEMS: ReadonlyArray<FaqItem> = [
     id: 'cancel',
     question: 'Can I cancel a booking?',
     answer:
-      'Yes. Cancellation is free up to 6 hours before class: use Manage booking with the booking reference from your confirmation. If you cancel your trial class in time, you can book it for a different session.',
+      'Yes. Cancelling or moving is free up to 24 hours before class: use Manage booking with the booking reference from your confirmation. Later than that but not on the day, you can move it once. On the day of the class, it is charged. The full rules are on the Refund and cancellation page.',
   },
 ];

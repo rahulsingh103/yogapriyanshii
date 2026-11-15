@@ -120,3 +120,31 @@ export interface MembersPage {
   total: number;
   counts: Record<MemberStatus, number>;
 }
+
+/** A student's account (Log in, Sign up). Separate from bookings: nothing here is needed to book. */
+export interface AccountView {
+  email: string;
+  offersOptIn: boolean;
+}
+
+/** One offer email as the admin sees it: counts only, never who it went to. */
+export interface OfferSummary {
+  id: string;
+  subject: string;
+  status: 'sending' | 'done';
+  createdAt: string;
+  finishedAt: string | null;
+  sent: number;
+  failed: number;
+  skipped: number;
+  /** Not sent yet, including any in flight. */
+  remaining: number;
+}
+
+export interface OffersOverview {
+  subscribers: number;
+  current: OfferSummary | null;
+  offers: OfferSummary[];
+  /** The footer every offer email ends with. */
+  footer: string;
+}

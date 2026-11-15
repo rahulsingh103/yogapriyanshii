@@ -262,7 +262,7 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder, onLearnMore
 
   return (
     <section ref={sectionRef} id="classes" className="py-20 lg:py-32 data-[banding]:overflow-x-clip">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         <div className="flex items-end justify-between gap-4">
           <h2 className="font-display font-normal text-h2 text-ink">
             Choose your practice

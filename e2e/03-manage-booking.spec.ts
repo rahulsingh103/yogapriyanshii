@@ -5,10 +5,10 @@ const FEATURE = 'manage-booking';
 const cancelModal = (page: import('@playwright/test').Page) =>
   page.locator('div.fixed.inset-0').filter({ hasText: 'Manage Reservation' });
 
-test('look up and cancel a booking (≥6h notice refunds credit)', async ({ page }, info) => {
+test('look up and cancel a booking (24h+ notice refunds credit)', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   // 7h+ ahead so the cancellation is always the free (refunding) kind, whatever time the suite runs
-  const { body, session } = await apiBook(page.request, { planKey: 'single' }, 7);
+  const { body, session } = await apiBook(page.request, { planKey: 'single' }, 25);
   const token: string = body.booking.bookingToken;
   const spotsAfterBooking = body.session.spotsLeft;
 

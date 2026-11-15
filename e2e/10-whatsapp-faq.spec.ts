@@ -9,6 +9,13 @@ const PREFILL = "Hi Priyanshi, I found you on yogapriyanshi.com and I'd like to 
 
 const chat = (page: Page) => page.getByTestId('whatsapp-chat');
 const chatButton = (page: Page) => page.getByRole('link', { name: 'Chat with Priyanshi on WhatsApp' });
+
+/** The floating WhatsApp button starts after the hero (owner request 2026-11-14): scroll just past it. */
+const pastHero = (page: Page) =>
+  page.evaluate(() => {
+    const h = document.getElementById('home');
+    window.scrollTo(0, (h?.offsetTop ?? 0) + (h?.offsetHeight ?? 0) + 40);
+  });
 // FAQ answers aren't region landmarks; each is found by its id, which the question's aria-controls names.
 const answers = (faq: Locator) => faq.locator('[id^="faq-a-"]');
 const answer = (faq: Locator, id: string) => faq.locator(`#faq-a-${id}`);
@@ -36,8 +43,8 @@ test('FAQ: answers open and close, several at once, none open at first', async (
   await cancel.click();
   await expect(cancel).toHaveAttribute('aria-expanded', 'true');
   const cancelAnswer = answer(faq, 'cancel');
-  await expect(cancelAnswer).toContainText('Cancellation is free up to 6 hours before class');
-  await expect(cancelAnswer).toContainText('If you cancel your trial class in time');
+  await expect(cancelAnswer).toContainText('Cancelling or moving is free up to 24 hours before class');
+  await expect(cancelAnswer).toContainText('On the day of the class, it is charged.');
   await expect(cancel).toHaveAttribute('aria-controls', (await cancelAnswer.getAttribute('id'))!);
 
   // A second one opens alongside the first.
@@ -107,14 +114,16 @@ test('the floating WhatsApp button opens a chat with Priyanshi in one tap', asyn
 
 test('WhatsApp button hides while any modal is open', async ({ page }) => {
   await openHome(page);
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
 
   // Booking
-  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   await expect(bookingModal(page)).toBeVisible();
   await expect(chat(page)).toHaveCount(0);
   await bookingModal(page).getByLabel('Close modal').click();
   await expect(bookingModal(page)).toHaveCount(0);
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
 
   // Cancel (Manage booking), Admin, and Contact
@@ -130,8 +139,8 @@ test('WhatsApp button hides while any modal is open', async ({ page }) => {
     await expect(chat(page)).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(modal).toHaveCount(0);
-    // Back at the top, away from Contact (which hides the button on its own), it returns.
-    await page.evaluate(() => window.scrollTo(0, 0));
+    // Just past the hero, away from Contact (which hides the button on its own), it returns.
+    await pastHero(page);
     await expect(chat(page)).toBeVisible();
   }
 });
@@ -139,6 +148,7 @@ test('WhatsApp button hides while any modal is open', async ({ page }) => {
 test('WhatsApp button hides offline, leaving the offline pill on its own', async ({ page, context }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
+  await pastHero(page);
   await expect(chat(page)).toBeVisible();
   // Let the class finder's idle preload finish, so going offline can't cut it off mid-request.
   await page.waitForLoadState('networkidle');
@@ -169,7 +179,7 @@ test('booking confirmation offers WhatsApp with the class and time, never the to
   const shot = stepShooter(page, FEATURE, info.title);
   const email = uniqueEmail('wa');
   await openHome(page);
-  await page.locator('header').getByRole('button', { name: 'Book Trial Class' }).click();
+  await page.locator('#home').getByRole('button', { name: 'Book a trial class' }).click();
   const modal = bookingModal(page);
   await expect(modal.locator('select option').first()).toBeAttached();
   await modal.getByRole('button', { name: /Continue to Checkout/ }).click();
@@ -218,7 +228,8 @@ test.describe('phone', () => {
     const shot = stepShooter(page, FEATURE, info.title);
     await openHome(page);
     const button = chatButton(page);
-    await expect(button).toBeVisible();
+    // Over the hero the button waits, so it never covers the hero's buttons.
+    await expect(button).toHaveCount(0);
     await shot('hero');
 
     await page.mouse.wheel(0, 1200);
@@ -229,8 +240,9 @@ test.describe('phone', () => {
       const s = (await bar.boundingBox())!;
       return s.y - (b.y + b.height);
     }).toBeGreaterThanOrEqual(8);
+    // It scales in as the hero leaves, so wait for the full size.
+    await expect.poll(async () => (await button.boundingBox())!.width).toBe(56);
     const box = (await button.boundingBox())!;
-    expect(box.width).toBe(56);
     expect(box.x + box.width).toBeLessThanOrEqual(375);
     await shot('sticky-bar');
 
@@ -255,7 +267,7 @@ test.describe('phone', () => {
     await expect(how.getByRole('link', { name: 'Book a free 15-minute call' })).toBeVisible();
     await expect(chat(page)).toHaveCount(0);
     await shot('how-it-works-no-button');
-    await page.evaluate(() => window.scrollTo(0, 0));
+    await pastHero(page);
     await expect(chat(page)).toBeVisible();
 
     // Contact has its own WhatsApp pill, so the floating button steps aside while it's on screen.

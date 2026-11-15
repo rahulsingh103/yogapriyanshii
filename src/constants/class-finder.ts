@@ -33,8 +33,7 @@ export type ClassName =
   | 'Spine Healing'
   | 'Mobility Yoga'
   | 'Yin Yoga'
-  | 'Prenatal & Postnatal'
-  | 'Aerial Yoga';
+  | 'Prenatal & Postnatal';
 
 export interface FinderQuestion {
   key: keyof FinderAnswers;
@@ -86,7 +85,6 @@ export const FINDER_REASONS: Record<ClassName, string> = {
   'Mobility Yoga': 'Gentle movement for your joints and everyday ease.',
   'Yin Yoga': 'Long, quiet holds that give your body time to slow down and let go.',
   'Prenatal & Postnatal': 'Classes for before and after birth, with a teacher trained in prenatal yoga.',
-  'Aerial Yoga': 'One-to-one sessions in the aerial hammock, arranged with Priyanshi on request.',
 };
 
 export const FINDER_FORMAT_NOTES: Record<Format, string> = {
@@ -111,14 +109,9 @@ const GROUP_TABLE: Record<Goal, Record<Experience, Pick>> = {
   unsure: { new: ['Hatha', 'Chakra Flow'], some: ['Hatha', 'Vinyasa'], regular: ['Vinyasa', 'Barre'] },
 };
 
-/** Private answers use the group table except here. Aerial is private sessions only, so it appears nowhere else. */
-const PRIVATE_OVERRIDES: Partial<Record<Goal, Partial<Record<Experience, Pick>>>> = {
-  strength: { some: ['Aerial Yoga', 'Vinyasa'], regular: ['Aerial Yoga', 'Ashtanga'] },
-  flexibility: { some: ['Aerial Yoga', 'Barre'], regular: ['Aerial Yoga', 'Yin Yoga'] },
-};
-
-export function recommend({ goal, experience, format }: FinderAnswers): { main: ClassName; alt: ClassName | null } {
-  const [main, alt] = (format === 'private' && PRIVATE_OVERRIDES[goal]?.[experience]) || GROUP_TABLE[goal][experience];
+/** Every format uses the same table (Aerial was removed 2026-11-14); private answers then ask for a private session. */
+export function recommend({ goal, experience }: FinderAnswers): { main: ClassName; alt: ClassName | null } {
+  const [main, alt] = GROUP_TABLE[goal][experience];
   return { main, alt };
 }
 
@@ -135,9 +128,6 @@ export type FinderChoice =
 /** The primary button: never "Book this class" unless it really opens booking for that class. */
 export function resultAction(name: ClassName, format: Format): { label: string; choice: FinderChoice } {
   const cls = finderClass(name);
-  if (name === 'Aerial Yoga') {
-    return { label: 'Ask about private Aerial', choice: { kind: 'contact', interest: cls.contactInterest ?? 'Private Aerial Yoga' } };
-  }
   if (format === 'private') {
     if (name === 'Prenatal & Postnatal') {
       return { label: 'Ask about this class', choice: { kind: 'contact', interest: 'Prenatal & Postnatal' } };

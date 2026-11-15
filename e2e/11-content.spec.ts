@@ -82,7 +82,7 @@ test('About: credentials paragraph and the four trust numbers', async ({ page },
   ]);
   // The real photo of Priyanshi has loaded.
   const img = about.locator('img');
-  await expect(img).toHaveAttribute('src', /burj-forearm-stand-1/);
+  await expect(img).toHaveAttribute('src', /priyanshi-namaste-arch/);
   await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
   await shot('about');
 });

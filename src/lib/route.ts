@@ -4,6 +4,7 @@
  * and no `import.meta.env`.
  */
 import { PRACTICE_CLASSES } from '../constants/classes';
+import { LEGAL_LINKS, type LegalSlug } from '../constants/legal-links';
 
 export type Route =
   | { kind: 'home' }
@@ -11,6 +12,8 @@ export type Route =
   | { kind: 'guides' }
   | { kind: 'article'; slug: string }
   | { kind: 'draft'; slug: string }
+  | { kind: 'unsubscribe' }
+  | { kind: 'legal'; slug: LegalSlug }
   | { kind: 'notFound' };
 
 export interface RouteOptions {
@@ -28,6 +31,7 @@ const SLUG = /^[a-z0-9-]{1,60}$/;
 export const classPath = (slug: string) => `/classes/${slug}`;
 export const GUIDES_PATH = '/guides';
 export const articlePath = (slug: string) => `${GUIDES_PATH}/${slug}`;
+export const UNSUBSCRIBE_PATH = '/unsubscribe';
 
 /**
  * Resolves a pathname (no query or hash). A trailing slash (or a trailing `/index.html`, the file a
@@ -37,6 +41,9 @@ export const articlePath = (slug: string) => `${GUIDES_PATH}/${slug}`;
 export function resolveRoute(pathname: string, { publishedArticles = [], drafts = false }: RouteOptions = {}): Route {
   if (pathname === '/' || pathname === '/index.html') return { kind: 'home' };
   const path = pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+  if (path === UNSUBSCRIBE_PATH) return { kind: 'unsubscribe' };
+  const legal = LEGAL_LINKS.find((l) => l.path === path);
+  if (legal) return { kind: 'legal', slug: legal.slug };
   if (path === GUIDES_PATH) return publishedArticles.length > 0 ? { kind: 'guides' } : { kind: 'notFound' };
   const [, section, slug, ...rest] = path.split('/');
   if (rest.length > 0 || !slug || !SLUG.test(slug)) return { kind: 'notFound' };

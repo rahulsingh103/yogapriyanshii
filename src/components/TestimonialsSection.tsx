@@ -10,7 +10,7 @@ export function TestimonialsSection() {
   const [trackRef, overflows] = useOverflowsX<HTMLUListElement>();
   return (
     <section id="testimonials" aria-labelledby="testimonials-title" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         <h2 id="testimonials-title" className="font-display font-normal text-h2 text-ink">
           What students say
         </h2>

@@ -18,7 +18,9 @@ import {
 } from '../constants/class-pages';
 import { type Article, type ArticleMeta, type Inline, type ListItem } from './article-md';
 import { DRAFT_META, GUIDES_META, articleMeta } from './article-meta';
-import { HOME_META, NOT_FOUND_META, headTags, type PageMeta } from './page-meta';
+import { HOME_META, NOT_FOUND_META, UNSUBSCRIBE_META, headTags, legalMeta, type PageMeta } from './page-meta';
+import { LEGAL_PAGES, legalPage, type LegalSlug } from '../constants/legal';
+import { LEGAL_CLASSES, legalMenuClass } from './legal-classes';
 import { articlePath, classPath, type Route } from './route';
 
 export const SEO_START = '<!-- seo:start -->';
@@ -52,6 +54,8 @@ export function metaFor(route: Route, { article }: ArticleData = {}): PageMeta {
   if (route.kind === 'guides') return GUIDES_META;
   if (route.kind === 'article' && article) return articleMeta(articlePath(route.slug), article.meta);
   if (route.kind === 'draft') return DRAFT_META;
+  if (route.kind === 'unsubscribe') return UNSUBSCRIBE_META;
+  if (route.kind === 'legal') return legalMeta(legalPage(route.slug));
   return NOT_FOUND_META;
 }
 
@@ -66,7 +70,7 @@ function classBody(slug: string): string | null {
   const p = content.photo;
   const kind = classPageKind(cls);
   return [
-    '<main class="flex-1"><article class="max-w-[1040px] mx-auto px-5 pt-24 pb-24 flex flex-col gap-8">',
+    '<main class="flex-1"><article class="max-w-[1320px] mx-auto px-5 pt-24 pb-24 flex flex-col gap-8">',
     `<p><a href="/#classes" class="${LINK}">All classes</a></p>`,
     `<h1 class="font-display font-normal text-h2 text-ink">${e(cls.name)}</h1>`,
     // Same source, sizes, priority and width cap as ClassPage, so the browser fetches the photo once.
@@ -150,6 +154,40 @@ const NOT_FOUND_BODY = [
   '</section></main>',
 ].join('');
 
+/** What shows until React takes over. The token is read and used only by the page's button. */
+const UNSUBSCRIBE_BODY = [
+  '<main class="flex-1"><section class="max-w-[640px] mx-auto px-5 pt-32 pb-24 flex flex-col gap-6">',
+  '<h1 class="font-display font-normal text-h2 text-ink">Unsubscribe from offers</h1>',
+  '<p class="text-base leading-[1.6] text-ink-soft">This page needs JavaScript to finish. You can also log in and turn offers off in your account.</p>',
+  `<p><a href="/" class="${LINK}">Back to the homepage</a></p>`,
+  '</section></main>',
+].join('');
+
+/** The whole legal page and its menu, so it reads without JavaScript and for search engines. Same classes as LegalPage. */
+const legalBody = (slug: LegalSlug) => {
+  const e = escapeHtml;
+  const page = legalPage(slug);
+  const menu = LEGAL_PAGES.map((p) =>
+    `<li><a href="${p.path}"${p.slug === slug ? ' aria-current="page"' : ''} class="${legalMenuClass(p.slug === slug)}">${e(p.title)}</a></li>`
+  ).join('');
+  const sections = page.sections.map((s) => [
+    `<section class="${LEGAL_CLASSES.section}"><h2 class="${LEGAL_CLASSES.h2}">${e(s.heading)}</h2>`,
+    s.items ? `<ul class="${LEGAL_CLASSES.list}">${s.items.map((i) => `<li>${e(i)}</li>`).join('')}</ul>` : '',
+    ...(s.paragraphs ?? []).map((p) => `<p class="${LEGAL_CLASSES.p}">${e(p)}</p>`),
+    '</section>',
+  ].join('')).join('');
+  return [
+    `<main class="flex-1"><div class="${LEGAL_CLASSES.wrap}">`,
+    `<nav aria-label="Legal pages" class="${LEGAL_CLASSES.nav}"><p class="${LEGAL_CLASSES.navTitle}">Legal</p><ul class="${LEGAL_CLASSES.navList}">${menu}</ul></nav>`,
+    `<article class="${LEGAL_CLASSES.article}">`,
+    `<h1 class="${LEGAL_CLASSES.h1}">${e(page.title)}</h1>`,
+    `<p class="${LEGAL_CLASSES.p}">${e(page.intro)}</p>`,
+    sections,
+    `<p class="${LEGAL_CLASSES.updated}">Last updated ${e(page.updated)}</p>`,
+    '</article></div></main>',
+  ].join('');
+};
+
 export interface ApplyRouteOptions extends ArticleData {
   /** Module URLs to preload (the route's lazy chunk), so React can mount it without a waterfall. */
   preload?: ReadonlyArray<string>;
@@ -178,6 +216,8 @@ export function applyRoute(html: string, route: Route, { preload = [], ...data }
     (route.kind === 'article' && data.article && articleBody(data.article)) ||
     (route.kind === 'guides' && data.guides?.length && guidesBody(data.guides)) ||
     (route.kind === 'draft' && DRAFT_BODY) ||
+    (route.kind === 'unsubscribe' && UNSUBSCRIBE_BODY) ||
+    (route.kind === 'legal' && legalBody(route.slug)) ||
     NOT_FOUND_BODY;
   // Function replacers, so a `$` in the content is never read as a replacement pattern.
   out = out.replace(ROOT, () => `<div id="root">${body}</div>`);

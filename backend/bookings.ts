@@ -17,14 +17,15 @@ import {
   type PaymentMethod,
   type PlanKey,
 } from './validate.js';
+import { FREE_CANCEL_HOURS, PACK_VALID_DAYS, cancelTier } from '../src/constants/cancel-policy.js';
 import { sendBookingAlert, sendBookingConfirmation, sendCancellationAlert, type EmailRecord } from './email.js';
 
 /** Prices are decided here, never by the browser. `free` is the trial class's stored name (see validate.ts). */
-export const PLAN_PRICES: Record<PlanKey, { amountAed: number; credits: number; validMonths: number | null }> = {
-  free: { amountAed: 90, credits: 1, validMonths: null },
-  single: { amountAed: 300, credits: 1, validMonths: null },
-  pack10: { amountAed: 2800, credits: 10, validMonths: 3 },
-  pack20: { amountAed: 5200, credits: 20, validMonths: 6 },
+export const PLAN_PRICES: Record<PlanKey, { amountAed: number; credits: number; validDays: number | null }> = {
+  free: { amountAed: 90, credits: 1, validDays: null },
+  single: { amountAed: 300, credits: 1, validDays: null },
+  pack10: { amountAed: 2800, credits: 10, validDays: PACK_VALID_DAYS.pack10 },
+  pack20: { amountAed: 5200, credits: 20, validDays: PACK_VALID_DAYS.pack20 },
 };
 
 /**
@@ -33,13 +34,40 @@ export const PLAN_PRICES: Record<PlanKey, { amountAed: number; credits: number; 
  */
 const orderPlanKey = (planKey: PlanKey): Exclude<PlanKey, 'free'> => (planKey === 'free' ? 'single' : planKey);
 
-export const FREE_CANCEL_HOURS = 6;
+export { FREE_CANCEL_HOURS };
 const NOT_FOUND = 'No booking found for this reference. Please check the token and try again.';
 
-/** 6 hours' notice or more refunds the credit (and gives the trial class back); less burns it. */
-export function cancellationOutcome(startUtcMs: number, nowMs: number): { creditStatus: 'refunded' | 'burned'; noticeHours: number } {
+export type CancelOutcome = { creditStatus: 'refunded' | 'burned'; noticeHours: number; lateMove: boolean };
+
+/**
+ * The rule in src/constants/cancel-policy.ts. `moveUsed`: this pack (or trial) already had its one late
+ * move, so a second one is charged.
+ */
+export function cancellationOutcome(startUtcMs: number, nowMs: number, moveUsed = false): CancelOutcome {
   const noticeHours = (startUtcMs - nowMs) / (60 * 60 * 1000);
-  return { creditStatus: noticeHours >= FREE_CANCEL_HOURS ? 'refunded' : 'burned', noticeHours };
+  const tier = cancelTier(startUtcMs, nowMs);
+  if (tier === 'free') return { creditStatus: 'refunded', noticeHours, lateMove: false };
+  if (tier === 'move' && !moveUsed) return { creditStatus: 'refunded', noticeHours, lateMove: true };
+  return { creditStatus: 'burned', noticeHours, lateMove: false };
+}
+
+/** An earlier booking from the same pack (or the same person's trial) that was moved late and given back. */
+async function lateMoveUsed(tx: Transaction, row: Row): Promise<boolean> {
+  const pot =
+    String(row.plan_key) === 'free'
+      ? { sql: "b.customer_id = ? AND b.plan_key = 'free'", arg: String(row.customer_id) }
+      : row.order_id
+        ? { sql: 'b.order_id = ?', arg: String(row.order_id) }
+        : null;
+  if (!pot) return false;
+  const rs = await tx.execute({
+    sql:
+      'SELECT COUNT(*) AS n FROM bookings b JOIN sessions s ON s.id = b.session_id ' +
+      `WHERE ${pot.sql} AND b.id <> ? AND b.status = 'cancelled' AND b.credit_status = 'refunded' ` +
+      '  AND (julianday(s.start_utc) - julianday(b.cancelled_at)) * 24 < ?',
+    args: [pot.arg, String(row.id), FREE_CANCEL_HOURS],
+  });
+  return Number(rs.rows[0]?.n ?? 0) > 0;
 }
 
 export type PaymentStatus = 'free' | 'pending' | 'pending_at_studio' | 'paid';
@@ -215,11 +243,7 @@ export async function createBooking(body: Record<string, unknown>): Promise<Crea
     const price = PLAN_PRICES[planKey];
     const orderId = crypto.randomUUID();
     let expiresAt: string | null = null;
-    if (price.validMonths) {
-      const d = new Date(now);
-      d.setUTCMonth(d.getUTCMonth() + price.validMonths);
-      expiresAt = d.toISOString();
-    }
+    if (price.validDays) expiresAt = new Date(now + price.validDays * 24 * 60 * 60 * 1000).toISOString();
     await tx.execute({
       sql:
         'INSERT INTO orders (id, customer_id, plan_key, amount_aed, payment_method, payment_status, credits_total, credits_left, expires_at, created_at) ' +
@@ -313,7 +337,8 @@ export async function cancelBooking(rawToken: unknown): Promise<{
     const start = new Date(String(row.start_utc)).getTime();
     if (start <= now) throw bad('Cannot cancel a session that has already started or taken place.');
 
-    const result = cancellationOutcome(start, now);
+    const tier = cancelTier(start, now);
+    const result = cancellationOutcome(start, now, tier === 'move' && (await lateMoveUsed(tx, row)));
     const upd = await tx.execute({
       sql: "UPDATE bookings SET status = 'cancelled', credit_status = ?, cancelled_at = ? WHERE id = ? AND status = 'confirmed'",
       args: [result.creditStatus, new Date(now).toISOString(), String(row.id)],
@@ -356,19 +381,23 @@ export async function cancelBooking(rawToken: unknown): Promise<{
       planKey: booking.planKey,
       creditStatus: outcome.creditStatus,
       noticeHours: outcome.noticeHours,
+      lateMove: outcome.lateMove,
     },
     settings.notify_email
   );
 
   const isTrial = booking.planKey === 'free';
-  const message =
-    outcome.creditStatus === 'refunded'
+  const message = outcome.lateMove
+    ? isTrial
+      ? 'Your booking has been cancelled. This was your one late move: you can book your AED 90 trial class for another day, if a slot is free.'
+      : 'Your booking has been cancelled. This was your one late move: your class credit is back, so book another day if a slot is free.'
+    : outcome.creditStatus === 'refunded'
       ? isTrial
         ? 'Your booking has been cancelled. You can book your AED 90 trial class for a different session.'
         : 'Your booking has been cancelled and your class credit has been refunded.'
       : isTrial
-        ? 'Late cancellation (less than 6 hours notice): your seat has been released, and your trial class counts as used.'
-        : 'Late cancellation (less than 6 hours notice): your seat has been released, but under studio policy the class credit is used.';
+        ? 'Late cancellation: your seat has been released, and your trial class counts as used (AED 90 is due).'
+        : 'Late cancellation: your seat has been released, and under studio policy the class credit is used.';
 
   return { success: true, booking, noticeHours: outcome.noticeHours, message };
 }
@@ -377,13 +406,13 @@ let legacyWheelBookings = 0;
 
 /**
  * Test-only (APP_ENV=test): a Wheel booking like the ones already on the live database, made directly
- * because the API refuses new ones. The session is 8 to 9 hours ahead, off any timetable slot, so
+ * because the API refuses new ones. The session is 26 to 27 hours ahead, off any timetable slot, so
  * cancelling it always refunds.
  */
 export async function createLegacyWheelBooking(email: string): Promise<{ token: string; sessionId: string }> {
   const now = Date.now();
   legacyWheelBookings += 1;
-  const start = Math.floor(now / 60000) * 60000 + (8 * 60 + (legacyWheelBookings % 60)) * 60000 + 7 * 1000;
+  const start = Math.floor(now / 60000) * 60000 + (26 * 60 + (legacyWheelBookings % 60)) * 60000 + 7 * 1000;
   const id = makeSessionId(RETIRED_CLASS_ID, start);
   const token = newBookingToken();
   const nowIso = new Date(now).toISOString();

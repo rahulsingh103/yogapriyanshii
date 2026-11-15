@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import { test, expect, stepShooter, openHome, bookingModal } from './helpers';
 
 const FEATURE = 'redesign';
@@ -12,10 +14,9 @@ const CLASS_ORDER = [
   'Mobility Yoga',
   'Yin Yoga',
   'Prenatal & Postnatal',
-  'Aerial Yoga',
 ];
 
-test('the carousel has the 10 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
+test('the carousel has the 9 classes in order, labelled arrows and a keyboard-scrollable track', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
   const classes = page.locator('#classes');
@@ -23,7 +24,7 @@ test('the carousel has the 10 classes in order, labelled arrows and a keyboard-s
   await expect(classes.getByRole('heading', { level: 2 })).toHaveText('Choose your practice');
 
   const cards = classes.getByTestId('practice-card');
-  await expect(cards).toHaveCount(10);
+  await expect(cards).toHaveCount(9);
   await expect(cards.locator('h3')).toHaveText(CLASS_ORDER);
   await shot('carousel');
 
@@ -82,18 +83,14 @@ test('the Mobility Yoga card opens the contact pop-up with Mobility Yoga as the 
   await expect(dialog.getByLabel('Area of Interest')).toHaveValue('General enquiry');
 });
 
-test('the Aerial Yoga card (private sessions only) opens the contact pop-up with Private Aerial Yoga', async ({ page }, info) => {
-  const shot = stepShooter(page, FEATURE, info.title);
+test('Aerial Yoga is gone: no card, and its old page is not found', async ({ page }) => {
   await openHome(page);
-  const classes = page.locator('#classes');
-  await classes.scrollIntoViewIfNeeded();
-  const aerial = classes.getByRole('button', { name: /^Aerial Yoga/ });
-  await expect(aerial).toContainText('Private sessions only · on request');
-  await aerial.click();
-  const dialog = page.getByRole('dialog', { name: 'Send a message' });
-  await expect(dialog.getByLabel('Area of Interest')).toHaveValue('Private Aerial Yoga');
-  await expect(bookingModal(page)).toHaveCount(0);
-  await shot('contact-aerial');
+  await expect(page.locator('#classes').getByText(/Aerial/)).toHaveCount(0);
+  const res = await page.request.get('/classes/aerial-yoga');
+  expect(res.status()).toBe(404);
+  // On Vercel, the old address goes to the classes on the homepage.
+  const vercel = JSON.parse(fs.readFileSync(path.resolve('vercel.json'), 'utf8'));
+  expect(vercel.redirects).toContainEqual({ source: '/classes/aerial-yoga', destination: '/#classes', permanent: true });
 });
 
 test('a header nav link lands the section just below the header', async ({ page }, info) => {
@@ -197,14 +194,17 @@ test.describe('mobile menu', () => {
     await expect(toggle).not.toHaveAttribute('aria-controls');
   });
 
-  test('the header logo is inert while the menu is open, and widening past 900px closes the menu', async ({ page }) => {
+  test('the header logo is inert while the menu is open, and widening to 1080px closes the menu', async ({ page }) => {
     await openHome(page);
     await page.getByLabel('Toggle Navigation Menu').click();
     const menu = page.getByRole('dialog', { name: 'Menu' });
     await expect(menu).toBeVisible();
     await expect(page.locator('header a[href="#home"]')).toHaveAttribute('inert', '');
 
-    await page.setViewportSize({ width: 1100, height: 844 });
+    // The overlay lasts up to 1079px, and closes at 1080.
+    await page.setViewportSize({ width: 1079, height: 844 });
+    await expect(menu).toBeVisible();
+    await page.setViewportSize({ width: 1080, height: 844 });
     await expect(menu).toHaveCount(0);
     await expect(page.locator('main')).not.toHaveAttribute('inert');
     await expect(page.locator('header a[href="#home"]')).not.toHaveAttribute('inert');
@@ -217,7 +217,7 @@ test.describe('mobile menu', () => {
 test('Escape closes the booking sheet and returns focus to the button that opened it', async ({ page }, info) => {
   const shot = stepShooter(page, FEATURE, info.title);
   await openHome(page);
-  const opener = page.locator('header').getByRole('button', { name: 'Book trial class' });
+  const opener = page.locator('#home').getByRole('button', { name: 'Book a trial class' });
   await opener.click();
   const dialog = page.getByRole('dialog', { name: 'Select practice' });
   await expect(dialog).toBeVisible();

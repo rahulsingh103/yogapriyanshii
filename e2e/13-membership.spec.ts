@@ -513,7 +513,7 @@ test('the admin Members tab moves a request along, shows the start date and repo
   await expect(overview).toBeFocused();
   await expect(admin.getByText('Total Revenue')).toBeVisible();
   await page.keyboard.press('End');
-  await expect(members).toBeFocused();
+  await expect(tabs.getByRole('tab', { name: 'Offers' })).toBeFocused();
   await page.keyboard.press('Home');
   await expect(overview).toHaveAttribute('aria-selected', 'true');
   await members.click();

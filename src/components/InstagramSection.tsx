@@ -7,11 +7,11 @@ import { Reveal } from './Reveal';
 
 /** Real photos of Priyanshi at the Burj Khalifa park (449px tiles until the photo shoot). */
 const PHOTOS: ReadonlyArray<{ slug: string; width: number; height: number; alt: string }> = [
-  { slug: 'flying-split', width: 449, height: 525, alt: 'Priyanshi in a flying split arm balance on the lawn below the Burj Khalifa' },
-  { slug: 'forearm-split', width: 443, height: 525, alt: 'Priyanshi in a forearm stand with her legs split, the Burj Khalifa behind her' },
-  { slug: 'king-pigeon', width: 443, height: 530, alt: 'Priyanshi in a king pigeon backbend on a mat in a Dubai park' },
-  { slug: 'plow-variation', width: 449, height: 529, alt: 'Priyanshi in a shoulder stand variation with one leg raised, in a Dubai park' },
-  { slug: 'seated-backbend', width: 443, height: 529, alt: 'Priyanshi in a seated backbend holding her raised foot, the Burj Khalifa behind her' },
+  { slug: 'dancer-pose', width: 480, height: 600, alt: 'Priyanshi in dancer pose by the waterfront rail, one hand on a yoga wheel' },
+  { slug: 'reverse-prayer', width: 480, height: 600, alt: 'Priyanshi from behind with her hands in prayer behind her back, the Dubai skyline in the haze' },
+  { slug: 'seated-side-stretch', width: 480, height: 600, alt: 'Priyanshi smiling in a seated stretch on a mat, holding one raised foot' },
+  { slug: 'sunrise-backbend', width: 480, height: 600, alt: 'Priyanshi in a low lunge backbend at sunrise, the Dubai skyline behind her' },
+  { slug: 'lifted-leg-backbend', width: 480, height: 600, alt: 'Priyanshi in a full backbend on a mat, one leg lifted high' },
 ];
 
 /**
@@ -22,7 +22,7 @@ export function InstagramSection() {
   const [trackRef, overflows] = useOverflowsX<HTMLUListElement>();
   return (
     <section id="instagram" aria-labelledby="instagram-title" className="py-20 lg:py-32">
-      <Reveal className="max-w-[1040px] mx-auto px-5 flex flex-col gap-6">
+      <Reveal className="max-w-[1320px] mx-auto px-5 flex flex-col gap-6">
         <h2 id="instagram-title" className="font-display font-normal text-h2 text-ink">
           See Priyanshi in action
         </h2>
