@@ -384,7 +384,7 @@ test.describe('404', () => {
       expect(h1(html)).toBe('Page not found');
       expect(html).not.toContain('faq-jsonld');
     }
-    for (const p of ['/guides', '/guides/x', '/drafts/x', '/__drafts/x', '/nope']) {
+    for (const p of ['/guides/x', '/drafts/x', '/__drafts/x', '/nope']) {
       expect((await request.get(p)).status(), p).toBe(404);
     }
 
@@ -392,7 +392,8 @@ test.describe('404', () => {
     await settled(page);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
     await expect(page).toHaveTitle('Page not found · YogaPriyanshi');
-    await expect(page.locator('footer')).not.toContainText(/guides/i);
+    // Guides are published (2026-11-15): the footer links to them.
+    await expect(page.locator('footer').getByRole('link', { name: 'Guides' })).toBeVisible();
     await page.getByRole('link', { name: 'Back to the homepage' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Connect/);
@@ -660,7 +661,7 @@ test.describe('articles (hidden)', () => {
     await page.unroute('**/__test/article.md');
 
     // Draft previews are off in this server (no SHOW_DRAFTS): the routes stay 404s.
-    for (const p of ['/drafts/first-yoga-class', '/__drafts/first-yoga-class', '/guides/first-yoga-class']) {
+    for (const p of ['/drafts/first-yoga-class', '/__drafts/first-yoga-class']) {
       expect((await request.get(p)).status(), p).toBe(404);
     }
   });
@@ -701,8 +702,13 @@ test('drafts lint: length, sources, links and wording', () => {
       article = null;
     }
     expect(article !== null, `${f}: parses`).toBe(true);
-    expect(article!.meta.status === 'draft', `${f}: status is draft`).toBe(true);
-    expect(article!.meta.reviewedBy === '', `${f}: reviewedBy is empty`).toBe(true);
+    // A published draft keeps its copy here, with the approval recorded and every source checked.
+    const published = article!.meta.status === 'published';
+    if (published) expect(article!.meta.reviewedBy !== '', `${f}: reviewedBy is set`).toBe(true);
+    else {
+      expect(article!.meta.status === 'draft', `${f}: status is draft`).toBe(true);
+      expect(article!.meta.reviewedBy === '', `${f}: reviewedBy is empty`).toBe(true);
+    }
     const { body } = splitFrontMatter(md);
     // Like `wc -w` on everything under the front matter.
     const words = body.split(/\s+/).filter(Boolean).length;
@@ -713,9 +719,14 @@ test('drafts lint: length, sources, links and wording', () => {
     const items = sources.split('\n').filter((l) => l.startsWith('- '));
     expect(items.length >= 2, `${f}: ${items.length} sources`).toBe(true);
     for (const [i, item] of items.entries()) {
-      expect(item.includes('(link to verify)'), `${f}: source ${i + 1} is marked "(link to verify)"`).toBe(true);
       const hrefs = [...item.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]);
-      expect(hrefs.length > 0 || item.includes('URL to confirm'), `${f}: source ${i + 1} has a link or "URL to confirm"`).toBe(true);
+      if (published) {
+        expect(/link to verify|URL to confirm/.test(item), `${f}: source ${i + 1} is checked`).toBe(false);
+        expect(hrefs.length > 0, `${f}: source ${i + 1} has a link`).toBe(true);
+      } else {
+        expect(item.includes('(link to verify)'), `${f}: source ${i + 1} is marked "(link to verify)"`).toBe(true);
+        expect(hrefs.length > 0 || item.includes('URL to confirm'), `${f}: source ${i + 1} has a link or "URL to confirm"`).toBe(true);
+      }
     }
     // Every link anywhere is https; never a DOI (none may be invented).
     const allHrefs = [...md.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1]);
@@ -775,6 +786,8 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
     if (fs.existsSync(realDrafts)) {
       for (const f of fs.readdirSync(realDrafts).filter((n) => n.endsWith('.md'))) {
         const { meta, blocks } = parseArticle(fs.readFileSync(path.join(realDrafts, f), 'utf-8'));
+        // A published guide is meant to be in the build; only unpublished drafts must stay out.
+        if (meta.status === 'published' && fs.existsSync(path.join('src', 'content', 'articles', f))) continue;
         const first = blocks.find((b) => b.kind === 'paragraph');
         secrets.push([`${f} title`, meta.title], [`${f} description`, meta.description]);
         if (first?.kind === 'paragraph') secrets.push([`${f} first paragraph`, first.inlines.map((i) => i.text).join('').slice(0, 80)]);
@@ -787,8 +800,9 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
       // Labels only in the message, so a failure never prints draft text.
       for (const [label, s] of secrets) expect(text.includes(s), `${label} in ${path.relative(out, f)}`).toBe(false);
     }
-    // No guides are published, so none are built, and the preview component has no chunk.
-    expect(fs.existsSync(path.join(out, 'guides'))).toBe(false);
+    // Exactly the published guides are built (plus the index), and the preview component has no chunk.
+    const guides = readPublishedArticles(path.join('src', 'content', 'articles')).map((a) => a.slug).sort();
+    expect(fs.readdirSync(path.join(out, 'guides')).filter((n) => n !== 'index.html').sort()).toEqual(guides);
     expect(fs.readdirSync(path.join(out, 'assets')).some((n) => /^DraftPreview/.test(n))).toBe(false);
 
     for (const cls of PRACTICE_CLASSES) {
@@ -817,8 +831,13 @@ test('build guarantees: pages, 404, sitemap, no draft text, home size and code s
 
     const sitemap = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf-8');
     const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    expect(locs).toEqual([`${SITE}/`, ...PRACTICE_CLASSES.map((c) => `${SITE}/classes/${c.slug}`), ...LEGAL_PAGES.map((p) => `${SITE}${p.path}`)]);
-    expect(sitemap).not.toContain('/guides');
+    expect(locs).toEqual([
+      `${SITE}/`,
+      ...PRACTICE_CLASSES.map((c) => `${SITE}/classes/${c.slug}`),
+      ...LEGAL_PAGES.map((p) => `${SITE}${p.path}`),
+      `${SITE}/guides`,
+      ...guides.map((g) => `${SITE}/guides/${g}`),
+    ]);
     const robots = fs.readFileSync(path.join(out, 'robots.txt'), 'utf-8');
     expect(robots).toContain(`Sitemap: ${SITE}/sitemap.xml`);
     expect(robots).toContain('Disallow: /api/');

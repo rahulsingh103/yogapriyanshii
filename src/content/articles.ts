@@ -1,7 +1,7 @@
 /**
  * The published articles ("Guides"). Each one is a Markdown file in ./articles/ (format: src/lib/article-md.ts),
  * added only after Priyanshi has approved it in writing (content-drafts/README.md in the workspace has the
- * steps). The folder holds only .gitkeep today, so nothing is public and the footer shows no Guides link.
+ * steps). Four guides are published (2026-11-15, approved by Priyanshi), so the footer shows the Guides link.
  *
  * Lazy: only the slugs are in the homepage bundle; each article's text is its own chunk, loaded by
  * ArticlePage or GuidesIndex. Drafts are never here: they stay outside the repo.

@@ -166,7 +166,7 @@ All components have default, hover, focus-visible, active and disabled states. F
 - Focus: in-app navigation scrolls to the top and focuses the h1; a direct load moves no focus. Back to home restores the carousel at the card used and focuses its "Learn more".
 - Without JavaScript the prerendered HTML shows the same content (no buttons and no WhatsApp link).
 
-### Article page (`/guides/<slug>`, Batch 4b; hidden until an article is published)
+### Article page (`/guides/<slug>`, Batch 4b; live since 2026-11-15)
 - One guide per page in the same shell. A narrow reading column: container 680px, `px-5 pt-24 pb-24 lg:pt-32 lg:pb-32`, `gap-8`.
 - Order: the back link "All guides" (the class page's back-link style), the h1 title (Italiana `text-h2`, `tabIndex={-1}`, the same quiet focus underline), the description as a 16px `ink` lede, then the body under a hairline (`pt-8 border-t border-line`, `gap-6`): `h2` in `text-h4`, paragraphs in 16px `ink-soft` at leading 1.6, bullets with the 6px `accent` dots. A bullet can start with a short label ("Label:" or `**Label.**` in the Markdown): the label is `font-medium text-ink`, the rest `ink-soft`. Article text uses the FAQ's 64ch measure (long-form reading), not the 46ch body measure.
 - Sources (the `## Sources` section): its heading one step down, in the eyebrow style (12px uppercase `ink-soft`, `tracking-[0.14em]`), and the list in `text-sm leading-[1.5] text-ink-soft` with no accent dots and no labels.
