@@ -33,6 +33,7 @@ All of these are read only by `backend/config.ts`. On Vercel, set them for **Pro
 | `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` | Database (production, and `npm run db:migrate:live`) |
 | `RESEND_API_KEY` | Sending email (production) |
 | `EMAIL_FROM` | The sender address. Default `Priyanshi · YogaPriyanshi <priyanshi@yogapriyanshi.com>`; it must be on the Resend-verified domain. |
+| `EMAIL_FROM_OFFERS` | The sender for offer emails only. Default `Priyanshi · YogaPriyanshi <offers@news.yogapriyanshi.com>`, on its own Resend-verified subdomain (2026-11-15), so spam marks on offers never affect booking and login emails. |
 | `ADMIN_PASSWORD_HASH` | Admin login: `scrypt$<salt>$<hash>` from `npm run -s hash-password` (reads the password from stdin). Admin sign-in answers 503 until it's set. |
 | `ACCOUNT_SECRET` | Keys the login-code and rate-limit hashes. Production only, at least 32 characters (use 32 random bytes as hex); a value under 32 characters counts as not set, and account routes answer a friendly 503 until it's set. Development and test use a random value per boot. |
 | `APP_ENV` | `test` only, for Playwright. It forces a local `file:` database and captured email, and it is refused on Vercel. |

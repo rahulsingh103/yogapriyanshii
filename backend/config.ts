@@ -20,6 +20,8 @@ export interface AppConfig {
   db: DbTarget;
   email: EmailTransport;
   emailFrom: string;
+  /** Offer emails send from their own subdomain, so a spam mark on an offer never touches booking mail. */
+  offersFrom: string;
   adminPasswordHash: string | null;
   testRoutes: boolean;
   /** Keys the login-code and rate-limit HMACs. Null only in production without ACCOUNT_SECRET: accounts answer 503. */
@@ -31,6 +33,8 @@ export interface AppConfig {
 }
 
 const DEFAULT_EMAIL_FROM = 'Priyanshi · YogaPriyanshi <priyanshi@yogapriyanshi.com>';
+/** news.yogapriyanshi.com is verified in Resend on its own (2026-11-15). */
+const DEFAULT_OFFERS_FROM = 'Priyanshi · YogaPriyanshi <offers@news.yogapriyanshi.com>';
 const DEFAULT_TEST_DB = 'file:.data/e2e.db';
 const DEFAULT_DEV_DB = 'file:.data/dev.db';
 /** Equal to SITE_URL in src/lib/page-meta.ts (spec 16 checks it; backend/ never imports from src/). */
@@ -71,6 +75,7 @@ export function getConfig(): AppConfig {
   const mode = resolveMode();
   const onVercel = Boolean(env('VERCEL'));
   const emailFrom = env('EMAIL_FROM') ?? DEFAULT_EMAIL_FROM;
+  const offersFrom = env('EMAIL_FROM_OFFERS') ?? DEFAULT_OFFERS_FROM;
   const adminPasswordHash = env('ADMIN_PASSWORD_HASH') ?? null;
 
   if (mode === 'test') {
@@ -84,6 +89,7 @@ export function getConfig(): AppConfig {
       db: { kind: 'file', url },
       email: { kind: 'outbox' },
       emailFrom,
+      offersFrom,
       adminPasswordHash,
       testRoutes: true,
       // Per boot: codes and limits don't outlive this server, and test mode wipes the database anyway.
@@ -105,6 +111,7 @@ export function getConfig(): AppConfig {
       db: useTurso ? remoteDb() : local.startsWith('file:') ? { kind: 'file', url: local } : { kind: 'none', reason: 'LOCAL_DB_URL must be a file: URL' },
       email: env('EMAIL_TRANSPORT') === 'resend' && resendKey ? { kind: 'resend', apiKey: resendKey } : { kind: 'log' },
       emailFrom,
+      offersFrom,
       adminPasswordHash,
       testRoutes: false,
       accountSecret: accountSecretFrom(env('ACCOUNT_SECRET')) ?? crypto.randomBytes(32).toString('hex'),
@@ -123,6 +130,7 @@ export function getConfig(): AppConfig {
     db: isPreview ? { kind: 'none', reason: 'preview deployments have no database' } : remoteDb(),
     email: !isPreview && resendKey ? { kind: 'resend', apiKey: resendKey } : { kind: 'none' },
     emailFrom,
+    offersFrom,
     adminPasswordHash: isPreview ? null : adminPasswordHash,
     testRoutes: false,
     accountSecret: isPreview ? null : accountSecretFrom(env('ACCOUNT_SECRET')),

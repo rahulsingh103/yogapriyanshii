@@ -143,6 +143,8 @@ test('opted-in accounts get it exactly once, even with concurrent batches: token
     expect(t).toMatch(/^[0-9a-f]{64}$/);
     tokens.add(t);
     expect(mail.subject).toBe('Holiday offer');
+    // Offers send from their own subdomain; booking mail stays on the main domain (spec 07).
+    expect(mail.sender).toContain('<offers@news.yogapriyanshi.com>');
     expect(mail.body.startsWith('Two classes for the holidays.\n')).toBe(true);
     expect(mail.body).toContain(`${site}/unsubscribe?token=${t}`);
     expect(mail.headers).toEqual({

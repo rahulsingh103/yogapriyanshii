@@ -30,7 +30,7 @@ Browser (React SPA) ──fetch /api/*──► backend/ createApp() (Express) �
 | Frontend | React 19, Vite 8, Tailwind CSS 4, `motion`, `lucide-react` |
 | Backend | Node 22, Express 4, TypeScript (run with `tsx`) |
 | Database | Turso (libSQL/SQLite), database `yogapriyanshi-live`, via `@libsql/client/web` (HTTP, no native code). Local files use `@libsql/client`. |
-| Email | Resend, plain text, sending as `EMAIL_FROM` (default `Priyanshi · YogaPriyanshi <priyanshi@yogapriyanshi.com>`) |
+| Email | Resend, plain text, sending as `EMAIL_FROM` (default `Priyanshi · YogaPriyanshi <priyanshi@yogapriyanshi.com>`). Offer emails send as `EMAIL_FROM_OFFERS` (default `offers@news.yogapriyanshi.com`), a separately verified subdomain that keeps marketing mail's reputation apart from booking mail |
 | Auth | Admin only: one password, checked against the scrypt hash in `ADMIN_PASSWORD_HASH`, then a random session token (2 h) stored server-side as SHA-256. A booking token (`YP-` + 16 characters) authorises lookup and cancel. Students can have an optional account: a 6-digit email code, then a 30-day session cookie ([SECURITY.md](SECURITY.md) rule 16). Booking never needs one. |
 | Hosting | Vercel (project `yogapriyanshii`), with `main` as the live branch. DNS on Cloudflare. |
 | Tests | Playwright (`e2e/`) |

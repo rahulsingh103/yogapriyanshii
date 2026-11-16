@@ -83,13 +83,14 @@ function recordType(kind: EmailKind): EmailRecord['type'] {
 }
 
 async function deliver(draft: Draft): Promise<EmailRecord | null> {
-  const { email, emailFrom } = getConfig();
+  const { email, emailFrom, offersFrom } = getConfig();
+  const from = draft.kind === 'offer' ? offersFrom : emailFrom;
   const record: EmailRecord = {
     id: `email-${crypto.randomUUID()}`,
     kind: draft.kind,
     type: recordType(draft.kind),
     recipient: draft.to,
-    sender: emailFrom,
+    sender: from,
     replyTo: draft.replyTo || undefined,
     subject: draft.subject,
     body: draft.body,
@@ -113,7 +114,7 @@ async function deliver(draft: Draft): Promise<EmailRecord | null> {
         const client = new Resend(email.apiKey);
         const { error } = await withTimeout(
           client.emails.send({
-            from: emailFrom,
+            from,
             to: draft.to,
             subject: draft.subject,
             text: draft.body,
