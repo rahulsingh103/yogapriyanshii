@@ -351,15 +351,15 @@ export function PracticeCarousel({ onSelectClass, onOpenClassFinder, onLearnMore
             <a
               href={classPath(practice.slug)}
               draggable={false}
-              aria-label={`Learn more about ${practice.name}`}
               onClick={(e) => {
                 if (!isPlainClick(e)) return; // a new tab or window keeps the browser's own behaviour
                 e.preventDefault();
                 onLearnMore(practice);
               }}
-              className="self-start inline-flex items-center min-h-11 px-4 text-sm font-semibold text-ink underline underline-offset-4 decoration-line-strong hover:decoration-ink transition-colors duration-200 focus-visible:outline-offset-[-3px] [@media(pointer:fine)]:cursor-pointer"
+              className="relative self-start inline-flex items-center min-h-11 px-4 text-sm font-semibold text-ink underline underline-offset-4 decoration-line-strong hover:decoration-ink transition-colors duration-200 focus-visible:outline-offset-[-3px] [@media(pointer:fine)]:cursor-pointer"
             >
-              Learn more
+              {/* The class name is in the text (hidden), not only an aria-label, so search engines read a descriptive link. */}
+              Learn more<span className="sr-only"> about {practice.name}</span>
             </a>
             </div>
           ))}

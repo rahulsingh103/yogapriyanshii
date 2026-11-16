@@ -261,6 +261,7 @@ Login screen (email + password). After login, one page showing:
 - **Performance:** pages interactive in < 3s on mobile 4G; schedule loads in < 1s after page load.
 - **Accessibility:** readable contrast, keyboard-usable forms, labelled inputs, sensible alt text.
 - **SEO:** proper title/meta, shareable preview image; admin pages `noindex`.
+- **Hidden from search (owner decision 2026-11-15, until Priyanshi's visa arrives):** `vercel.json` sends `X-Robots-Tag: noindex, nofollow` on every path, so Google and Bing drop the site while it stays online for anyone with the link. robots.txt stays open on purpose (a crawler must read the pages to see the noindex). To undo: delete the `headers` block in `vercel.json`, deploy, then resubmit the sitemap in Search Console and Bing.
 - **Deployability:** one deployable unit (site + API + admin), runs on a free/cheap host, persistent database.
 - **Error UX:** every failure (network, full class, duplicate, invalid input) shows a human-readable message, never a blank screen or raw error.
 
